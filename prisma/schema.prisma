@@ -1,0 +1,54 @@
+// Prisma Schema für PostgreSQL
+// Finanz-Tracking System mit Kategorien und Transaktionen
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enum für Kategorie-Typen
+enum CategoryType {
+  income
+  expense
+}
+
+// Kategorie-Modell
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  type         CategoryType
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Unique Constraint: Kombination aus name und type muss einzigartig sein
+  @@unique([name, type])
+  @@map("categories")
+}
+
+// Transaktions-Modell
+model Transaction {
+  id            String    @id @default(cuid())
+  date          DateTime
+  amount        Decimal   @db.Decimal(12, 2)
+  note          String?
+  counterparty  String?
+  categoryId    String
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Vorstreckung-Felder
+  isAdvanced    Boolean   @default(false)  // Wurde vorgestreckt?
+  advancedBy    String?                     // Von wem vorgestreckt?
+  isSettled     Boolean   @default(false)   // Wurde ausgeglichen?
+  settledAt     DateTime?                   // Wann ausgeglichen?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("transactions")
+}
