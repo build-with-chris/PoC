@@ -1,5 +1,6 @@
 'use client'
 import { useActionState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createTransaction, type TransactionFormState } from '../actions/transactions'
 import type { Category } from '@prisma/client'
 
@@ -8,14 +9,17 @@ const initialState: TransactionFormState = {}
 export default function TransactionForm({ categories }: { categories: Category[] }) {
   const [state, formAction, isPending] = useActionState(createTransaction, initialState)
   const formRef = useRef<HTMLFormElement>(null)
+  const router = useRouter()
   const incomeCategories = categories.filter((cat) => cat.type === 'income')
   const expenseCategories = categories.filter((cat) => cat.type === 'expense')
 
   useEffect(() => {
     if (state.success && formRef.current) {
       formRef.current.reset()
+      // Force router refresh to reload data
+      router.refresh()
     }
-  }, [state.success])
+  }, [state.success, router])
 
   return (
     <div className="w-full max-w-2xl mx-auto">

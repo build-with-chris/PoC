@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
 // Zod-Schema für Transaktions-Validierung
@@ -15,10 +16,10 @@ const transactionSchema = z.object({
       'Betrag muss eine positive Zahl sein'
     ),
   categoryId: z.string().min(1, 'Kategorie ist erforderlich'),
-  counterparty: z.string().optional(),
-  note: z.string().optional(),
-  isAdvanced: z.string().optional(),
-  advancedBy: z.string().optional(),
+  counterparty: z.string().optional().nullable(),
+  note: z.string().optional().nullable(),
+  isAdvanced: z.string().optional().nullable(),
+  advancedBy: z.string().optional().nullable(),
 })
 
 export type TransactionFormState = {
@@ -38,6 +39,8 @@ export async function createTransaction(
   prevState: TransactionFormState,
   formData: FormData
 ): Promise<TransactionFormState> {
+  console.log('=== CREATE TRANSACTION START ===')
+
   // FormData extrahieren
   const data = {
     date: formData.get('date') as string,
@@ -49,10 +52,13 @@ export async function createTransaction(
     advancedBy: formData.get('advancedBy') as string,
   }
 
+  console.log('FormData:', data)
+
   // Validierung mit Zod
   const validationResult = transactionSchema.safeParse(data)
 
   if (!validationResult.success) {
+    console.log('Validation failed:', validationResult.error.flatten().fieldErrors)
     return {
       success: false,
       errors: validationResult.error.flatten().fieldErrors,
@@ -61,9 +67,11 @@ export async function createTransaction(
 
   const { date, amount, categoryId, counterparty, note, isAdvanced, advancedBy } = validationResult.data
 
+  console.log('Validated data:', { date, amount, categoryId, counterparty, note, isAdvanced, advancedBy })
+
   try {
     // Transaktion in Datenbank speichern
-    await prisma.transaction.create({
+    const transaction = await prisma.transaction.create({
       data: {
         date: new Date(date),
         amount: parseFloat(amount),
@@ -75,8 +83,11 @@ export async function createTransaction(
       },
     })
 
-    // Cache revalidieren
-    revalidatePath('/')
+    console.log('Transaction created:', transaction.id)
+
+    // Cache revalidieren und redirecten
+    revalidatePath('/', 'page')
+    console.log('Path revalidated')
 
     return {
       success: true,
