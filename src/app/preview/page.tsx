@@ -52,7 +52,8 @@ type SliderValues = {
   gagen: number // monatlich
   marketing: number // monatlich
   technik: number // monatlich
-  heizkosten: number // monatlich
+  heizkosten: number // monatlich (Treibstoff)
+  heizanlageMiete: number // einmalig pro Saison
   sonstigeKosten: number // monatlich
 }
 
@@ -91,11 +92,12 @@ export default function PreviewPage() {
     vermietungen: 3,
     mietpreis: 250,
 
-    miete: 2500,
+    miete: 0,
     gagen: 1500,
     marketing: 300,
     technik: 200,
-    heizkosten: 400,
+    heizkosten: 3500, // Treibstoff pro Monat
+    heizanlageMiete: 5500, // einmalig pro Saison
     sonstigeKosten: 300,
   })
 
@@ -148,8 +150,8 @@ export default function PreviewPage() {
       workshopEinnahmen +
       vermietungEinnahmen
 
-    // Basis-Kosten pro Woche (Fixkosten)
-    const baseCosts = (
+    // Basis-Kosten pro Woche (Fixkosten ohne Heizanlage-Miete)
+    const baseCostsWithoutHeating = (
       sliders.miete +
       sliders.gagen +
       sliders.marketing +
@@ -157,6 +159,13 @@ export default function PreviewPage() {
       sliders.heizkosten +
       sliders.sonstigeKosten
     ) / 4.33
+
+    // Heizanlage-Miete: 5.500€ verteilt bis KW 5 2026 (31. Januar 2026)
+    // KW 44 2025 (aktuell) bis KW 5 2026 (Ende Januar) = ca. 14 Wochen
+    const heizungStartWeek = 44 // KW 44 2025
+    const heizungEndWeek = 5 // KW 5 2026 (plus 52 für Berechnung)
+    const heatingWeeksCount = 14 // Anzahl der Wochen mit Heizkosten
+    const heizanlageMieteProWoche = sliders.heizanlageMiete / heatingWeeksCount
 
     const weeklyData: WeekData[] = weekMultipliers.map((multiplier, index) => {
       const weekNumber = index + 1
@@ -177,9 +186,12 @@ export default function PreviewPage() {
         }
       }
 
+      // Heizanlage-Miete nur für KW 44-52 (2025) und KW 1-5 (2026) addieren
+      const hasHeatingCost = weekNumber >= heizungStartWeek || weekNumber <= heizungEndWeek
+      const weekCosts = baseCostsWithoutHeating + (hasHeatingCost ? heizanlageMieteProWoche : 0)
+
       // Sonst verwende prognostizierte Werte
       const weekRevenue = baseRevenue * multiplier
-      const weekCosts = baseCosts
       return {
         week: weekNumber,
         weekLabel: `KW ${weekNumber}`,
@@ -704,11 +716,11 @@ export default function PreviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Miete: {sliders.miete} €
+                Miete: {sliders.miete} € (derzeit 0 €)
               </label>
               <input
                 type="range"
-                min="500"
+                min="0"
                 max="10000"
                 step="100"
                 value={sliders.miete}
@@ -760,17 +772,34 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Heizkosten: {sliders.heizkosten} €
+                Treibstoff (monatlich): {sliders.heizkosten} €
               </label>
               <input
                 type="range"
                 min="0"
-                max="1000"
-                step="50"
+                max="5000"
+                step="100"
                 value={sliders.heizkosten}
                 onChange={(e) => updateSlider('heizkosten', Number(e.target.value))}
                 className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Heizanlage-Miete (Saison): {sliders.heizanlageMiete} €
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="10000"
+                step="500"
+                value={sliders.heizanlageMiete}
+                onChange={(e) => updateSlider('heizanlageMiete', Number(e.target.value))}
+                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+              />
+              <p className="text-xs text-zinc-500 mt-1">
+                Verteilt auf KW 44-52 (2025) und KW 1-5 (2026): ≈ {(sliders.heizanlageMiete / 14).toFixed(2)} € / Woche
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -790,6 +819,9 @@ export default function PreviewPage() {
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-900 dark:text-red-100">
               <strong>Monatliche Gesamtkosten:</strong> {(sliders.miete + sliders.gagen + sliders.marketing + sliders.technik + sliders.heizkosten + sliders.sonstigeKosten).toFixed(2)} €
+            </p>
+            <p className="text-sm text-red-900 dark:text-red-100 mt-1">
+              <strong>Heizanlage-Miete (einmalig/Saison):</strong> {sliders.heizanlageMiete.toFixed(2)} €
               <span className="ml-4">≈ {baseWeeklyCosts.toFixed(2)} € / Woche</span>
             </p>
           </div>
