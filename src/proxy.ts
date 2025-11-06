@@ -1,6 +1,6 @@
-import createMiddleware from 'next-intl/middleware'
+import createProxy from 'next-intl/middleware'
 
-export default createMiddleware({
+export default createProxy({
   // A list of all locales that are supported
   locales: ['de', 'en'],
 
