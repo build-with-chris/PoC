@@ -29,6 +29,16 @@ export default async function Home() {
     include: { category: true },
   })
 
+  // Convert Prisma objects to plain JavaScript objects for client components
+  const serializedTransactions = recentTransactions.map(t => ({
+    ...t,
+    amount: Number(t.amount),
+    date: t.date.toISOString(),
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+    settledAt: t.settledAt?.toISOString() ?? null,
+  }))
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -38,7 +48,7 @@ export default async function Home() {
         </header>
         <KPICards revenue={revenue} costs={costs} margin={margin} />
         <div className="mb-12"><TransactionForm categories={categories} /></div>
-        <TransactionList transactions={recentTransactions} />
+        <TransactionList transactions={serializedTransactions} />
       </div>
     </div>
   )

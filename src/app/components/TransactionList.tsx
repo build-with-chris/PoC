@@ -2,9 +2,19 @@
 import { useTranslations } from 'next-intl'
 import type { Transaction, Category } from '@prisma/client'
 
+// Serialized version of Transaction for client components (Decimal -> number, Date -> string)
+type SerializedTransaction = Omit<Transaction, 'amount' | 'date' | 'createdAt' | 'updatedAt' | 'settledAt'> & {
+  amount: number
+  date: string
+  createdAt: string
+  updatedAt: string
+  settledAt: string | null
+  category: Category
+}
+
 type TransactionWithCategory = Transaction & { category: Category }
 
-export default function TransactionList({ transactions }: { transactions: TransactionWithCategory[] }) {
+export default function TransactionList({ transactions }: { transactions: SerializedTransaction[] }) {
   const t = useTranslations('dashboard')
   const tTransaction = useTranslations('transaction')
 
