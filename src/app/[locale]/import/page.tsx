@@ -1,11 +1,13 @@
 'use client'
 import { useState } from 'react'
 import Papa from 'papaparse'
-import Navbar from '../components/Navbar'
+import { useTranslations, useLocale } from 'next-intl'
 
 type CSVRow = Record<string, string>
 
 export default function ImportPage() {
+  const t = useTranslations('import')
+  const locale = useLocale()
   const [csvData, setCsvData] = useState<CSVRow[]>([])
   const [headers, setHeaders] = useState<string[]>([])
   const [mapping, setMapping] = useState<Record<string, string>>({})
@@ -27,14 +29,14 @@ export default function ImportPage() {
         }
       },
       error: (error) => {
-        alert('Fehler beim Parsen: ' + error.message)
+        alert(t('error', { message: error.message }))
       },
     })
   }
 
   const handleImport = async () => {
     if (!mapping.date || !mapping.amount || !mapping.categoryId) {
-      alert('Bitte mindestens Datum, Betrag und Kategorie zuordnen')
+      alert(locale === 'de' ? 'Bitte mindestens Datum, Betrag und Kategorie zuordnen' : 'Please map at least Date, Amount and Category')
       return
     }
 
@@ -58,32 +60,30 @@ export default function ImportPage() {
 
       const json = await res.json()
       if (res.ok) {
-        setResult(`Erfolgreich ${json.count} Transaktionen importiert`)
+        setResult(t('success', { count: json.count }))
         setCsvData([])
         setHeaders([])
         setMapping({})
       } else {
-        setResult(`Fehler: ${json.error}`)
+        setResult(t('error', { message: json.error }))
       }
     } catch (err) {
-      setResult('Fehler beim Import')
+      setResult(t('error', { message: locale === 'de' ? 'beim Import' : 'during import' }))
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">CSV Import</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">Lade eine CSV-Datei hoch und ordne die Spalten zu</p>
+            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
           </header>
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <label htmlFor="csvFile" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">CSV-Datei auswählen</label>
+          <label htmlFor="csvFile" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">{t('selectFile')}</label>
           <input
             type="file"
             id="csvFile"
@@ -96,12 +96,12 @@ export default function ImportPage() {
         {headers.length > 0 && (
           <>
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">Spalten zuordnen</h2>
+              <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{t('mapColumns')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {['date', 'amount', 'categoryId', 'counterparty', 'note'].map((field) => (
                   <div key={field}>
                     <label htmlFor={field} className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                      {field === 'date' ? 'Datum *' : field === 'amount' ? 'Betrag *' : field === 'categoryId' ? 'Kategorie-ID *' : field === 'counterparty' ? 'Gegenpartei' : 'Notiz'}
+                      {field === 'date' ? (locale === 'de' ? 'Datum' : 'Date') + ' ' + t('required') : field === 'amount' ? (locale === 'de' ? 'Betrag' : 'Amount') + ' ' + t('required') : field === 'categoryId' ? (locale === 'de' ? 'Kategorie-ID' : 'Category ID') + ' ' + t('required') : field === 'counterparty' ? (locale === 'de' ? 'Gegenpartei' : 'Counterparty') : (locale === 'de' ? 'Notiz' : 'Note')}
                     </label>
                     <select
                       id={field}
@@ -109,7 +109,7 @@ export default function ImportPage() {
                       onChange={(e) => setMapping({ ...mapping, [field]: e.target.value })}
                       className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                     >
-                      <option value="">-- nicht zugeordnet --</option>
+                      <option value="">{t('notMapped')}</option>
                       {headers.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
@@ -120,7 +120,7 @@ export default function ImportPage() {
             </div>
 
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">Vorschau ({csvData.length} Zeilen)</h2>
+              <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{t('preview')} ({csvData.length} {t('rows')})</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -148,18 +148,17 @@ export default function ImportPage() {
               disabled={uploading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:bg-zinc-400 disabled:cursor-not-allowed"
             >
-              {uploading ? 'Importiere...' : 'Importieren'}
+              {uploading ? t('importing') : t('import')}
             </button>
 
             {result && (
-              <div className={`mt-4 p-4 rounded-md ${result.startsWith('Erfolgreich') ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
-                <p className={result.startsWith('Erfolgreich') ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>{result}</p>
+              <div className={`mt-4 p-4 rounded-md ${result.includes(locale === 'de' ? 'Erfolgreich' : 'Successfully') ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                <p className={result.includes(locale === 'de' ? 'Erfolgreich' : 'Successfully') ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>{result}</p>
               </div>
             )}
           </>
         )}
         </div>
       </div>
-    </>
   )
 }

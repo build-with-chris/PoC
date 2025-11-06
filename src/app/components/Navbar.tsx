@@ -2,21 +2,25 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
+import LanguageToggle from './LanguageToggle'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const t = useTranslations('nav')
+  const locale = useLocale()
 
   const links = [
-    { href: '/', label: 'Dashboard', icon: '📊' },
-    { href: '/preview', label: 'Vorschau', icon: '🔮' },
-    { href: '/forecast', label: 'Prognose', icon: '📈' },
-    { href: '/import', label: 'Import', icon: '📥' },
-    { href: '/debts', label: 'Schulden', icon: '💰' },
+    { href: `/${locale}`, label: t('dashboard'), icon: '📊' },
+    { href: `/${locale}/preview`, label: t('preview'), icon: '🔮' },
+    { href: `/${locale}/forecast`, label: t('forecast'), icon: '📈' },
+    { href: `/${locale}/import`, label: t('import'), icon: '📥' },
+    { href: `/${locale}/debts`, label: t('debts'), icon: '💰' },
   ]
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/'
+    if (href === `/${locale}`) return pathname === `/${locale}`
     return pathname.startsWith(href)
   }
 
@@ -26,10 +30,10 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href={`/${locale}`} className="flex items-center gap-2">
               <span className="text-2xl">💼</span>
               <span className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                Finanz-Tracking
+                {t('dashboard')}
               </span>
             </Link>
           </div>
@@ -50,6 +54,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <LanguageToggle />
           </div>
 
           {/* Mobile menu button */}

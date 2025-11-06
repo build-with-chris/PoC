@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
-import Navbar from '../components/Navbar'
+import { getTranslations } from 'next-intl/server'
 
 export default async function DebtsPage() {
+  const t = await getTranslations('debts')
   const advancedTransactions = await prisma.transaction.findMany({
     where: {
       isAdvanced: true,
@@ -27,23 +28,21 @@ export default async function DebtsPage() {
   const totalDebt = advancedTransactions.reduce((sum, t) => sum + Number(t.amount), 0)
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">Schulden-Übersicht</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">Offene vorgestreckte Beträge</p>
+            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
           </header>
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">Gesamt-Schulden</h2>
+          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{t('totalDebt')}</h2>
           <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{totalDebt.toFixed(2)} €</p>
         </div>
 
         {Object.keys(debtsByPerson).length === 0 ? (
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <p className="text-zinc-500 dark:text-zinc-400">Keine offenen Schulden vorhanden.</p>
+            <p className="text-zinc-500 dark:text-zinc-400">{t('noDebts')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -59,10 +58,10 @@ export default async function DebtsPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">Datum</th>
-                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">Kategorie</th>
-                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">Betrag</th>
-                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">Notiz</th>
+                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">{t('date')}</th>
+                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">{t('category')}</th>
+                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">{t('amount')}</th>
+                          <th className="text-left py-2 px-4 text-zinc-700 dark:text-zinc-300">{t('note')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -88,6 +87,5 @@ export default async function DebtsPage() {
         )}
         </div>
       </div>
-    </>
   )
 }

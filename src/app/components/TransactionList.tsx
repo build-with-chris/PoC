@@ -1,23 +1,28 @@
+'use client'
+import { useTranslations } from 'next-intl'
 import type { Transaction, Category } from '@prisma/client'
 
 type TransactionWithCategory = Transaction & { category: Category }
 
 export default function TransactionList({ transactions }: { transactions: TransactionWithCategory[] }) {
+  const t = useTranslations('dashboard')
+  const tTransaction = useTranslations('transaction')
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">Letzte Transaktionen</h2>
+      <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{t('recentTransactions')}</h2>
       {transactions.length === 0 ? (
-        <p className="text-zinc-500 dark:text-zinc-400">Noch keine Transaktionen vorhanden.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">{t('noTransactions')}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">Datum</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">Kategorie</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">Betrag</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">Gegenpartei</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">Notiz</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">{tTransaction('date')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">{tTransaction('category')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">{tTransaction('amount')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">{tTransaction('counterparty')}</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300">{tTransaction('note')}</th>
               </tr>
             </thead>
             <tbody>

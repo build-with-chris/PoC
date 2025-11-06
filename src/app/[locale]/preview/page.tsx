@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts'
-import Navbar from '../components/Navbar'
 
 type WeekData = {
   week: number
@@ -64,6 +64,9 @@ type HistoricalData = {
 }
 
 export default function PreviewPage() {
+  const t = useTranslations('preview')
+  const locale = useLocale()
+
   const [sliders, setSliders] = useState<SliderValues>({
     profitraining: 700,
 
@@ -311,33 +314,31 @@ export default function PreviewPage() {
   }
 
   return (
-    <>
-      <Navbar />
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">Umsatz-Vorschau</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Simuliere deine wöchentlichen Einnahmen und Ausgaben für das gesamte Jahr</p>
+          <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
+          <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
         </header>
 
         {/* Jahres-Übersicht */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Gesamt-Umsatz (Jahr)</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('revenue')} ({locale === 'de' ? 'Jahr' : 'Year'})</h3>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{totalRevenue.toFixed(0)} €</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Gesamt-Kosten (Jahr)</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('costs')} ({locale === 'de' ? 'Jahr' : 'Year'})</h3>
             <p className="text-2xl font-bold text-red-600 dark:text-red-400">{totalCosts.toFixed(0)} €</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Prognose (Rest {52 - currentWeek} Wochen)</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Prognose' : 'Forecast'} ({locale === 'de' ? 'Rest' : 'Remaining'} {52 - currentWeek} {locale === 'de' ? 'Wochen' : 'Weeks'})</h3>
             <p className={`text-2xl font-bold ${(projectedRevenue - projectedCosts) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {(projectedRevenue - projectedCosts).toFixed(0)} €
             </p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Jahresgewinn</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Jahresgewinn' : 'Annual Profit'}</h3>
             <p className={`text-2xl font-bold ${totalMargin >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {totalMargin.toFixed(0)} €
             </p>
@@ -346,15 +347,15 @@ export default function PreviewPage() {
 
         {/* Einnahmen-Regler */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">Einnahmen</h2>
+          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{t('revenue')}</h2>
 
           {/* Fixeinnahmen */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">Fixeinnahmen</h3>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('fixedIncome')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Profitraining (monatlich): {sliders.profitraining} €
+                  {t('profitraining')} ({locale === 'de' ? 'monatlich' : 'monthly'}): {sliders.profitraining} €
                 </label>
                 <input
                   type="range"
@@ -365,18 +366,18 @@ export default function PreviewPage() {
                   onChange={(e) => updateSlider('profitraining', Number(e.target.value))}
                   className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
                 />
-                <p className="text-xs text-zinc-500 mt-1">≈ {(sliders.profitraining / 4.33).toFixed(2)} € pro Woche</p>
+                <p className="text-xs text-zinc-500 mt-1">≈ {(sliders.profitraining / 4.33).toFixed(2)} € {locale === 'de' ? 'pro Woche' : 'per week'}</p>
               </div>
             </div>
           </div>
 
           {/* Tickets */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">Ticketverkauf</h3>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('tickets')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Ticketpreis: {sliders.ticketpreis} €
+                  {t('ticketPrice')}: {sliders.ticketpreis} €
                 </label>
                 <input
                   type="range"
@@ -390,7 +391,7 @@ export default function PreviewPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Tickets pro Woche: {sliders.ticketsProWoche}
+                  {t('ticketsPerWeek')}: {sliders.ticketsProWoche}
                 </label>
                 <input
                   type="range"
@@ -401,22 +402,22 @@ export default function PreviewPage() {
                   onChange={(e) => updateSlider('ticketsProWoche', Number(e.target.value))}
                   className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
                 />
-                <p className="text-xs text-zinc-500 mt-1">Umsatz: {(sliders.ticketpreis * sliders.ticketsProWoche).toFixed(2)} € / Woche</p>
+                <p className="text-xs text-zinc-500 mt-1">{t('revenue')}: {(sliders.ticketpreis * sliders.ticketsProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</p>
               </div>
             </div>
           </div>
 
           {/* Kurse */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">Kurse</h3>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('courses')}</h3>
 
             {/* Kurs 1 */}
             <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">Kurs 1 (z.B. Anfängerkurs)</h4>
+              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course1')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Preis/Teilnehmer: {sliders.kurs1PreisProTeilnehmer} €
+                    {t('pricePerParticipant')}: {sliders.kurs1PreisProTeilnehmer} €
                   </label>
                   <input
                     type="range"
@@ -430,7 +431,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Teilnehmer: {sliders.kurs1Teilnehmer}
+                    {t('participants')}: {sliders.kurs1Teilnehmer}
                   </label>
                   <input
                     type="range"
@@ -444,7 +445,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Trainerkosten/Kurs: {sliders.kurs1Trainerkosten} €
+                    {t('trainerCosts')}: {sliders.kurs1Trainerkosten} €
                   </label>
                   <input
                     type="range"
@@ -458,7 +459,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Kurse/Woche: {sliders.kurs1ProWoche}
+                    {t('coursesPerWeek')}: {sliders.kurs1ProWoche}
                   </label>
                   <input
                     type="range"
@@ -472,18 +473,18 @@ export default function PreviewPage() {
                 </div>
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                Einnahmen: {(sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer).toFixed(2)} € - Trainerkosten: {sliders.kurs1Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer - sliders.kurs1Trainerkosten) * sliders.kurs1ProWoche).toFixed(2)} € / Woche</strong>
+                {t('revenue')}: {(sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs1Trainerkosten} € =
+                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer - sliders.kurs1Trainerkosten) * sliders.kurs1ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
               </p>
             </div>
 
             {/* Kurs 2 */}
             <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">Kurs 2 (z.B. Fortgeschrittene)</h4>
+              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course2')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Preis/Teilnehmer: {sliders.kurs2PreisProTeilnehmer} €
+                    {t('pricePerParticipant')}: {sliders.kurs2PreisProTeilnehmer} €
                   </label>
                   <input
                     type="range"
@@ -497,7 +498,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Teilnehmer: {sliders.kurs2Teilnehmer}
+                    {t('participants')}: {sliders.kurs2Teilnehmer}
                   </label>
                   <input
                     type="range"
@@ -511,7 +512,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Trainerkosten/Kurs: {sliders.kurs2Trainerkosten} €
+                    {t('trainerCosts')}: {sliders.kurs2Trainerkosten} €
                   </label>
                   <input
                     type="range"
@@ -525,7 +526,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Kurse/Woche: {sliders.kurs2ProWoche}
+                    {t('coursesPerWeek')}: {sliders.kurs2ProWoche}
                   </label>
                   <input
                     type="range"
@@ -539,18 +540,18 @@ export default function PreviewPage() {
                 </div>
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                Einnahmen: {(sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer).toFixed(2)} € - Trainerkosten: {sliders.kurs2Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer - sliders.kurs2Trainerkosten) * sliders.kurs2ProWoche).toFixed(2)} € / Woche</strong>
+                {t('revenue')}: {(sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs2Trainerkosten} € =
+                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer - sliders.kurs2Trainerkosten) * sliders.kurs2ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
               </p>
             </div>
 
             {/* Kurs 3 */}
             <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">Kurs 3 (z.B. Spezial/Premium)</h4>
+              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course3')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Preis/Teilnehmer: {sliders.kurs3PreisProTeilnehmer} €
+                    {t('pricePerParticipant')}: {sliders.kurs3PreisProTeilnehmer} €
                   </label>
                   <input
                     type="range"
@@ -564,7 +565,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Teilnehmer: {sliders.kurs3Teilnehmer}
+                    {t('participants')}: {sliders.kurs3Teilnehmer}
                   </label>
                   <input
                     type="range"
@@ -578,7 +579,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Trainerkosten/Kurs: {sliders.kurs3Trainerkosten} €
+                    {t('trainerCosts')}: {sliders.kurs3Trainerkosten} €
                   </label>
                   <input
                     type="range"
@@ -592,7 +593,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Kurse/Woche: {sliders.kurs3ProWoche}
+                    {t('coursesPerWeek')}: {sliders.kurs3ProWoche}
                   </label>
                   <input
                     type="range"
@@ -606,23 +607,23 @@ export default function PreviewPage() {
                 </div>
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                Einnahmen: {(sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer).toFixed(2)} € - Trainerkosten: {sliders.kurs3Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer - sliders.kurs3Trainerkosten) * sliders.kurs3ProWoche).toFixed(2)} € / Woche</strong>
+                {t('revenue')}: {(sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs3Trainerkosten} € =
+                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer - sliders.kurs3Trainerkosten) * sliders.kurs3ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
               </p>
             </div>
           </div>
 
           {/* Workshops & Vermietung */}
           <div className="pt-6 border-t border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">Workshops & Vermietung</h3>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('workshops')} & {t('rental')}</h3>
 
             {/* Workshop */}
             <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">Workshops</h4>
+              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('workshops')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Gewinn/Teilnehmer: {sliders.workshopGewinnProTeilnehmer} €
+                    {t('profitPerParticipant')}: {sliders.workshopGewinnProTeilnehmer} €
                   </label>
                   <input
                     type="range"
@@ -636,7 +637,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Teilnehmer: {sliders.workshopTeilnehmer}
+                    {t('participants')}: {sliders.workshopTeilnehmer}
                   </label>
                   <input
                     type="range"
@@ -650,7 +651,7 @@ export default function PreviewPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Workshops/Monat: {sliders.workshopsProMonat}
+                    {t('workshopsPerMonth')}: {sliders.workshopsProMonat}
                   </label>
                   <input
                     type="range"
@@ -664,8 +665,8 @@ export default function PreviewPage() {
                 </div>
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                Gewinn pro Workshop: {(sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer).toFixed(2)} € × {sliders.workshopsProMonat} / Monat =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer * sliders.workshopsProMonat) / 4.33).toFixed(2)} € / Woche</strong>
+                {locale === 'de' ? 'Gewinn pro Workshop' : 'Profit per Workshop'}: {(sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer).toFixed(2)} € × {sliders.workshopsProMonat} / {locale === 'de' ? 'Monat' : 'Month'} =
+                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer * sliders.workshopsProMonat) / 4.33).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
               </p>
             </div>
 
@@ -673,7 +674,7 @@ export default function PreviewPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Vermietungen pro Woche: {sliders.vermietungen}
+                  {t('rentalsPerWeek')}: {sliders.vermietungen}
                 </label>
                 <input
                   type="range"
@@ -687,7 +688,7 @@ export default function PreviewPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Mietpreis: {sliders.mietpreis} €
+                  {t('rentalPrice')}: {sliders.mietpreis} €
                 </label>
                 <input
                   type="range"
@@ -698,25 +699,25 @@ export default function PreviewPage() {
                   onChange={(e) => updateSlider('mietpreis', Number(e.target.value))}
                   className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
                 />
-                <p className="text-xs text-zinc-500 mt-1">Umsatz: {(sliders.vermietungen * sliders.mietpreis).toFixed(2)} € / Woche</p>
+                <p className="text-xs text-zinc-500 mt-1">{t('revenue')}: {(sliders.vermietungen * sliders.mietpreis).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</p>
               </div>
             </div>
           </div>
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>Wöchentliche Basis-Einnahmen:</strong> {baseWeeklyRevenue.toFixed(2)} €
+              <strong>{t('weeklyRevenue')}:</strong> {baseWeeklyRevenue.toFixed(2)} €
             </p>
           </div>
         </div>
 
         {/* Ausgaben-Regler */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">Kosten (monatlich)</h2>
+          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{t('costs')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Miete: {sliders.miete} € (derzeit 0 €)
+                {t('rent')}: {sliders.miete} € ({locale === 'de' ? 'derzeit 0 €' : 'currently 0 €'})
               </label>
               <input
                 type="range"
@@ -730,7 +731,7 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Gagen: {sliders.gagen} €
+                {t('salaries')}: {sliders.gagen} €
               </label>
               <input
                 type="range"
@@ -744,7 +745,7 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Marketing: {sliders.marketing} €
+                {t('marketing')}: {sliders.marketing} €
               </label>
               <input
                 type="range"
@@ -758,7 +759,7 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Technik: {sliders.technik} €
+                {t('technology')}: {sliders.technik} €
               </label>
               <input
                 type="range"
@@ -772,7 +773,7 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Treibstoff (monatlich): {sliders.heizkosten} €
+                {t('fuel')}: {sliders.heizkosten} €
               </label>
               <input
                 type="range"
@@ -786,7 +787,7 @@ export default function PreviewPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Heizanlage-Miete (Saison): {sliders.heizanlageMiete} €
+                {t('heatingRental')}: {sliders.heizanlageMiete} €
               </label>
               <input
                 type="range"
@@ -798,12 +799,12 @@ export default function PreviewPage() {
                 className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
               />
               <p className="text-xs text-zinc-500 mt-1">
-                Verteilt auf KW 44-52 (2025) und KW 1-5 (2026): ≈ {(sliders.heizanlageMiete / 14).toFixed(2)} € / Woche
+                {t('heatingDistribution')}: ≈ {(sliders.heizanlageMiete / 14).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Sonstige Kosten: {sliders.sonstigeKosten} €
+                {t('otherCosts')}: {sliders.sonstigeKosten} €
               </label>
               <input
                 type="range"
@@ -818,11 +819,11 @@ export default function PreviewPage() {
           </div>
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-900 dark:text-red-100">
-              <strong>Monatliche Gesamtkosten:</strong> {(sliders.miete + sliders.gagen + sliders.marketing + sliders.technik + sliders.heizkosten + sliders.sonstigeKosten).toFixed(2)} €
+              <strong>{t('totalMonthly')}:</strong> {(sliders.miete + sliders.gagen + sliders.marketing + sliders.technik + sliders.heizkosten + sliders.sonstigeKosten).toFixed(2)} €
             </p>
             <p className="text-sm text-red-900 dark:text-red-100 mt-1">
-              <strong>Heizanlage-Miete (einmalig/Saison):</strong> {sliders.heizanlageMiete.toFixed(2)} €
-              <span className="ml-4">≈ {baseWeeklyCosts.toFixed(2)} € / Woche</span>
+              <strong>{t('heatingSeason')}:</strong> {sliders.heizanlageMiete.toFixed(2)} €
+              <span className="ml-4">≈ {baseWeeklyCosts.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</span>
             </p>
           </div>
         </div>
@@ -830,24 +831,27 @@ export default function PreviewPage() {
         {/* Wochen-Timeline */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Wochen-Timeline (KW {currentWeek} aktuell)</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Wochen-Timeline' : 'Week Timeline'} ({t('week')} {currentWeek} {locale === 'de' ? 'aktuell' : 'current'})</h2>
             <div className="flex gap-2">
               <button
                 onClick={markChristmasWeak}
                 className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm"
               >
-                Weihnachten
+                {locale === 'de' ? 'Weihnachten' : 'Christmas'}
               </button>
               <button
                 onClick={markSummerWeak}
                 className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-sm"
               >
-                Sommerpause
+                {locale === 'de' ? 'Sommerpause' : 'Summer Break'}
               </button>
             </div>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-            Klicke auf Wochen ab KW {currentWeek}, um sie als normal (grün, 100%), schwach (orange, 50%), oder stark (blau, 120%) zu markieren
+            {locale === 'de'
+              ? `Klicke auf Wochen ab KW ${currentWeek}, um sie als normal (grün, 100%), schwach (orange, 50%), oder stark (blau, 120%) zu markieren`
+              : `Click on weeks starting from Week ${currentWeek} to mark them as normal (green, 100%), weak (orange, 50%), or strong (blue, 120%)`
+            }
           </p>
           <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
             {weekMultipliers.map((multiplier, index) => {
@@ -867,7 +871,10 @@ export default function PreviewPage() {
                       ? 'bg-orange-500 hover:bg-orange-600 text-white'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   }`}
-                  title={`Woche ${weekNum}${isHistorical ? ' (Vergangenheit)' : ''}: ${multiplier === 1.0 ? 'Normal' : multiplier < 1.0 ? `Schwach (${(multiplier * 100).toFixed(0)}%)` : 'Stark (120%)'}`}
+                  title={locale === 'de'
+                    ? `Woche ${weekNum}${isHistorical ? ' (Vergangenheit)' : ''}: ${multiplier === 1.0 ? 'Normal' : multiplier < 1.0 ? `Schwach (${(multiplier * 100).toFixed(0)}%)` : 'Stark (120%)'}`
+                    : `Week ${weekNum}${isHistorical ? ' (Past)' : ''}: ${multiplier === 1.0 ? 'Normal' : multiplier < 1.0 ? `Weak (${(multiplier * 100).toFixed(0)}%)` : 'Strong (120%)'}`
+                  }
                 >
                   {weekNum}
                 </button>
@@ -878,7 +885,7 @@ export default function PreviewPage() {
 
         {/* Charts */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">Wöchentliche Einnahmen & Ausgaben</h2>
+          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{t('weeklyChart')}</h2>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={weeks}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -886,22 +893,22 @@ export default function PreviewPage() {
               <YAxis stroke="#888" />
               <Tooltip contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #444' }} />
               <Legend />
-              <ReferenceLine x={`KW ${currentWeek}`} stroke="#ff6b6b" strokeDasharray="5 5" label="Aktuell" />
-              <Line type="monotone" dataKey="revenue" stroke="#10b981" name="Einnahmen" strokeWidth={2} />
-              <Line type="monotone" dataKey="costs" stroke="#ef4444" name="Ausgaben" strokeWidth={2} />
+              <ReferenceLine x={`KW ${currentWeek}`} stroke="#ff6b6b" strokeDasharray="5 5" label={locale === 'de' ? 'Aktuell' : 'Current'} />
+              <Line type="monotone" dataKey="revenue" stroke="#10b981" name={t('revenue')} strokeWidth={2} />
+              <Line type="monotone" dataKey="costs" stroke="#ef4444" name={t('costs')} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">KI-Analyse deiner Finanzprognose</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'KI-Analyse deiner Finanzprognose' : 'AI Analysis of Your Financial Forecast'}</h2>
             <button
               onClick={generateAnalysis}
               disabled={analyzingLoading}
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {analyzingLoading ? '🤖 Analysiere...' : '🤖 Analyse generieren'}
+              {analyzingLoading ? (locale === 'de' ? '🤖 Analysiere...' : '🤖 Analyzing...') : (locale === 'de' ? '🤖 Analyse generieren' : '🤖 Generate Analysis')}
             </button>
           </div>
 
@@ -911,7 +918,6 @@ export default function PreviewPage() {
                 <div className="whitespace-pre-line text-zinc-800 dark:text-zinc-200 leading-relaxed">
                   {analysis.split('\n').map((line, i) => {
                     if (line.startsWith('**') || line.includes('**')) {
-                      // Ersetze **text** mit fetten Text
                       const parts = line.split('**')
                       return (
                         <p key={i} className="mb-3">
@@ -932,13 +938,12 @@ export default function PreviewPage() {
             </div>
           ) : (
             <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-              <p className="text-lg mb-2">🤖 Klicke auf "Analyse generieren"</p>
-              <p className="text-sm">Die KI wird deine Finanzprognose bewerten und dir personalisierte Empfehlungen geben.</p>
+              <p className="text-lg mb-2">🤖 {locale === 'de' ? 'Klicke auf "Analyse generieren"' : 'Click "Generate Analysis"'}</p>
+              <p className="text-sm">{locale === 'de' ? 'Die KI wird deine Finanzprognose bewerten und dir personalisierte Empfehlungen geben.' : 'The AI will evaluate your financial forecast and provide personalized recommendations.'}</p>
             </div>
           )}
         </div>
       </div>
     </div>
-    </>
   )
 }
