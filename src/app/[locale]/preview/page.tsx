@@ -1,8 +1,50 @@
+/**
+ * ============================================================================
+ * FINANZKALKULATOR - PREVIEW SEITE
+ * ============================================================================
+ * 
+ * TECHNISCHE ÜBERSICHT:
+ * 
+ * Datenfluss:
+ *   1. User interagiert mit Reglern (Slider-Inputs)
+ *   2. Regler-Änderungen → updateInput() → scenario.inputs wird aktualisiert
+ *   3. useEffect in useFinancialScenario → calculateMetrics() wird automatisch aufgerufen
+ *   4. scenario.metrics wird neu berechnet
+ *   5. UI rendert basierend auf scenario.inputs und scenario.metrics
+ * 
+ * Speichern/Laden mit localStorage:
+ *   - useScenarioManager Hook verwaltet alle gespeicherten Szenarien
+ *   - Szenarien werden als Array unter 'financialCalculator.scenarios' gespeichert
+ *   - Beim Speichern: saveScenario() → localStorage.setItem()
+ *   - Beim Laden: loadScenarios() → localStorage.getItem() → JSON.parse()
+ *   - Beim Löschen: deleteScenario() → Array filtern → localStorage.setItem()
+ * 
+ * Report-Export:
+ *   - exportScenarioReport() erzeugt einen menschenlesbaren Text-Report
+ *   - Report enthält: Eingaben, Kennzahlen, Interpretation
+ *   - Download via Blob API und temporärem <a>-Tag
+ *   - Dateiname: finanz-analyse-{name}-{YYYY-MM-DD}.txt
+ * 
+ * Erweiterbarkeit:
+ *   - Neue Kosten/Einnahmen: Erweitere FinancialInputs Interface
+ *   - Neue Kennzahlen: Erweitere FinancialMetrics Interface
+ *   - Berechnungen: Anpassen von calculateMetrics() in financial-scenario.ts
+ *   - UI: Neue Regler mit FinancialSlider Komponente hinzufügen
+ * 
+ * ============================================================================
+ */
+
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { useFinancialScenario } from '@/hooks/useFinancialScenario'
+import { useScenarioManager } from '@/hooks/useScenarioManager'
+import { createFinancialScenario } from '@/types/financial-scenario'
+import { exportScenarioReport } from '@/utils/scenario-report'
+import FinancialSlider from '@/app/components/FinancialSlider'
+import CourseInputGroup from '@/app/components/CourseInputGroup'
 
 type WeekData = {
   week: number
@@ -12,49 +54,6 @@ type WeekData = {
   margin: number
   isHistorical: boolean
   isWeak: boolean
-}
-
-type SliderValues = {
-  // Fixeinnahmen
-  profitraining: number // monatlich
-
-  // Tickets
-  ticketpreis: number
-  ticketsProWoche: number
-
-  // Kurse (pro Teilnehmer)
-  kurs1PreisProTeilnehmer: number
-  kurs1Teilnehmer: number
-  kurs1ProWoche: number // Anzahl der Kurse pro Woche
-  kurs1Trainerkosten: number // pro Kurs
-
-  kurs2PreisProTeilnehmer: number
-  kurs2Teilnehmer: number
-  kurs2ProWoche: number
-  kurs2Trainerkosten: number
-
-  kurs3PreisProTeilnehmer: number
-  kurs3Teilnehmer: number
-  kurs3ProWoche: number
-  kurs3Trainerkosten: number
-
-  // Workshops (Gewinn pro Teilnehmer)
-  workshopGewinnProTeilnehmer: number
-  workshopTeilnehmer: number
-  workshopsProMonat: number
-
-  // Vermietungen
-  vermietungen: number
-  mietpreis: number
-
-  // Kosten
-  miete: number // monatlich
-  gagen: number // monatlich
-  marketing: number // monatlich
-  technik: number // monatlich
-  heizkosten: number // monatlich (Treibstoff)
-  heizanlageMiete: number // einmalig pro Saison
-  sonstigeKosten: number // monatlich
 }
 
 type HistoricalData = {
@@ -67,47 +66,39 @@ export default function PreviewPage() {
   const t = useTranslations('preview')
   const locale = useLocale()
 
-  const [sliders, setSliders] = useState<SliderValues>({
-    profitraining: 700,
+  // Verwende den Szenario-Manager für gespeicherte Szenarien
+  const {
+    scenarios,
+    currentScenario: savedCurrentScenario,
+    saveCurrentScenario,
+    loadScenarioById,
+    deleteScenarioById,
+    createNewScenario,
+  } = useScenarioManager()
 
-    ticketpreis: 15,
-    ticketsProWoche: 60,
+  // Verwende den neuen Hook für zentrales State-Management
+  const {
+    scenario,
+    inputs,
+    metrics,
+    weekMultipliers,
+    currentWeek,
+    updateInput,
+    toggleWeekMultiplier,
+    setWeekRange,
+    updateWeekMultipliers,
+    loadScenario,
+    updateName,
+  } = useFinancialScenario('Standard Szenario')
 
-    kurs1PreisProTeilnehmer: 20,
-    kurs1Teilnehmer: 12,
-    kurs1ProWoche: 2,
-    kurs1Trainerkosten: 50,
-
-    kurs2PreisProTeilnehmer: 18,
-    kurs2Teilnehmer: 8,
-    kurs2ProWoche: 3,
-    kurs2Trainerkosten: 40,
-
-    kurs3PreisProTeilnehmer: 25,
-    kurs3Teilnehmer: 6,
-    kurs3ProWoche: 1,
-    kurs3Trainerkosten: 60,
-
-    workshopGewinnProTeilnehmer: 20,
-    workshopTeilnehmer: 15,
-    workshopsProMonat: 2,
-
-    vermietungen: 3,
-    mietpreis: 250,
-
-    miete: 0,
-    gagen: 1500,
-    marketing: 300,
-    technik: 200,
-    heizkosten: 3500, // Treibstoff pro Monat
-    heizanlageMiete: 5500, // einmalig pro Saison
-    sonstigeKosten: 300,
-  })
+  // Synchronisiere savedCurrentScenario mit dem useFinancialScenario Hook
+  useEffect(() => {
+    if (savedCurrentScenario && savedCurrentScenario.id !== scenario.id) {
+      loadScenario(savedCurrentScenario)
+    }
+  }, [savedCurrentScenario?.id, loadScenario, scenario.id])
 
   const [weeks, setWeeks] = useState<WeekData[]>([])
-  const [weekMultipliers, setWeekMultipliers] = useState<number[]>(
-    Array(52).fill(1.0)
-  )
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
   const [loading, setLoading] = useState(true)
   const [analysis, setAnalysis] = useState<string>('')
@@ -127,48 +118,19 @@ export default function PreviewPage() {
       })
   }, [])
 
-  // Berechne die wöchentlichen Daten
+  // ============================================================================
+  // WÖCHENTLICHE DATEN-BERECHNUNG
+  // ============================================================================
+  // Berechnet die wöchentlichen Einnahmen und Kosten basierend auf:
+  // - metrics (berechnet in calculateMetrics() in financial-scenario.ts)
+  // - weekMultipliers (für saisonale Anpassungen)
+  // - historicalData (aus API)
+  
   useEffect(() => {
-    const currentWeek = getCurrentWeek()
-
-    // Basis-Einnahmen pro Woche
-    const fixeinnahmenProWoche = sliders.profitraining / 4.33
-    const ticketeinnahmen = sliders.ticketpreis * sliders.ticketsProWoche
-
-    // Kurs-Einnahmen: (Preis pro Teilnehmer × Teilnehmer - Trainerkosten) × Anzahl Kurse pro Woche
-    const kurs1Einnahmen = (sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer - sliders.kurs1Trainerkosten) * sliders.kurs1ProWoche
-    const kurs2Einnahmen = (sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer - sliders.kurs2Trainerkosten) * sliders.kurs2ProWoche
-    const kurs3Einnahmen = (sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer - sliders.kurs3Trainerkosten) * sliders.kurs3ProWoche
-
-    // Workshop-Gewinn: Gewinn pro Teilnehmer × Teilnehmer × Anzahl pro Monat / 4.33 Wochen
-    const workshopEinnahmen = (sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer * sliders.workshopsProMonat) / 4.33
-    const vermietungEinnahmen = sliders.vermietungen * sliders.mietpreis
-
-    const baseRevenue =
-      fixeinnahmenProWoche +
-      ticketeinnahmen +
-      kurs1Einnahmen +
-      kurs2Einnahmen +
-      kurs3Einnahmen +
-      workshopEinnahmen +
-      vermietungEinnahmen
-
-    // Basis-Kosten pro Woche (Fixkosten ohne Heizanlage-Miete)
-    const baseCostsWithoutHeating = (
-      sliders.miete +
-      sliders.gagen +
-      sliders.marketing +
-      sliders.technik +
-      sliders.heizkosten +
-      sliders.sonstigeKosten
-    ) / 4.33
-
     // Heizanlage-Miete: 5.500€ verteilt bis KW 5 2026 (31. Januar 2026)
     // KW 44 2025 (aktuell) bis KW 5 2026 (Ende Januar) = ca. 14 Wochen
     const heizungStartWeek = 44 // KW 44 2025
-    const heizungEndWeek = 5 // KW 5 2026 (plus 52 für Berechnung)
-    const heatingWeeksCount = 14 // Anzahl der Wochen mit Heizkosten
-    const heizanlageMieteProWoche = sliders.heizanlageMiete / heatingWeeksCount
+    const heizungEndWeek = 5 // KW 5 2026
 
     const weeklyData: WeekData[] = weekMultipliers.map((multiplier, index) => {
       const weekNumber = index + 1
@@ -189,12 +151,11 @@ export default function PreviewPage() {
         }
       }
 
-      // Heizanlage-Miete nur für KW 44-52 (2025) und KW 1-5 (2026) addieren
-      const hasHeatingCost = weekNumber >= heizungStartWeek || weekNumber <= heizungEndWeek
-      const weekCosts = baseCostsWithoutHeating + (hasHeatingCost ? heizanlageMieteProWoche : 0)
+      // Wöchentliche Kosten (inkl. Rücklagen)
+      const weekCosts = metrics?.baseWeeklyCosts ?? 0
 
       // Sonst verwende prognostizierte Werte
-      const weekRevenue = baseRevenue * multiplier
+      const weekRevenue = (metrics?.baseWeeklyRevenue ?? 0) * multiplier
       return {
         week: weekNumber,
         weekLabel: `KW ${weekNumber}`,
@@ -207,78 +168,30 @@ export default function PreviewPage() {
     })
 
     setWeeks(weeklyData)
-  }, [sliders, weekMultipliers, historicalData])
-
-  const getCurrentWeek = () => {
-    const now = new Date()
-    const start = new Date(now.getFullYear(), 0, 1)
-    const diff = now.getTime() - start.getTime()
-    const oneWeek = 1000 * 60 * 60 * 24 * 7
-    return Math.floor(diff / oneWeek) + 1
-  }
-
-  const updateSlider = (key: keyof SliderValues, value: number) => {
-    setSliders({ ...sliders, [key]: value })
-  }
-
-  const toggleWeakWeek = (weekIndex: number) => {
-    const newMultipliers = [...weekMultipliers]
-    if (newMultipliers[weekIndex] === 1.0) {
-      newMultipliers[weekIndex] = 0.5
-    } else if (newMultipliers[weekIndex] === 0.5) {
-      newMultipliers[weekIndex] = 1.2
-    } else {
-      newMultipliers[weekIndex] = 1.0
-    }
-    setWeekMultipliers(newMultipliers)
-  }
-
-  const setWeekRange = (start: number, end: number, multiplier: number) => {
-    const newMultipliers = [...weekMultipliers]
-    for (let i = start; i <= end; i++) {
-      newMultipliers[i] = multiplier
-    }
-    setWeekMultipliers(newMultipliers)
-  }
+  }, [metrics, weekMultipliers, historicalData, currentWeek])
 
   const markChristmasWeak = () => {
     setWeekRange(50, 51, 0.5)
     const newMultipliers = [...weekMultipliers]
     newMultipliers[0] = 0.5
-    setWeekMultipliers(newMultipliers)
+    updateWeekMultipliers(newMultipliers)
   }
 
   const markSummerWeak = () => {
     setWeekRange(27, 34, 0.7) // Wochen 28-35 (Juli/August)
   }
 
-  const totalRevenue = weeks.reduce((sum, w) => sum + w.revenue, 0)
-  const totalCosts = weeks.reduce((sum, w) => sum + w.costs, 0)
-  const totalMargin = totalRevenue - totalCosts
-
-  const currentWeek = getCurrentWeek()
-  const historicalRevenue = weeks.filter((w) => w.week < currentWeek).reduce((sum, w) => sum + w.revenue, 0)
-  const historicalCosts = weeks.filter((w) => w.week < currentWeek).reduce((sum, w) => sum + w.costs, 0)
-  const projectedRevenue = weeks.filter((w) => w.week >= currentWeek).reduce((sum, w) => sum + w.revenue, 0)
-  const projectedCosts = weeks.filter((w) => w.week >= currentWeek).reduce((sum, w) => sum + w.costs, 0)
-
-  const baseWeeklyRevenue =
-    sliders.profitraining / 4.33 +
-    sliders.ticketpreis * sliders.ticketsProWoche +
-    (sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer - sliders.kurs1Trainerkosten) * sliders.kurs1ProWoche +
-    (sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer - sliders.kurs2Trainerkosten) * sliders.kurs2ProWoche +
-    (sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer - sliders.kurs3Trainerkosten) * sliders.kurs3ProWoche +
-    (sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer * sliders.workshopsProMonat) / 4.33 +
-    sliders.vermietungen * sliders.mietpreis
-
-  const baseWeeklyCosts = (
-    sliders.miete +
-    sliders.gagen +
-    sliders.marketing +
-    sliders.technik +
-    sliders.heizkosten +
-    sliders.sonstigeKosten
-  ) / 4.33
+  // Verwende die berechneten Metrics aus dem Hook
+  // Fallback auf 0 falls metrics noch nicht berechnet wurde
+  const totalRevenue = metrics?.totalRevenue ?? 0
+  const totalCosts = metrics?.totalCosts ?? 0
+  const totalMargin = metrics?.totalProfit ?? 0
+  const historicalRevenue = metrics?.historicalRevenue ?? 0
+  const historicalCosts = metrics?.historicalCosts ?? 0
+  const projectedRevenue = metrics?.projectedRevenue ?? 0
+  const projectedCosts = metrics?.projectedCosts ?? 0
+  const baseWeeklyRevenue = metrics?.baseWeeklyRevenue ?? 0
+  const baseWeeklyCosts = metrics?.baseWeeklyCosts ?? 0
 
   const weakWeeks = weekMultipliers.filter(m => m < 1.0).length
   const strongWeeks = weekMultipliers.filter(m => m > 1.0).length
@@ -287,6 +200,21 @@ export default function PreviewPage() {
   const generateAnalysis = async () => {
     setAnalyzingLoading(true)
     try {
+      // Validiere, dass alle Werte vorhanden sind
+      if (
+        typeof totalRevenue !== 'number' ||
+        typeof totalCosts !== 'number' ||
+        typeof totalMargin !== 'number' ||
+        typeof baseWeeklyRevenue !== 'number' ||
+        typeof baseWeeklyCosts !== 'number' ||
+        isNaN(totalRevenue) ||
+        isNaN(totalCosts)
+      ) {
+        console.error('Ungültige Metriken:', { totalRevenue, totalCosts, totalMargin, baseWeeklyRevenue, baseWeeklyCosts })
+        setAnalysis('Fehler: Metriken konnten nicht berechnet werden. Bitte überprüfe deine Eingaben.')
+        return
+      }
+
       const response = await fetch('/api/analyze-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -303,13 +231,81 @@ export default function PreviewPage() {
           strongWeeks,
         }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
+
       const data = await response.json()
+      if (data.analysis) {
       setAnalysis(data.analysis)
+      } else {
+        throw new Error('Keine Analyse in der Antwort erhalten')
+      }
     } catch (error) {
       console.error('Fehler bei der Analyse:', error)
-      setAnalysis('Fehler beim Generieren der Analyse.')
+      setAnalysis(`Fehler beim Generieren der Analyse: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
     } finally {
       setAnalyzingLoading(false)
+    }
+  }
+
+  // Handler für Speichern
+  const handleSaveScenario = () => {
+    const success = saveCurrentScenario(scenario)
+    if (success) {
+      alert(locale === 'de' ? 'Szenario erfolgreich gespeichert!' : 'Scenario saved successfully!')
+    } else {
+      alert(locale === 'de' ? 'Fehler beim Speichern des Szenarios.' : 'Error saving scenario.')
+    }
+  }
+
+  // Handler für Laden
+  const handleLoadScenario = (id: string) => {
+    const loaded = loadScenarioById(id)
+    if (loaded) {
+      alert(locale === 'de' ? 'Szenario geladen!' : 'Scenario loaded!')
+    }
+  }
+
+  // Handler für Löschen
+  const handleDeleteScenario = (id: string) => {
+    if (confirm(locale === 'de' ? 'Möchtest du dieses Szenario wirklich löschen?' : 'Do you really want to delete this scenario?')) {
+      const success = deleteScenarioById(id)
+      if (success) {
+        alert(locale === 'de' ? 'Szenario gelöscht!' : 'Scenario deleted!')
+      }
+    }
+  }
+
+  // Handler für neues Szenario
+  const handleNewScenario = () => {
+    if (confirm(locale === 'de' ? 'Möchtest du ein neues Szenario erstellen? Alle ungespeicherten Änderungen gehen verloren.' : 'Do you want to create a new scenario? All unsaved changes will be lost.')) {
+      const newScenario = createFinancialScenario(locale === 'de' ? 'Neues Szenario' : 'New Scenario')
+      loadScenario(newScenario)
+      createNewScenario()
+    }
+  }
+
+  // Handler für Report-Download
+  const handleDownloadReport = () => {
+    try {
+      // Prüfe, ob ein Szenario existiert
+      if (!scenario || !scenario.inputs || !scenario.metrics) {
+        alert(locale === 'de' 
+          ? 'Es ist noch keine Konfiguration aktiv. Bitte erstelle oder lade ein Szenario.' 
+          : 'No active configuration. Please create or load a scenario.')
+        return
+      }
+
+      // Exportiere den Report
+      exportScenarioReport(scenario, 'txt')
+    } catch (error) {
+      console.error('Fehler beim Exportieren des Reports:', error)
+      alert(locale === 'de' 
+        ? 'Fehler beim Erstellen des Reports. Bitte versuche es erneut.' 
+        : 'Error creating report. Please try again.')
     }
   }
 
@@ -317,8 +313,77 @@ export default function PreviewPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
+          <div className="flex justify-between items-start mb-4">
+            <div>
           <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
           <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
+            </div>
+            
+            {/* Szenario-Verwaltung */}
+            <div className="flex flex-col gap-2 items-end">
+              <div className="flex gap-2">
+                <button
+                  onClick={handleNewScenario}
+                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-md text-sm font-medium transition-colors"
+                >
+                  {locale === 'de' ? '➕ Neu' : '➕ New'}
+                </button>
+                <button
+                  onClick={handleSaveScenario}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
+                >
+                  {locale === 'de' ? '💾 Speichern' : '💾 Save'}
+                </button>
+                <button
+                  onClick={handleDownloadReport}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  title={locale === 'de' ? 'Analyse als Textdatei herunterladen' : 'Download analysis as text file'}
+                >
+                  {locale === 'de' ? '📄 Analyse herunterladen' : '📄 Download Report'}
+                </button>
+              </div>
+              
+              {/* Dropdown für gespeicherte Szenarien */}
+              {scenarios.length > 0 && (
+                <div className="relative">
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleLoadScenario(e.target.value)
+                      }
+                    }}
+                    value={savedCurrentScenario?.id || ''}
+                    className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md text-sm text-zinc-900 dark:text-zinc-50 cursor-pointer min-w-[200px]"
+                  >
+                    <option value="">
+                      {locale === 'de' ? '📁 Gespeicherte Szenarien...' : '📁 Saved scenarios...'}
+                    </option>
+                    {scenarios.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({new Date(s.updatedAt).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Aktuelles Szenario anzeigen */}
+              {savedCurrentScenario && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {locale === 'de' ? 'Aktuell:' : 'Current:'} <strong>{savedCurrentScenario.name}</strong>
+                  </span>
+                  <button
+                    onClick={() => handleDeleteScenario(savedCurrentScenario.id)}
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors"
+                    title={locale === 'de' ? 'Szenario löschen' : 'Delete scenario'}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
         {/* Jahres-Übersicht */}
@@ -349,481 +414,228 @@ export default function PreviewPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{t('revenue')}</h2>
 
-          {/* Fixeinnahmen */}
+          {/* Fixeinnahmen - Verwendet FinancialSlider Komponente */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('fixedIncome')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  {t('profitraining')} ({locale === 'de' ? 'monatlich' : 'monthly'}): {sliders.profitraining} €
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="2000"
-                  step="50"
-                  value={sliders.profitraining}
-                  onChange={(e) => updateSlider('profitraining', Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                />
-                <p className="text-xs text-zinc-500 mt-1">≈ {(sliders.profitraining / 4.33).toFixed(2)} € {locale === 'de' ? 'pro Woche' : 'per week'}</p>
-              </div>
+              <FinancialSlider
+                label={`${t('profitraining')} (${locale === 'de' ? 'monatlich' : 'monthly'})`}
+                value={inputs.profitraining}
+                onChange={(value) => updateInput('profitraining', value)}
+                min={0}
+                max={2000}
+                step={50}
+                showCurrency
+                info={`≈ ${metrics.fixedIncomePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+              />
             </div>
           </div>
 
-          {/* Tickets */}
+          {/* Tickets - Verwendet FinancialSlider Komponente */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('tickets')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  {t('ticketPrice')}: {sliders.ticketpreis} €
-                </label>
-                <input
-                  type="range"
-                  min="5"
-                  max="50"
-                  step="1"
-                  value={sliders.ticketpreis}
-                  onChange={(e) => updateSlider('ticketpreis', Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  {t('ticketsPerWeek')}: {sliders.ticketsProWoche}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="200"
-                  step="5"
-                  value={sliders.ticketsProWoche}
-                  onChange={(e) => updateSlider('ticketsProWoche', Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                />
-                <p className="text-xs text-zinc-500 mt-1">{t('revenue')}: {(sliders.ticketpreis * sliders.ticketsProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</p>
-              </div>
+              <FinancialSlider
+                label={t('ticketPrice')}
+                value={inputs.ticketPrice}
+                onChange={(value) => updateInput('ticketPrice', value)}
+                min={5}
+                max={50}
+                step={1}
+                showCurrency
+              />
+              <FinancialSlider
+                label={t('ticketsPerWeek')}
+                value={inputs.ticketsPerWeek}
+                onChange={(value) => updateInput('ticketsPerWeek', value)}
+                min={0}
+                max={200}
+                step={5}
+                info={`${t('revenue')}: ${metrics.ticketRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+              />
             </div>
           </div>
 
-          {/* Kurse */}
+          {/* Kurse - Verwendet wiederverwendbare CourseInputGroup Komponente */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('courses')}</h3>
 
-            {/* Kurs 1 */}
-            <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course1')}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('pricePerParticipant')}: {sliders.kurs1PreisProTeilnehmer} €
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="30"
-                    step="1"
-                    value={sliders.kurs1PreisProTeilnehmer}
-                    onChange={(e) => updateSlider('kurs1PreisProTeilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('participants')}: {sliders.kurs1Teilnehmer}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="1"
-                    value={sliders.kurs1Teilnehmer}
-                    onChange={(e) => updateSlider('kurs1Teilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('trainerCosts')}: {sliders.kurs1Trainerkosten} €
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="150"
-                    step="5"
-                    value={sliders.kurs1Trainerkosten}
-                    onChange={(e) => updateSlider('kurs1Trainerkosten', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('coursesPerWeek')}: {sliders.kurs1ProWoche}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="7"
-                    step="1"
-                    value={sliders.kurs1ProWoche}
-                    onChange={(e) => updateSlider('kurs1ProWoche', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500 mt-2">
-                {t('revenue')}: {(sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs1Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs1PreisProTeilnehmer * sliders.kurs1Teilnehmer - sliders.kurs1Trainerkosten) * sliders.kurs1ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
-              </p>
-            </div>
-
-            {/* Kurs 2 */}
-            <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course2')}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('pricePerParticipant')}: {sliders.kurs2PreisProTeilnehmer} €
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="30"
-                    step="1"
-                    value={sliders.kurs2PreisProTeilnehmer}
-                    onChange={(e) => updateSlider('kurs2PreisProTeilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('participants')}: {sliders.kurs2Teilnehmer}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="1"
-                    value={sliders.kurs2Teilnehmer}
-                    onChange={(e) => updateSlider('kurs2Teilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('trainerCosts')}: {sliders.kurs2Trainerkosten} €
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="150"
-                    step="5"
-                    value={sliders.kurs2Trainerkosten}
-                    onChange={(e) => updateSlider('kurs2Trainerkosten', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('coursesPerWeek')}: {sliders.kurs2ProWoche}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="7"
-                    step="1"
-                    value={sliders.kurs2ProWoche}
-                    onChange={(e) => updateSlider('kurs2ProWoche', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500 mt-2">
-                {t('revenue')}: {(sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs2Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs2PreisProTeilnehmer * sliders.kurs2Teilnehmer - sliders.kurs2Trainerkosten) * sliders.kurs2ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
-              </p>
-            </div>
-
-            {/* Kurs 3 */}
-            <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('course3')}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('pricePerParticipant')}: {sliders.kurs3PreisProTeilnehmer} €
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="30"
-                    step="1"
-                    value={sliders.kurs3PreisProTeilnehmer}
-                    onChange={(e) => updateSlider('kurs3PreisProTeilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('participants')}: {sliders.kurs3Teilnehmer}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="20"
-                    step="1"
-                    value={sliders.kurs3Teilnehmer}
-                    onChange={(e) => updateSlider('kurs3Teilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('trainerCosts')}: {sliders.kurs3Trainerkosten} €
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="150"
-                    step="5"
-                    value={sliders.kurs3Trainerkosten}
-                    onChange={(e) => updateSlider('kurs3Trainerkosten', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('coursesPerWeek')}: {sliders.kurs3ProWoche}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="7"
-                    step="1"
-                    value={sliders.kurs3ProWoche}
-                    onChange={(e) => updateSlider('kurs3ProWoche', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500 mt-2">
-                {t('revenue')}: {(sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer).toFixed(2)} € - {t('trainerCosts')}: {sliders.kurs3Trainerkosten} € =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.kurs3PreisProTeilnehmer * sliders.kurs3Teilnehmer - sliders.kurs3Trainerkosten) * sliders.kurs3ProWoche).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
-              </p>
-            </div>
+            {/* Kurs 1, 2, 3 - Reduziert Code-Duplikation durch wiederverwendbare Komponente */}
+            <CourseInputGroup
+              courseNumber={1}
+              t={t}
+              locale={locale}
+              inputs={inputs}
+              onUpdateInput={updateInput}
+              weeklyRevenue={metrics.course1RevenuePerWeek}
+            />
+            <CourseInputGroup
+              courseNumber={2}
+              t={t}
+              locale={locale}
+              inputs={inputs}
+              onUpdateInput={updateInput}
+              weeklyRevenue={metrics.course2RevenuePerWeek}
+            />
+            <CourseInputGroup
+              courseNumber={3}
+              t={t}
+              locale={locale}
+              inputs={inputs}
+              onUpdateInput={updateInput}
+              weeklyRevenue={metrics.course3RevenuePerWeek}
+            />
           </div>
 
           {/* Workshops & Vermietung */}
           <div className="pt-6 border-t border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('workshops')} & {t('rental')}</h3>
 
-            {/* Workshop */}
+            {/* Workshop - Verwendet FinancialSlider Komponente */}
             <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
               <h4 className="text-sm font-semibold mb-3 text-zinc-700 dark:text-zinc-300">{t('workshops')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('profitPerParticipant')}: {sliders.workshopGewinnProTeilnehmer} €
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="30"
-                    step="1"
-                    value={sliders.workshopGewinnProTeilnehmer}
-                    onChange={(e) => updateSlider('workshopGewinnProTeilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('participants')}: {sliders.workshopTeilnehmer}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="1"
-                    value={sliders.workshopTeilnehmer}
-                    onChange={(e) => updateSlider('workshopTeilnehmer', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    {t('workshopsPerMonth')}: {sliders.workshopsProMonat}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="8"
-                    step="1"
-                    value={sliders.workshopsProMonat}
-                    onChange={(e) => updateSlider('workshopsProMonat', Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                  />
-                </div>
+                <FinancialSlider
+                  label={t('profitPerParticipant')}
+                  value={inputs.workshopProfitPerParticipant}
+                  onChange={(value) => updateInput('workshopProfitPerParticipant', value)}
+                  min={10}
+                  max={30}
+                  step={1}
+                  showCurrency
+                  labelClassName="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1"
+                />
+                <FinancialSlider
+                  label={t('participants')}
+                  value={inputs.workshopParticipants}
+                  onChange={(value) => updateInput('workshopParticipants', value)}
+                  min={0}
+                  max={30}
+                  step={1}
+                  labelClassName="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1"
+                />
+                <FinancialSlider
+                  label={t('workshopsPerMonth')}
+                  value={inputs.workshopsPerMonth}
+                  onChange={(value) => updateInput('workshopsPerMonth', value)}
+                  min={0}
+                  max={8}
+                  step={1}
+                  labelClassName="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1"
+                />
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                {locale === 'de' ? 'Gewinn pro Workshop' : 'Profit per Workshop'}: {(sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer).toFixed(2)} € × {sliders.workshopsProMonat} / {locale === 'de' ? 'Monat' : 'Month'} =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {((sliders.workshopGewinnProTeilnehmer * sliders.workshopTeilnehmer * sliders.workshopsProMonat) / 4.33).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
+                {locale === 'de' ? 'Gewinn pro Workshop' : 'Profit per Workshop'}: {(inputs.workshopProfitPerParticipant * inputs.workshopParticipants).toFixed(2)} € × {inputs.workshopsPerMonth} / {locale === 'de' ? 'Monat' : 'Month'} =
+                <strong className="text-zinc-700 dark:text-zinc-300"> {metrics.workshopRevenuePerWeek.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
               </p>
             </div>
 
-            {/* Vermietung */}
+            {/* Vermietung - Verwendet FinancialSlider Komponente */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  {t('rentalsPerWeek')}: {sliders.vermietungen}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="20"
-                  step="1"
-                  value={sliders.vermietungen}
-                  onChange={(e) => updateSlider('vermietungen', Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  {t('rentalPrice')}: {sliders.mietpreis} €
-                </label>
-                <input
-                  type="range"
-                  min="50"
-                  max="1000"
-                  step="50"
-                  value={sliders.mietpreis}
-                  onChange={(e) => updateSlider('mietpreis', Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                />
-                <p className="text-xs text-zinc-500 mt-1">{t('revenue')}: {(sliders.vermietungen * sliders.mietpreis).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</p>
-              </div>
+              <FinancialSlider
+                label={t('rentalsPerWeek')}
+                value={inputs.rentalsPerWeek}
+                onChange={(value) => updateInput('rentalsPerWeek', value)}
+                min={0}
+                max={20}
+                step={1}
+              />
+              <FinancialSlider
+                label={t('rentalPrice')}
+                value={inputs.rentalPrice}
+                onChange={(value) => updateInput('rentalPrice', value)}
+                min={50}
+                max={1000}
+                step={50}
+                showCurrency
+                info={`${t('revenue')}: ${metrics.rentalRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+              />
             </div>
           </div>
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>{t('weeklyRevenue')}:</strong> {baseWeeklyRevenue.toFixed(2)} €
+              <strong>{t('weeklyRevenue')}:</strong> {metrics.baseWeeklyRevenue.toFixed(2)} €
             </p>
           </div>
         </div>
 
-        {/* Ausgaben-Regler */}
+        {/* Ausgaben-Regler - Verwendet FinancialSlider Komponente */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{t('costs')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('rent')}: {sliders.miete} € ({locale === 'de' ? 'derzeit 0 €' : 'currently 0 €'})
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="100"
-                value={sliders.miete}
-                onChange={(e) => updateSlider('miete', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('salaries')}: {sliders.gagen} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="5000"
-                step="100"
-                value={sliders.gagen}
-                onChange={(e) => updateSlider('gagen', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('marketing')}: {sliders.marketing} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="2000"
-                step="50"
-                value={sliders.marketing}
-                onChange={(e) => updateSlider('marketing', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('technology')}: {sliders.technik} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1000"
-                step="50"
-                value={sliders.technik}
-                onChange={(e) => updateSlider('technik', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('fuel')}: {sliders.heizkosten} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="5000"
-                step="100"
-                value={sliders.heizkosten}
-                onChange={(e) => updateSlider('heizkosten', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('heatingRental')}: {sliders.heizanlageMiete} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="500"
-                value={sliders.heizanlageMiete}
-                onChange={(e) => updateSlider('heizanlageMiete', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-              <p className="text-xs text-zinc-500 mt-1">
-                {t('heatingDistribution')}: ≈ {(sliders.heizanlageMiete / 14).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                {t('otherCosts')}: {sliders.sonstigeKosten} €
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="2000"
-                step="50"
-                value={sliders.sonstigeKosten}
-                onChange={(e) => updateSlider('sonstigeKosten', Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-              />
-            </div>
+            <FinancialSlider
+              label={`${t('rent')} (${locale === 'de' ? 'derzeit 0 €' : 'currently 0 €'})`}
+              value={inputs.rent}
+              onChange={(value) => updateInput('rent', value)}
+              min={0}
+              max={10000}
+              step={100}
+              showCurrency
+            />
+            <FinancialSlider
+              label={t('salaries')}
+              value={inputs.salaries}
+              onChange={(value) => updateInput('salaries', value)}
+              min={0}
+              max={5000}
+              step={100}
+              showCurrency
+            />
+            <FinancialSlider
+              label={t('marketing')}
+              value={inputs.marketing}
+              onChange={(value) => updateInput('marketing', value)}
+              min={0}
+              max={2000}
+              step={50}
+              showCurrency
+            />
+            <FinancialSlider
+              label={t('technology')}
+              value={inputs.technology}
+              onChange={(value) => updateInput('technology', value)}
+              min={0}
+              max={1000}
+              step={50}
+              showCurrency
+            />
+            <FinancialSlider
+              label={t('fuel')}
+              value={inputs.heatingCosts}
+              onChange={(value) => updateInput('heatingCosts', value)}
+              min={0}
+              max={5000}
+              step={100}
+              showCurrency
+            />
+            <FinancialSlider
+              label={t('otherCosts')}
+              value={inputs.otherCosts}
+              onChange={(value) => updateInput('otherCosts', value)}
+              min={0}
+              max={2000}
+              step={50}
+              showCurrency
+            />
+            <FinancialSlider
+              label={locale === 'de' ? 'Wöchentliche Rücklagen' : 'Weekly Reserves'}
+              value={inputs.weeklyReserves}
+              onChange={(value) => updateInput('weeklyReserves', value)}
+              min={0}
+              max={1000}
+              step={25}
+              showCurrency
+              info={locale === 'de' ? 'Für unerwartete Ausgaben' : 'For unexpected expenses'}
+            />
           </div>
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-900 dark:text-red-100">
-              <strong>{t('totalMonthly')}:</strong> {(sliders.miete + sliders.gagen + sliders.marketing + sliders.technik + sliders.heizkosten + sliders.sonstigeKosten).toFixed(2)} €
+              <strong>{t('totalMonthly')}:</strong> {(inputs.rent + inputs.salaries + inputs.marketing + inputs.technology + inputs.heatingCosts + inputs.otherCosts).toFixed(2)} €
             </p>
             <p className="text-sm text-red-900 dark:text-red-100 mt-1">
-              <strong>{t('heatingSeason')}:</strong> {sliders.heizanlageMiete.toFixed(2)} €
-              <span className="ml-4">≈ {baseWeeklyCosts.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</span>
+              <strong>{locale === 'de' ? 'Wöchentliche Rücklagen' : 'Weekly Reserves'}:</strong> {inputs.weeklyReserves.toFixed(2)} €
+              <span className="ml-4">≈ {metrics.baseWeeklyCosts.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'} ({locale === 'de' ? 'inkl. Rücklagen' : 'incl. reserves'})</span>
             </p>
           </div>
         </div>
@@ -860,7 +672,7 @@ export default function PreviewPage() {
               return (
                 <button
                   key={index}
-                  onClick={() => !isHistorical && toggleWeakWeek(index)}
+                  onClick={() => !isHistorical && toggleWeekMultiplier(index)}
                   disabled={isHistorical}
                   className={`h-8 w-8 rounded text-xs font-medium transition-colors ${
                     isHistorical
