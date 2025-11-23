@@ -45,6 +45,7 @@ import { createFinancialScenario } from '@/types/financial-scenario'
 import { exportScenarioReport } from '@/utils/scenario-report'
 import FinancialSlider from '@/app/components/FinancialSlider'
 import CourseInputGroup from '@/app/components/CourseInputGroup'
+import ScenarioManager from '@/app/components/ScenarioManager'
 
 type WeekData = {
   week: number
@@ -74,6 +75,7 @@ export default function PreviewPage() {
     loadScenarioById,
     deleteScenarioById,
     createNewScenario,
+    updateScenarioName,
   } = useScenarioManager()
 
   // Verwende den neuen Hook für zentrales State-Management
@@ -313,73 +315,61 @@ export default function PreviewPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-          <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+            <div className="flex-1">
+              <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
+              <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
             </div>
             
-            {/* Szenario-Verwaltung */}
-            <div className="flex flex-col gap-2 items-end">
-              <div className="flex gap-2">
+            {/* Szenario-Verwaltung - Mobile-optimiert */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {/* Mobile: Szenario-Manager Button (ersetzt das alte Dropdown) */}
+              <ScenarioManager
+                scenarios={scenarios}
+                currentScenario={savedCurrentScenario}
+                locale={locale}
+                onLoadScenario={handleLoadScenario}
+                onDeleteScenario={handleDeleteScenario}
+                onRenameScenario={(id, newName) => {
+                  const success = updateScenarioName(id, newName)
+                  if (success && savedCurrentScenario?.id === id) {
+                    // Aktualisiere auch das aktuelle Szenario im useFinancialScenario Hook
+                    updateName(newName)
+                  }
+                  return success
+                }}
+              />
+              
+              {/* Desktop: Buttons nebeneinander, Mobile: gestapelt */}
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleNewScenario}
-                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-md text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
                 >
                   {locale === 'de' ? '➕ Neu' : '➕ New'}
                 </button>
                 <button
                   onClick={handleSaveScenario}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
                 >
                   {locale === 'de' ? '💾 Speichern' : '💾 Save'}
                 </button>
                 <button
                   onClick={handleDownloadReport}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
                   title={locale === 'de' ? 'Analyse als Textdatei herunterladen' : 'Download analysis as text file'}
                 >
-                  {locale === 'de' ? '📄 Analyse herunterladen' : '📄 Download Report'}
+                  {locale === 'de' ? '📄 Analyse' : '📄 Report'}
                 </button>
               </div>
               
-              {/* Dropdown für gespeicherte Szenarien */}
-              {scenarios.length > 0 && (
-                <div className="relative">
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleLoadScenario(e.target.value)
-                      }
-                    }}
-                    value={savedCurrentScenario?.id || ''}
-                    className="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md text-sm text-zinc-900 dark:text-zinc-50 cursor-pointer min-w-[200px]"
-                  >
-                    <option value="">
-                      {locale === 'de' ? '📁 Gespeicherte Szenarien...' : '📁 Saved scenarios...'}
-                    </option>
-                    {scenarios.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({new Date(s.updatedAt).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US')})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Aktuelles Szenario anzeigen */}
+              {/* Aktuelles Szenario anzeigen (nur wenn gespeichert) */}
               {savedCurrentScenario && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {locale === 'de' ? 'Aktuell:' : 'Current:'} <strong>{savedCurrentScenario.name}</strong>
+                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    {locale === 'de' ? 'Aktuell:' : 'Current:'}
                   </span>
-                  <button
-                    onClick={() => handleDeleteScenario(savedCurrentScenario.id)}
-                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors"
-                    title={locale === 'de' ? 'Szenario löschen' : 'Delete scenario'}
-                  >
-                    🗑️
-                  </button>
+                  <strong className="text-zinc-900 dark:text-zinc-50">{savedCurrentScenario.name}</strong>
                 </div>
               )}
             </div>
