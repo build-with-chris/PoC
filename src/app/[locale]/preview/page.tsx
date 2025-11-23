@@ -315,15 +315,16 @@ export default function PreviewPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-            <div className="flex-1">
+          <div className="flex flex-col gap-4 mb-4">
+            {/* Titel und Untertitel */}
+            <div>
               <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
               <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
             </div>
             
-            {/* Szenario-Verwaltung - Mobile-optimiert */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {/* Mobile: Szenario-Manager Button (ersetzt das alte Dropdown) */}
+            {/* Szenario-Verwaltung - Alle Elemente vertikal gestapelt */}
+            <div className="flex flex-col gap-2 w-full">
+              {/* Szenario-Manager Button */}
               <ScenarioManager
                 scenarios={scenarios}
                 currentScenario={savedCurrentScenario}
@@ -340,32 +341,32 @@ export default function PreviewPage() {
                 }}
               />
               
-              {/* Desktop: Buttons nebeneinander, Mobile: gestapelt */}
-              <div className="flex flex-wrap gap-2">
+              {/* Buttons - Gestapelt auf Mobile, nebeneinander auf größeren Bildschirmen */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <button
                   onClick={handleNewScenario}
-                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
+                  className="px-4 py-2 bg-zinc-600 hover:bg-zinc-700 text-white rounded-md text-sm font-medium transition-colors w-full sm:w-auto sm:flex-1"
                 >
                   {locale === 'de' ? '➕ Neu' : '➕ New'}
                 </button>
                 <button
                   onClick={handleSaveScenario}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors w-full sm:w-auto sm:flex-1"
                 >
                   {locale === 'de' ? '💾 Speichern' : '💾 Save'}
                 </button>
                 <button
                   onClick={handleDownloadReport}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors w-full sm:w-auto sm:flex-1"
                   title={locale === 'de' ? 'Analyse als Textdatei herunterladen' : 'Download analysis as text file'}
                 >
-                  {locale === 'de' ? '📄 Analyse' : '📄 Report'}
+                  {locale === 'de' ? '📄 Analyse herunterladen' : '📄 Download Report'}
                 </button>
               </div>
               
               {/* Aktuelles Szenario anzeigen (nur wenn gespeichert) */}
               {savedCurrentScenario && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm w-full">
                   <span className="text-zinc-600 dark:text-zinc-400">
                     {locale === 'de' ? 'Aktuell:' : 'Current:'}
                   </span>
