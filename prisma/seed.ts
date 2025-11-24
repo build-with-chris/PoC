@@ -30,7 +30,7 @@ async function main() {
   // Einnahmen-Kategorien erstellen
   console.log('📥 Creating income categories...')
   for (const category of incomeCategories) {
-    const created = await prisma.category.upsert({
+    const created = await prisma.categories.upsert({
       where: {
         name_type: {
           name: category.name,
@@ -38,7 +38,11 @@ async function main() {
         },
       },
       update: {},
-      create: category,
+      create: {
+        ...category,
+        id: crypto.randomUUID(),
+        updatedAt: new Date(),
+      },
     })
     console.log(`  ✓ ${created.name} (${created.type})`)
   }
@@ -46,7 +50,7 @@ async function main() {
   // Ausgaben-Kategorien erstellen
   console.log('📤 Creating expense categories...')
   for (const category of expenseCategories) {
-    const created = await prisma.category.upsert({
+    const created = await prisma.categories.upsert({
       where: {
         name_type: {
           name: category.name,
@@ -54,7 +58,11 @@ async function main() {
         },
       },
       update: {},
-      create: category,
+      create: {
+        ...category,
+        id: crypto.randomUUID(),
+        updatedAt: new Date(),
+      },
     })
     console.log(`  ✓ ${created.name} (${created.type})`)
   }

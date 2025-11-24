@@ -64,14 +64,14 @@ export async function GET() {
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1)
 
     // Alle Transaktionen der letzten 12 Monate laden
-    const transactions = await prisma.transaction.findMany({
+    const transactions = await prisma.transactions.findMany({
       where: {
         date: {
           gte: twelveMonthsAgo,
         },
       },
       include: {
-        category: true,
+        categories: true,
       },
       orderBy: {
         date: 'asc',
@@ -92,7 +92,7 @@ export async function GET() {
       const monthData = monthlyMap.get(monthKey)!
       const amount = Number(transaction.amount)
 
-      if (transaction.category.type === 'income') {
+      if (transaction.categories.type === 'income') {
         monthData.revenue += amount
       } else {
         monthData.costs += amount

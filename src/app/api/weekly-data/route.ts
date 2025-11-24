@@ -13,14 +13,14 @@ export async function GET() {
     const now = new Date()
     const startOfYear = new Date(now.getFullYear(), 0, 1)
 
-    const transactions = await prisma.transaction.findMany({
+    const transactions = await prisma.transactions.findMany({
       where: {
         date: {
           gte: startOfYear,
         },
       },
       include: {
-        category: true,
+        categories: true,
       },
       orderBy: {
         date: 'asc',
@@ -40,7 +40,7 @@ export async function GET() {
       const weekData = weeklyMap.get(weekNumber)!
       const amount = Number(transaction.amount)
 
-      if (transaction.category.type === 'income') {
+      if (transaction.categories.type === 'income') {
         weekData.revenue += amount
       } else {
         weekData.costs += amount

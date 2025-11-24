@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const rows = parseResult.data as Record<string, string>[]
 
     // Kategorien laden für Mapping
-    const categories = await prisma.category.findMany()
+    const categories = await prisma.categories.findMany()
     const categoryMap = new Map(categories.map((c) => [c.name.toLowerCase(), c.id]))
 
     const errors: Array<{ row: number; error: string }> = []
@@ -106,13 +106,15 @@ export async function POST(request: NextRequest) {
         }
 
         // Transaktion erstellen
-        await prisma.transaction.create({
+        await prisma.transactions.create({
           data: {
+            id: crypto.randomUUID(),
             date: parsedDate,
             amount: amount,
             categoryId: categoryId,
             note: validated.note || null,
             counterparty: validated.counterparty || null,
+            updatedAt: new Date(),
           },
         })
 

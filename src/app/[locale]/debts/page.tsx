@@ -3,13 +3,13 @@ import { getTranslations } from 'next-intl/server'
 
 export default async function DebtsPage() {
   const t = await getTranslations('debts')
-  const advancedTransactions = await prisma.transaction.findMany({
+  const advancedTransactions = await prisma.transactions.findMany({
     where: {
       isAdvanced: true,
       isSettled: false,
     },
     include: {
-      category: true,
+      categories: true,
     },
     orderBy: {
       date: 'desc',
@@ -70,7 +70,7 @@ export default async function DebtsPage() {
                             <td className="py-2 px-4 text-zinc-900 dark:text-zinc-100">{new Date(t.date).toLocaleDateString('de-DE')}</td>
                             <td className="py-2 px-4">
                               <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                {t.category.name}
+                                {t.categories.name}
                               </span>
                             </td>
                             <td className="py-2 px-4 font-medium text-red-600 dark:text-red-400">{Number(t.amount).toFixed(2)} €</td>

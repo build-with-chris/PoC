@@ -3,11 +3,11 @@ import { useActionState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createTransaction, type TransactionFormState } from '../actions/transactions'
-import type { Category } from '@prisma/client'
+import type { categories } from '@prisma/client'
 
 const initialState: TransactionFormState = {}
 
-export default function TransactionForm({ categories }: { categories: Category[] }) {
+export default function TransactionForm({ categories }: { categories: categories[] }) {
   const t = useTranslations('transaction')
   const tDashboard = useTranslations('dashboard')
   const [state, formAction, isPending] = useActionState(createTransaction, initialState)

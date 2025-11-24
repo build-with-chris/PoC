@@ -234,3 +234,4 @@ npm run db:generate  # Regeneriert Prisma Client Types
 ## Kontakt & Wartung
 
 Bei Fragen zu diesem Projekt, siehe README.md für Deployment-Anleitungen oder erstelle ein GitHub Issue.
+- I see the supabase was on pause. Now it is activated again, but it still doesn't work

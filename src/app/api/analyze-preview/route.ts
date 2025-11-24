@@ -17,6 +17,22 @@ export async function POST(request: Request) {
   try {
     const data: AnalysisRequest = await request.json()
 
+    // Validiere die Daten
+    if (
+      typeof data.totalRevenue !== 'number' ||
+      typeof data.totalCosts !== 'number' ||
+      typeof data.totalMargin !== 'number' ||
+      typeof data.currentWeek !== 'number' ||
+      typeof data.baseWeeklyRevenue !== 'number' ||
+      typeof data.baseWeeklyCosts !== 'number'
+    ) {
+      console.error('Ungültige Daten:', data)
+      return NextResponse.json(
+        { error: 'Ungültige Daten übermittelt' },
+        { status: 400 }
+      )
+    }
+
     // Einfache regelbasierte Analyse
     const analysis = generateAnalysis(data)
 
@@ -24,7 +40,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Fehler bei der Analyse:', error)
     return NextResponse.json(
-      { error: 'Fehler bei der Analyse' },
+      { error: 'Fehler bei der Analyse', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
@@ -97,11 +113,13 @@ function generateAnalysis(data: AnalysisRequest): string {
     analysis += `- Um die Gewinnschwelle zu erreichen, solltest du entweder die monatlichen Kosten um ca. **${neededReduction.toFixed(0)} €** senken oder die wöchentlichen Einnahmen um ca. **${neededIncrease.toFixed(0)} €** steigern.\n`
   }
 
-  const costPercentage = (totalCosts / totalRevenue) * 100
-  if (costPercentage > 80) {
-    analysis += `- Deine Kostenquote liegt bei **${costPercentage.toFixed(1)}%** der Einnahmen. Versuche, diese unter 70% zu senken für gesündere Margen.\n`
-  } else if (costPercentage < 50) {
-    analysis += `- Ausgezeichnet! Deine Kostenquote von **${costPercentage.toFixed(1)}%** ist sehr gesund.\n`
+  if (totalRevenue > 0) {
+    const costPercentage = (totalCosts / totalRevenue) * 100
+    if (costPercentage > 80) {
+      analysis += `- Deine Kostenquote liegt bei **${costPercentage.toFixed(1)}%** der Einnahmen. Versuche, diese unter 70% zu senken für gesündere Margen.\n`
+    } else if (costPercentage < 50) {
+      analysis += `- Ausgezeichnet! Deine Kostenquote von **${costPercentage.toFixed(1)}%** ist sehr gesund.\n`
+    }
   }
 
   if (baseWeeklyRevenue < 1000) {

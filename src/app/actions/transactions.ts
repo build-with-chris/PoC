@@ -71,11 +71,13 @@ export async function createTransaction(
 
   try {
     // Transaktion in Datenbank speichern
-    const transaction = await prisma.transaction.create({
+    const transaction = await prisma.transactions.create({
       data: {
+        id: crypto.randomUUID(),
         date: new Date(date),
         amount: parseFloat(amount),
         categoryId,
+        updatedAt: new Date(),
         counterparty: counterparty || null,
         note: note || null,
         isAdvanced: isAdvanced === 'yes',
