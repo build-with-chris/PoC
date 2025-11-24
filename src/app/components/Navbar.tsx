@@ -11,12 +11,9 @@ export default function Navbar() {
   const t = useTranslations('nav')
   const locale = useLocale()
 
+  // Vereinfachte Navigation - nur Prognose
   const links = [
-    { href: `/${locale}`, label: t('dashboard'), icon: '📊' },
-    { href: `/${locale}/preview`, label: t('preview'), icon: '🔮' },
-    { href: `/${locale}/forecast`, label: t('forecast'), icon: '📈' },
-    { href: `/${locale}/import`, label: t('import'), icon: '📥' },
-    { href: `/${locale}/debts`, label: t('debts'), icon: '💰' },
+    { href: `/${locale}/preview`, label: locale === 'de' ? 'Prognose' : 'Forecast', icon: '🔮' },
   ]
 
   const isActive = (href: string) => {
@@ -30,10 +27,10 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <Link href={`/${locale}`} className="flex items-center gap-2">
-              <span className="text-2xl">💼</span>
+            <Link href={`/${locale}/preview`} className="flex items-center gap-2">
+              <span className="text-2xl">🔮</span>
               <span className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                {t('dashboard')}
+                {locale === 'de' ? 'Umsatz-Vorschau' : 'Revenue Forecast'}
               </span>
             </Link>
           </div>
