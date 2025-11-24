@@ -17,8 +17,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finanz-Tracking",
-  description: "Track your income and expenses",
+  title: "Finanz-Prognose | Finanzkalkulator",
+  description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen. Erstellen Sie Szenarien, analysieren Sie Kennzahlen und planen Sie Ihre Finanzen präzise.",
+  keywords: ["Finanzkalkulator", "Finanzprognose", "Einnahmen", "Ausgaben", "Gewinn", "Kostenplanung"],
+  authors: [{ name: "Finanz-Team" }],
+  openGraph: {
+    title: "Finanz-Prognose | Finanzkalkulator",
+    description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen. Erstellen Sie Szenarien, analysieren Sie Kennzahlen und planen Sie Ihre Finanzen präzise.",
+    type: "website",
+    locale: "de_DE",
+    siteName: "Finanz-Prognose",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Finanz-Prognose | Finanzkalkulator",
+    description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const locales = ['de', 'en'];

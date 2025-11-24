@@ -322,9 +322,12 @@ export function calculateMetrics(
   // MEHRWERTSTEUER-BERECHNUNG (19%)
   // ============================================================================
   // MwSt. wird von Brutto-Einnahmen abgezogen
+  // Wenn Brutto = 100€ (inkl. 19% MwSt.), dann:
+  // Netto = Brutto / 1.19 = 84.03€
+  // MwSt. = Brutto - Netto = 15.97€
   const VAT_RATE = 0.19 // 19% Mehrwertsteuer
-  const weeklyVAT = baseWeeklyRevenueBrutto * VAT_RATE
-  const baseWeeklyRevenue = baseWeeklyRevenueBrutto - weeklyVAT // Netto-Einnahmen
+  const baseWeeklyRevenue = baseWeeklyRevenueBrutto / (1 + VAT_RATE) // Netto-Einnahmen
+  const weeklyVAT = baseWeeklyRevenueBrutto - baseWeeklyRevenue // MwSt. pro Woche
 
   // ============================================================================
   // KOSTEN-BERECHNUNG
@@ -361,16 +364,16 @@ export function calculateMetrics(
       0
     )
     totalRevenueBrutto = baseWeeklyRevenueBruttoWithMultipliers
-    totalVAT = totalRevenueBrutto * VAT_RATE
-    totalRevenue = totalRevenueBrutto - totalVAT // Netto
+    totalRevenue = totalRevenueBrutto / (1 + VAT_RATE) // Netto
+    totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
     
     // Kosten: Basis-Kosten für alle Wochen (inkl. Rücklagen)
     totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
-    totalVAT = totalRevenueBrutto * VAT_RATE
-    totalRevenue = totalRevenueBrutto - totalVAT // Netto
+    totalRevenue = totalRevenueBrutto / (1 + VAT_RATE) // Netto
+    totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
     totalCosts = baseWeeklyCosts * 52
   }
 
@@ -399,14 +402,14 @@ export function calculateMetrics(
       (sum, multiplier) => sum + baseWeeklyRevenueBrutto * multiplier,
       0
     )
-    historicalRevenue = historicalRevenueBrutto - (historicalRevenueBrutto * VAT_RATE) // Netto
+    historicalRevenue = historicalRevenueBrutto / (1 + VAT_RATE) // Netto
     
     // Prognostizierte Einnahmen (Brutto → Netto)
     const projectedRevenueBrutto = projectedWeeks.reduce(
       (sum, multiplier) => sum + baseWeeklyRevenueBrutto * multiplier,
       0
     )
-    projectedRevenue = projectedRevenueBrutto - (projectedRevenueBrutto * VAT_RATE) // Netto
+    projectedRevenue = projectedRevenueBrutto / (1 + VAT_RATE) // Netto
 
     // Kosten (inkl. Rücklagen)
     historicalCosts = historicalWeeks.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)

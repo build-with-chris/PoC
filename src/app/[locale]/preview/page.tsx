@@ -380,8 +380,9 @@ export default function PreviewPage() {
         {/* Jahres-Übersicht */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('revenue')} ({locale === 'de' ? 'Jahr' : 'Year'})</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('revenue')} ({locale === 'de' ? 'Jahr, Netto' : 'Year, Net'})</h3>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{totalRevenue.toFixed(0)} €</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'nach 19% MwSt.' : 'after 19% VAT'}</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('costs')} ({locale === 'de' ? 'Jahr' : 'Year'})</h3>
@@ -394,10 +395,11 @@ export default function PreviewPage() {
             </p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Jahresgewinn' : 'Annual Profit'}</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Jahresgewinn (Netto)' : 'Annual Profit (Net)'}</h3>
             <p className={`text-2xl font-bold ${totalMargin >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {totalMargin.toFixed(0)} €
             </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'nach 19% MwSt. abgezogen' : 'after 19% VAT deducted'}</p>
           </div>
         </div>
 
