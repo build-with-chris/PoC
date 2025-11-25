@@ -63,9 +63,16 @@ type HistoricalData = {
   costs: number
 }
 
+type ViewPeriod = 'monthly' | 'quarterly' | 'yearly'
+type ViewType = 'gross' | 'net'
+
 export default function PreviewPage() {
   const t = useTranslations('preview')
   const locale = useLocale()
+
+  // View period and type state
+  const [viewPeriod, setViewPeriod] = useState<ViewPeriod>('yearly')
+  const [viewType, setViewType] = useState<ViewType>('net')
 
   // Verwende den Szenario-Manager für gespeicherte Szenarien
   const {
@@ -185,15 +192,66 @@ export default function PreviewPage() {
 
   // Verwende die berechneten Metrics aus dem Hook
   // Fallback auf 0 falls metrics noch nicht berechnet wurde
-  const totalRevenue = metrics?.totalRevenue ?? 0
+  const totalRevenueNet = metrics?.totalRevenue ?? 0
+  const totalRevenueGross = metrics?.totalRevenueBrutto ?? 0
   const totalCosts = metrics?.totalCosts ?? 0
-  const totalMargin = metrics?.totalProfit ?? 0
+  const totalProfitNet = metrics?.totalProfit ?? 0
+  const totalProfitGross = metrics?.totalProfitBrutto ?? 0
   const historicalRevenue = metrics?.historicalRevenue ?? 0
   const historicalCosts = metrics?.historicalCosts ?? 0
   const projectedRevenue = metrics?.projectedRevenue ?? 0
   const projectedCosts = metrics?.projectedCosts ?? 0
   const baseWeeklyRevenue = metrics?.baseWeeklyRevenue ?? 0
+  const baseWeeklyRevenueGross = metrics?.baseWeeklyRevenueBrutto ?? 0
   const baseWeeklyCosts = metrics?.baseWeeklyCosts ?? 0
+
+  // Helper function to convert yearly values to different periods
+  const convertToPeriod = (yearlyValue: number, period: ViewPeriod): number => {
+    switch (period) {
+      case 'monthly':
+        return yearlyValue / 12
+      case 'quarterly':
+        return yearlyValue / 4
+      case 'yearly':
+        return yearlyValue
+    }
+  }
+
+  // Get values based on selected period and type
+  const getRevenue = (): number => {
+    const yearlyValue = viewType === 'gross' ? totalRevenueGross : totalRevenueNet
+    return convertToPeriod(yearlyValue, viewPeriod)
+  }
+
+  const getCosts = (): number => {
+    return convertToPeriod(totalCosts, viewPeriod)
+  }
+
+  const getProfit = (): number => {
+    const yearlyValue = viewType === 'gross' ? totalProfitGross : totalProfitNet
+    return convertToPeriod(yearlyValue, viewPeriod)
+  }
+
+  // Get period label
+  const getPeriodLabel = (): string => {
+    switch (viewPeriod) {
+      case 'monthly':
+        return locale === 'de' ? 'Monat' : 'Month'
+      case 'quarterly':
+        return locale === 'de' ? 'Quartal' : 'Quarter'
+      case 'yearly':
+        return locale === 'de' ? 'Jahr' : 'Year'
+    }
+  }
+
+  // Get type label
+  const getTypeLabel = (): string => {
+    if (viewType === 'gross') {
+      return locale === 'de' ? 'Brutto (inkl. 19% MwSt.)' : 'Gross (incl. 19% VAT)'
+    } else {
+      return locale === 'de' ? 'Netto (nach 19% MwSt.)' : 'Net (after 19% VAT)'
+    }
+  }
 
   const weakWeeks = weekMultipliers.filter(m => m < 1.0).length
   const strongWeeks = weekMultipliers.filter(m => m > 1.0).length
@@ -204,15 +262,15 @@ export default function PreviewPage() {
     try {
       // Validiere, dass alle Werte vorhanden sind
       if (
-        typeof totalRevenue !== 'number' ||
+        typeof totalRevenueNet !== 'number' ||
         typeof totalCosts !== 'number' ||
-        typeof totalMargin !== 'number' ||
+        typeof totalProfitNet !== 'number' ||
         typeof baseWeeklyRevenue !== 'number' ||
         typeof baseWeeklyCosts !== 'number' ||
-        isNaN(totalRevenue) ||
+        isNaN(totalRevenueNet) ||
         isNaN(totalCosts)
       ) {
-        console.error('Ungültige Metriken:', { totalRevenue, totalCosts, totalMargin, baseWeeklyRevenue, baseWeeklyCosts })
+        console.error('Ungültige Metriken:', { totalRevenueNet, totalCosts, totalProfitNet, baseWeeklyRevenue, baseWeeklyCosts })
         setAnalysis('Fehler: Metriken konnten nicht berechnet werden. Bitte überprüfe deine Eingaben.')
         return
       }
@@ -221,9 +279,9 @@ export default function PreviewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          totalRevenue,
+          totalRevenue: totalRevenueNet,
           totalCosts,
-          totalMargin,
+          totalMargin: totalProfitNet,
           projectedRevenue,
           projectedCosts,
           currentWeek,
@@ -377,29 +435,111 @@ export default function PreviewPage() {
           </div>
         </header>
 
-        {/* Jahres-Übersicht */}
+        {/* View Controls */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Period Toggle */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {locale === 'de' ? 'Zeitraum' : 'Period'}
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewPeriod('monthly')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewPeriod === 'monthly'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Monatlich' : 'Monthly'}
+                </button>
+                <button
+                  onClick={() => setViewPeriod('quarterly')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewPeriod === 'quarterly'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Quartalsweise' : 'Quarterly'}
+                </button>
+                <button
+                  onClick={() => setViewPeriod('yearly')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewPeriod === 'yearly'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Jährlich' : 'Yearly'}
+                </button>
+              </div>
+            </div>
+
+            {/* Gross/Net Toggle */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {locale === 'de' ? 'Ansicht' : 'View'}
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewType('gross')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewType === 'gross'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Brutto' : 'Gross'}
+                </button>
+                <button
+                  onClick={() => setViewType('net')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewType === 'net'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Netto' : 'Net'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Übersicht */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('revenue')} ({locale === 'de' ? 'Jahr, Netto' : 'Year, Net'})</h3>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{totalRevenue.toFixed(0)} €</p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'nach 19% MwSt.' : 'after 19% VAT'}</p>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+              {t('revenue')} ({getPeriodLabel()})
+            </h3>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{getRevenue().toFixed(0)} €</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{getTypeLabel()}</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{t('costs')} ({locale === 'de' ? 'Jahr' : 'Year'})</h3>
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{totalCosts.toFixed(0)} €</p>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+              {t('costs')} ({getPeriodLabel()})
+            </h3>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{getCosts().toFixed(0)} €</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Prognose' : 'Forecast'} ({locale === 'de' ? 'Rest' : 'Remaining'} {52 - currentWeek} {locale === 'de' ? 'Wochen' : 'Weeks'})</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+              {locale === 'de' ? 'Prognose' : 'Forecast'} ({locale === 'de' ? 'Rest' : 'Remaining'} {52 - currentWeek} {locale === 'de' ? 'Wochen' : 'Weeks'})
+            </h3>
             <p className={`text-2xl font-bold ${(projectedRevenue - projectedCosts) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {(projectedRevenue - projectedCosts).toFixed(0)} €
             </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'Netto (nach 19% MwSt.)' : 'Net (after 19% VAT)'}</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{locale === 'de' ? 'Jahresgewinn (Netto)' : 'Annual Profit (Net)'}</h3>
-            <p className={`text-2xl font-bold ${totalMargin >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {totalMargin.toFixed(0)} €
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+              {locale === 'de' ? 'Gewinn' : 'Profit'} ({getPeriodLabel()})
+            </h3>
+            <p className={`text-2xl font-bold ${getProfit() >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {getProfit().toFixed(0)} €
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'nach 19% MwSt. abgezogen' : 'after 19% VAT deducted'}</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{getTypeLabel()}</p>
           </div>
         </div>
 

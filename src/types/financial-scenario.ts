@@ -88,13 +88,16 @@ export interface FinancialInputs {
  */
 export interface FinancialMetrics {
   // Wöchentliche Basiswerte
-  baseWeeklyRevenue: number
+  baseWeeklyRevenue: number // Netto (nach MwSt.)
+  baseWeeklyRevenueBrutto: number // Brutto (inkl. MwSt.)
   baseWeeklyCosts: number
 
   // Jahreswerte
-  totalRevenue: number
+  totalRevenue: number // Netto (nach MwSt.)
+  totalRevenueBrutto: number // Brutto (inkl. MwSt.)
   totalCosts: number
-  totalProfit: number // Gewinn/Verlust
+  totalProfit: number // Gewinn/Verlust (Netto)
+  totalProfitBrutto: number // Gewinn/Verlust (Brutto)
   profitMargin: number // Gewinnmarge in %
 
   // Historisch vs. Prognose
@@ -378,6 +381,7 @@ export function calculateMetrics(
   }
 
   const totalProfit = totalRevenue - totalCosts
+  const totalProfitBrutto = totalRevenueBrutto - totalCosts
   const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
   
   // Netto-Gewinn und Netto-Marge (bereits nach MwSt.)
@@ -420,10 +424,13 @@ export function calculateMetrics(
 
   return {
     baseWeeklyRevenue,
+    baseWeeklyRevenueBrutto,
     baseWeeklyCosts,
     totalRevenue,
+    totalRevenueBrutto,
     totalCosts,
     totalProfit,
+    totalProfitBrutto,
     profitMargin,
     historicalRevenue,
     historicalCosts,
