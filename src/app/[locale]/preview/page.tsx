@@ -576,6 +576,7 @@ export default function PreviewPage() {
                 max={50}
                 step={1}
                 showCurrency
+                info={t('ticketPriceNote')}
               />
               <FinancialSlider
                 label={t('ticketsPerWeek')}

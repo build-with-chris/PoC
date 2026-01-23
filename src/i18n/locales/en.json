@@ -44,6 +44,7 @@
     "profitraining": "Professional Training",
     "tickets": "Tickets",
     "ticketPrice": "Ticket Price",
+    "ticketPriceNote": "Note: Fees must be deducted (Outgoing, Payment provider)",
     "ticketsPerWeek": "Tickets/Week",
     "gastronomyProfitPerTicket": "Gastronomy Profit/Ticket",
     "showsPerWeek": "Shows/Week",
