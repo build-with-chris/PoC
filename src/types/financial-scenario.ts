@@ -48,6 +48,7 @@ export interface FinancialInputs {
   showsPerWeek: number // Anzahl Shows/Events pro Woche
   gemaFeePerShow: number // GEMA Gebühren pro Show (z.B. 50€)
   kvrFeePerShow: number // KVR Anmeldung pro Show (z.B. 50€)
+  artistFeePerShow: number // Künstlergagen pro Show (z.B. 600€)
 
   // Kurse (pro Teilnehmer)
   course1PricePerParticipant: number
@@ -160,6 +161,7 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   showsPerWeek: 1, // Anzahl Shows/Events pro Woche
   gemaFeePerShow: 50, // GEMA Gebühren pro Show
   kvrFeePerShow: 50, // KVR Anmeldung pro Show
+  artistFeePerShow: 600, // Künstlergagen pro Show
 
   course1PricePerParticipant: 20,
   course1Participants: 12,
@@ -237,6 +239,7 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     showsPerWeek: 0,
     gemaFeePerShow: 0,
     kvrFeePerShow: 0,
+    artistFeePerShow: 0,
     course1PricePerParticipant: 0,
     course1Participants: 0,
     course1PerWeek: 0,
@@ -374,8 +377,8 @@ export function calculateMetrics(
       inputs.otherCosts) /
     4.33
 
-  // Show-Gebühren pro Woche (GEMA + KVR)
-  const showFeesPerWeek = (inputs.gemaFeePerShow + inputs.kvrFeePerShow) * inputs.showsPerWeek
+  // Show-Gebühren pro Woche (GEMA + KVR + Künstlergagen)
+  const showFeesPerWeek = (inputs.gemaFeePerShow + inputs.kvrFeePerShow + inputs.artistFeePerShow) * inputs.showsPerWeek
 
   // Wöchentliche Rücklagen für unerwartete Ausgaben
   const weeklyReserves = inputs.weeklyReserves

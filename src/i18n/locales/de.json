@@ -50,6 +50,7 @@
     "showsPerWeek": "Shows/Woche",
     "gemaFeePerShow": "GEMA Gebühren/Show",
     "kvrFeePerShow": "KVR Anmeldung/Show",
+    "artistFeePerShow": "Künstlergagen/Show",
     "courses": "Kurse",
     "course1": "Kurs 1 (z.B. Anfängerkurs)",
     "course2": "Kurs 2 (z.B. Fortgeschritten)",
