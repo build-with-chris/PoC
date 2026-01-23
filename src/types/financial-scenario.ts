@@ -42,6 +42,12 @@ export interface FinancialInputs {
   // Tickets
   ticketPrice: number
   ticketsPerWeek: number
+  gastronomyProfitPerTicket: number // Gastronomischer Gewinn pro Ticket (z.B. 3€)
+  
+  // Shows/Events
+  showsPerWeek: number // Anzahl Shows/Events pro Woche
+  gemaFeePerShow: number // GEMA Gebühren pro Show (z.B. 50€)
+  kvrFeePerShow: number // KVR Anmeldung pro Show (z.B. 50€)
 
   // Kurse (pro Teilnehmer)
   course1PricePerParticipant: number
@@ -110,6 +116,7 @@ export interface FinancialMetrics {
   // Detaillierte Einnahmen (pro Woche)
   fixedIncomePerWeek: number
   ticketRevenuePerWeek: number
+  gastronomyRevenuePerWeek: number // Gastronomischer Gewinn pro Woche
   course1RevenuePerWeek: number
   course2RevenuePerWeek: number
   course3RevenuePerWeek: number
@@ -118,6 +125,7 @@ export interface FinancialMetrics {
 
   // Detaillierte Kosten (pro Woche)
   monthlyCostsPerWeek: number
+  showFeesPerWeek: number // GEMA + KVR Gebühren pro Woche
   weeklyReserves: number
 
   // Mehrwertsteuer (19%)
@@ -148,6 +156,10 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
 
   ticketPrice: 15,
   ticketsPerWeek: 60,
+  gastronomyProfitPerTicket: 3, // Gastronomischer Gewinn pro Ticket
+  showsPerWeek: 1, // Anzahl Shows/Events pro Woche
+  gemaFeePerShow: 50, // GEMA Gebühren pro Show
+  kvrFeePerShow: 50, // KVR Anmeldung pro Show
 
   course1PricePerParticipant: 20,
   course1Participants: 12,
@@ -172,7 +184,7 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   rentalPrice: 250,
 
   rent: 0,
-  salaries: 1500,
+  salaries: 12257.05, // Monatliche Personalkosten (fix)
   marketing: 300,
   technology: 200,
   heatingCosts: 3500,
@@ -221,6 +233,10 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     profitraining: 0,
     ticketPrice: 0,
     ticketsPerWeek: 0,
+    gastronomyProfitPerTicket: 0,
+    showsPerWeek: 0,
+    gemaFeePerShow: 0,
+    kvrFeePerShow: 0,
     course1PricePerParticipant: 0,
     course1Participants: 0,
     course1PerWeek: 0,
@@ -293,7 +309,12 @@ export function calculateMetrics(
   
   // Wöchentliche Basis-Einnahmen (Brutto)
   const fixedIncomePerWeek = inputs.profitraining / 4.33
+  
+  // Ticket-Einnahmen: Ticketpreis × Anzahl Tickets pro Woche
   const ticketRevenuePerWeek = inputs.ticketPrice * inputs.ticketsPerWeek
+  
+  // Gastronomischer Gewinn: Gewinn pro Ticket × Anzahl Tickets pro Woche
+  const gastronomyRevenuePerWeek = inputs.gastronomyProfitPerTicket * inputs.ticketsPerWeek
 
   // Kurs-Einnahmen: (Preis pro Teilnehmer × Teilnehmer - Trainerkosten) × Anzahl Kurse pro Woche
   const course1RevenuePerWeek =
@@ -315,6 +336,7 @@ export function calculateMetrics(
   const baseWeeklyRevenueBrutto =
     fixedIncomePerWeek +
     ticketRevenuePerWeek +
+    gastronomyRevenuePerWeek + // Gastronomischer Gewinn (keine MwSt., da bereits Netto)
     course1RevenuePerWeek +
     course2RevenuePerWeek +
     course3RevenuePerWeek +
@@ -325,12 +347,19 @@ export function calculateMetrics(
   // MEHRWERTSTEUER-BERECHNUNG (19%)
   // ============================================================================
   // MwSt. wird von Brutto-Einnahmen abgezogen
+  // Gastronomischer Gewinn ist bereits Netto (keine MwSt.)
   // Wenn Brutto = 100€ (inkl. 19% MwSt.), dann:
   // Netto = Brutto / 1.19 = 84.03€
   // MwSt. = Brutto - Netto = 15.97€
   const VAT_RATE = 0.19 // 19% Mehrwertsteuer
-  const baseWeeklyRevenue = baseWeeklyRevenueBrutto / (1 + VAT_RATE) // Netto-Einnahmen
-  const weeklyVAT = baseWeeklyRevenueBrutto - baseWeeklyRevenue // MwSt. pro Woche
+  
+  // Brutto-Einnahmen ohne gastronomischen Gewinn (für MwSt.-Berechnung)
+  const baseWeeklyRevenueBruttoForVAT = baseWeeklyRevenueBrutto - gastronomyRevenuePerWeek
+  const baseWeeklyRevenueNetFromBrutto = baseWeeklyRevenueBruttoForVAT / (1 + VAT_RATE)
+  
+  // Gesamte Netto-Einnahmen (Brutto-Einnahmen nach MwSt. + gastronomischer Gewinn)
+  const baseWeeklyRevenue = baseWeeklyRevenueNetFromBrutto + gastronomyRevenuePerWeek
+  const weeklyVAT = baseWeeklyRevenueBruttoForVAT - baseWeeklyRevenueNetFromBrutto // MwSt. pro Woche
 
   // ============================================================================
   // KOSTEN-BERECHNUNG
@@ -345,11 +374,14 @@ export function calculateMetrics(
       inputs.otherCosts) /
     4.33
 
+  // Show-Gebühren pro Woche (GEMA + KVR)
+  const showFeesPerWeek = (inputs.gemaFeePerShow + inputs.kvrFeePerShow) * inputs.showsPerWeek
+
   // Wöchentliche Rücklagen für unerwartete Ausgaben
   const weeklyReserves = inputs.weeklyReserves
 
-  // Gesamte wöchentliche Kosten (inkl. Rücklagen)
-  const baseWeeklyCosts = monthlyCostsPerWeek + weeklyReserves
+  // Gesamte wöchentliche Kosten (inkl. Rücklagen und Show-Gebühren)
+  const baseWeeklyCosts = monthlyCostsPerWeek + weeklyReserves + showFeesPerWeek
 
   // ============================================================================
   // JAHRESWERTE-BERECHNUNG
@@ -401,21 +433,19 @@ export function calculateMetrics(
     const historicalWeeks = weekMultipliers.slice(0, currentWeek - 1)
     const projectedWeeks = weekMultipliers.slice(currentWeek - 1)
 
-    // Historische Einnahmen (Brutto → Netto)
-    const historicalRevenueBrutto = historicalWeeks.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenueBrutto * multiplier,
+    // Historische Einnahmen (bereits Netto, da baseWeeklyRevenue bereits korrekt berechnet wurde)
+    historicalRevenue = historicalWeeks.reduce(
+      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
       0
     )
-    historicalRevenue = historicalRevenueBrutto / (1 + VAT_RATE) // Netto
     
-    // Prognostizierte Einnahmen (Brutto → Netto)
-    const projectedRevenueBrutto = projectedWeeks.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenueBrutto * multiplier,
+    // Prognostizierte Einnahmen (bereits Netto)
+    projectedRevenue = projectedWeeks.reduce(
+      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
       0
     )
-    projectedRevenue = projectedRevenueBrutto / (1 + VAT_RATE) // Netto
 
-    // Kosten (inkl. Rücklagen)
+    // Kosten (inkl. Rücklagen und Show-Gebühren)
     historicalCosts = historicalWeeks.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
     projectedCosts = projectedWeeks.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
   }
@@ -439,12 +469,14 @@ export function calculateMetrics(
     projectedProfit,
     fixedIncomePerWeek,
     ticketRevenuePerWeek,
+    gastronomyRevenuePerWeek,
     course1RevenuePerWeek,
     course2RevenuePerWeek,
     course3RevenuePerWeek,
     workshopRevenuePerWeek,
     rentalRevenuePerWeek,
     monthlyCostsPerWeek,
+    showFeesPerWeek,
     weeklyReserves,
     totalVAT,
     weeklyVAT,

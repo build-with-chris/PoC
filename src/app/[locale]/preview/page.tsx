@@ -377,7 +377,7 @@ export default function PreviewPage() {
             {/* Titel und Untertitel */}
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">{t('title')}</h1>
-              <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
+          <p className="text-zinc-600 dark:text-zinc-400">{t('subtitle')}</p>
             </div>
             
             {/* Szenario-Verwaltung - Alle Elemente vertikal gestapelt */}
@@ -582,12 +582,56 @@ export default function PreviewPage() {
                 value={inputs.ticketsPerWeek}
                 onChange={(value) => updateInput('ticketsPerWeek', value)}
                 min={0}
-                max={200}
+                max={600}
                 step={5}
                 info={`${t('revenue')}: ${metrics.ticketRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
               />
+              <FinancialSlider
+                label={t('gastronomyProfitPerTicket')}
+                value={inputs.gastronomyProfitPerTicket}
+                onChange={(value) => updateInput('gastronomyProfitPerTicket', value)}
+                min={0}
+                max={10}
+                step={0.5}
+                showCurrency
+                info={`${locale === 'de' ? 'Gewinn' : 'Profit'}: ${metrics.gastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+              />
             </div>
           </div>
+
+          {/* Shows/Events - Gebühren */}
+          <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Shows/Events' : 'Shows/Events'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FinancialSlider
+                label={t('showsPerWeek')}
+                value={inputs.showsPerWeek}
+                onChange={(value) => updateInput('showsPerWeek', value)}
+                min={0}
+                max={10}
+                step={1}
+              />
+              <FinancialSlider
+                label={t('gemaFeePerShow')}
+                value={inputs.gemaFeePerShow}
+                onChange={(value) => updateInput('gemaFeePerShow', value)}
+                min={0}
+                max={200}
+                step={5}
+                showCurrency
+              />
+              <FinancialSlider
+                label={t('kvrFeePerShow')}
+                value={inputs.kvrFeePerShow}
+                onChange={(value) => updateInput('kvrFeePerShow', value)}
+                min={0}
+                max={200}
+                step={5}
+                showCurrency
+                info={`${locale === 'de' ? 'Gebühren' : 'Fees'}: ${metrics.showFeesPerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+                  />
+                </div>
+            </div>
 
           {/* Kurse - Verwendet wiederverwendbare CourseInputGroup Komponente */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
@@ -711,7 +755,7 @@ export default function PreviewPage() {
               value={inputs.salaries}
               onChange={(value) => updateInput('salaries', value)}
               min={0}
-              max={5000}
+              max={20000}
               step={100}
               showCurrency
             />
