@@ -162,8 +162,8 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Marketing: ${formatCurrency(inputs.marketing)}/Monat\n`
   report += `- Technik: ${formatCurrency(inputs.technology)}/Monat\n`
   report += `- Heizkosten: ${formatCurrency(inputs.heatingCosts)}/Monat\n`
-  report += `- Sonstige Kosten: ${formatCurrency(inputs.otherCosts)}/Monat\n`\n`
-  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche
+  report += `- Sonstige Kosten: ${formatCurrency(inputs.otherCosts)}/Monat\n`
+  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche\n`
   report += `\nJährliche Kosten:\n`
   report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
   report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
