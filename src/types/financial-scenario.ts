@@ -38,6 +38,11 @@
 export interface FinancialInputs {
   // Fixeinnahmen
   profitraining: number // monatlich
+  fundingPerMonth: number // Querfinanzierung durch Förderung (monatlich)
+  
+  // Mitgliedsbeiträge
+  membershipCount: number // Anzahl Mitglieder
+  membershipFeePerYear: number // Beitrag pro Jahr pro Mitglied
 
   // Tickets
   ticketPrice: number
@@ -83,6 +88,12 @@ export interface FinancialInputs {
   heatingCosts: number // Treibstoff pro Monat
   otherCosts: number
   
+  // Kosten (jährlich)
+  taxAdvisorCosts: number // Steuerberater (pro Jahr)
+  taxReturnCosts: number // Jahresabschluss/Steuererklärung (pro Jahr)
+  accountingCosts: number // Finanzbuchhaltung (pro Jahr)
+  payrollAccountingCosts: number // Lohnbuchhaltung (pro Jahr)
+  
   // Rücklagen
   weeklyReserves: number // Wöchentliche Rücklagen für unerwartete Ausgaben
 }
@@ -116,6 +127,8 @@ export interface FinancialMetrics {
 
   // Detaillierte Einnahmen (pro Woche)
   fixedIncomePerWeek: number
+  fundingRevenuePerWeek: number // Querfinanzierung durch Förderung pro Woche
+  membershipRevenuePerWeek: number // Mitgliedsbeiträge pro Woche
   ticketRevenuePerWeek: number
   gastronomyRevenuePerWeek: number // Gastronomischer Gewinn pro Woche
   course1RevenuePerWeek: number
@@ -128,6 +141,9 @@ export interface FinancialMetrics {
   monthlyCostsPerWeek: number
   showFeesPerWeek: number // GEMA + KVR Gebühren pro Woche
   weeklyReserves: number
+  
+  // Detaillierte Kosten (jährlich)
+  annualAccountingCosts: number // Steuerberater + Buchhaltung (pro Jahr)
 
   // Mehrwertsteuer (19%)
   totalVAT: number // Gesamte MwSt. pro Jahr
@@ -154,6 +170,9 @@ export interface FinancialScenario {
  */
 export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   profitraining: 700,
+  fundingPerMonth: 2000, // Querfinanzierung durch Förderung
+  membershipCount: 0, // Anzahl Mitglieder
+  membershipFeePerYear: 0, // Beitrag pro Jahr pro Mitglied
 
   ticketPrice: 15,
   ticketsPerWeek: 60,
@@ -191,6 +210,12 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   technology: 200,
   heatingCosts: 3500,
   otherCosts: 300,
+  
+  // Kosten (jährlich)
+  taxAdvisorCosts: 700, // Steuerberater (pro Jahr)
+  taxReturnCosts: 2000, // Jahresabschluss/Steuererklärung (pro Jahr)
+  accountingCosts: 1200, // Finanzbuchhaltung (pro Jahr)
+  payrollAccountingCosts: 400, // Lohnbuchhaltung (pro Jahr)
   
   weeklyReserves: 0, // Wöchentliche Rücklagen für unerwartete Ausgaben
 }
@@ -233,6 +258,9 @@ export function createFinancialScenario(
 export function createEmptyScenario(name: string = 'Leeres Szenario'): FinancialScenario {
   const emptyInputs: FinancialInputs = {
     profitraining: 0,
+    fundingPerMonth: 0,
+    membershipCount: 0,
+    membershipFeePerYear: 0,
     ticketPrice: 0,
     ticketsPerWeek: 0,
     gastronomyProfitPerTicket: 0,
@@ -263,6 +291,10 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     technology: 0,
     heatingCosts: 0,
     otherCosts: 0,
+    taxAdvisorCosts: 0,
+    taxReturnCosts: 0,
+    accountingCosts: 0,
+    payrollAccountingCosts: 0,
     weeklyReserves: 0,
   }
 
@@ -315,6 +347,12 @@ export function calculateMetrics(
   // Wöchentliche Basis-Einnahmen (Brutto)
   const fixedIncomePerWeek = inputs.profitraining / 4.33
   
+  // Querfinanzierung durch Förderung (monatlich → wöchentlich)
+  const fundingRevenuePerWeek = inputs.fundingPerMonth / 4.33
+  
+  // Mitgliedsbeiträge (jährlich → wöchentlich)
+  const membershipRevenuePerWeek = (inputs.membershipCount * inputs.membershipFeePerYear) / 52
+  
   // Ticket-Einnahmen: Ticketpreis × Anzahl Tickets pro Woche
   const ticketRevenuePerWeek = inputs.ticketPrice * inputs.ticketsPerWeek
   
@@ -340,6 +378,8 @@ export function calculateMetrics(
   // Gesamte wöchentliche Brutto-Einnahmen
   const baseWeeklyRevenueBrutto =
     fixedIncomePerWeek +
+    fundingRevenuePerWeek + // Querfinanzierung durch Förderung (keine MwSt., da Förderung)
+    membershipRevenuePerWeek + // Mitgliedsbeiträge (keine MwSt., da Mitgliedsbeiträge)
     ticketRevenuePerWeek +
     gastronomyRevenuePerWeek + // Gastronomischer Gewinn (keine MwSt., da bereits Netto)
     course1RevenuePerWeek +
@@ -358,12 +398,13 @@ export function calculateMetrics(
   // MwSt. = Brutto - Netto = 15.97€
   const VAT_RATE = 0.19 // 19% Mehrwertsteuer
   
-  // Brutto-Einnahmen ohne gastronomischen Gewinn (für MwSt.-Berechnung)
-  const baseWeeklyRevenueBruttoForVAT = baseWeeklyRevenueBrutto - gastronomyRevenuePerWeek
+  // Brutto-Einnahmen ohne gastronomischen Gewinn, Förderung und Mitgliedsbeiträge (für MwSt.-Berechnung)
+  // Förderung und Mitgliedsbeiträge sind steuerfrei
+  const baseWeeklyRevenueBruttoForVAT = baseWeeklyRevenueBrutto - gastronomyRevenuePerWeek - fundingRevenuePerWeek - membershipRevenuePerWeek
   const baseWeeklyRevenueNetFromBrutto = baseWeeklyRevenueBruttoForVAT / (1 + VAT_RATE)
   
-  // Gesamte Netto-Einnahmen (Brutto-Einnahmen nach MwSt. + gastronomischer Gewinn)
-  const baseWeeklyRevenue = baseWeeklyRevenueNetFromBrutto + gastronomyRevenuePerWeek
+  // Gesamte Netto-Einnahmen (Brutto-Einnahmen nach MwSt. + steuerfreie Einnahmen)
+  const baseWeeklyRevenue = baseWeeklyRevenueNetFromBrutto + gastronomyRevenuePerWeek + fundingRevenuePerWeek + membershipRevenuePerWeek
   const weeklyVAT = baseWeeklyRevenueBruttoForVAT - baseWeeklyRevenueNetFromBrutto // MwSt. pro Woche
 
   // ============================================================================
@@ -387,6 +428,13 @@ export function calculateMetrics(
 
   // Gesamte wöchentliche Kosten (inkl. Rücklagen und Show-Gebühren)
   const baseWeeklyCosts = monthlyCostsPerWeek + weeklyReserves + showFeesPerWeek
+
+  // Jährliche Kosten (Steuerberater, Buchhaltung)
+  const annualAccountingCosts = 
+    inputs.taxAdvisorCosts + 
+    inputs.taxReturnCosts + 
+    inputs.accountingCosts + 
+    inputs.payrollAccountingCosts
 
   // ============================================================================
   // JAHRESWERTE-BERECHNUNG
@@ -419,12 +467,14 @@ export function calculateMetrics(
     } else {
       totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
     }
+    // Füge jährliche Kosten hinzu
+    totalCosts += annualAccountingCosts
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
     totalRevenue = totalRevenueBrutto / (1 + VAT_RATE) // Netto
     totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
-    totalCosts = baseWeeklyCosts * 52
+    totalCosts = baseWeeklyCosts * 52 + annualAccountingCosts
   }
 
   const totalProfit = totalRevenue - totalCosts
@@ -471,6 +521,15 @@ export function calculateMetrics(
     
     historicalCosts = historicalCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
     projectedCosts = projectedCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    
+    // Jährliche Kosten werden anteilig auf historische und prognostizierte Wochen verteilt
+    const historicalWeeksCount = currentWeek - 1
+    const projectedWeeksCount = 52 - historicalWeeksCount
+    const historicalAnnualCosts = (annualAccountingCosts * historicalWeeksCount) / 52
+    const projectedAnnualCosts = (annualAccountingCosts * projectedWeeksCount) / 52
+    
+    historicalCosts += historicalAnnualCosts
+    projectedCosts += projectedAnnualCosts
   }
 
   const projectedProfit = projectedRevenue - projectedCosts
@@ -491,6 +550,8 @@ export function calculateMetrics(
     projectedCosts,
     projectedProfit,
     fixedIncomePerWeek,
+    fundingRevenuePerWeek,
+    membershipRevenuePerWeek,
     ticketRevenuePerWeek,
     gastronomyRevenuePerWeek,
     course1RevenuePerWeek,
@@ -501,6 +562,7 @@ export function calculateMetrics(
     monthlyCostsPerWeek,
     showFeesPerWeek,
     weeklyReserves,
+    annualAccountingCosts,
     totalVAT,
     weeklyVAT,
     netRevenue: totalRevenue, // Alias für Klarheit

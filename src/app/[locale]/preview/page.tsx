@@ -600,6 +600,42 @@ export default function PreviewPage() {
                 showCurrency
                 info={`≈ ${metrics.fixedIncomePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
               />
+              <FinancialSlider
+                label={t('fundingPerMonth')}
+                value={inputs.fundingPerMonth}
+                onChange={(value) => updateInput('fundingPerMonth', value)}
+                min={0}
+                max={5000}
+                step={100}
+                showCurrency
+                info={`≈ ${metrics.fundingRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+              />
+            </div>
+          </div>
+
+          {/* Mitgliedsbeiträge */}
+          <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{t('memberships')}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FinancialSlider
+                label={t('membershipCount')}
+                value={inputs.membershipCount}
+                onChange={(value) => updateInput('membershipCount', value)}
+                min={0}
+                max={200}
+                step={1}
+                info={`${locale === 'de' ? 'Anzahl Mitglieder' : 'Number of members'}`}
+              />
+              <FinancialSlider
+                label={t('membershipFeePerYear')}
+                value={inputs.membershipFeePerYear}
+                onChange={(value) => updateInput('membershipFeePerYear', value)}
+                min={0}
+                max={1000}
+                step={10}
+                showCurrency
+                info={`≈ ${metrics.membershipRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+              />
             </div>
           </div>
 
@@ -845,7 +881,7 @@ export default function PreviewPage() {
               showCurrency
             />
             <FinancialSlider
-              label={locale === 'de' ? 'Wöchentliche Rücklagen' : 'Weekly Reserves'}
+              label={t('weeklyReserves')}
               value={inputs.weeklyReserves}
               onChange={(value) => updateInput('weeklyReserves', value)}
               min={0}
@@ -855,13 +891,69 @@ export default function PreviewPage() {
               info={locale === 'de' ? 'Für unerwartete Ausgaben' : 'For unexpected expenses'}
             />
           </div>
+
+          {/* Jährliche Kosten */}
+          <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Jährliche Kosten' : 'Annual Costs'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FinancialSlider
+                label={t('taxAdvisorCosts')}
+                value={inputs.taxAdvisorCosts}
+                onChange={(value) => updateInput('taxAdvisorCosts', value)}
+                min={0}
+                max={2000}
+                step={50}
+                showCurrency
+                info={`${locale === 'de' ? 'Pro Jahr' : 'Per year'}`}
+              />
+              <FinancialSlider
+                label={t('taxReturnCosts')}
+                value={inputs.taxReturnCosts}
+                onChange={(value) => updateInput('taxReturnCosts', value)}
+                min={0}
+                max={5000}
+                step={100}
+                showCurrency
+                info={`${locale === 'de' ? 'Pro Jahr' : 'Per year'}`}
+              />
+              <FinancialSlider
+                label={t('accountingCosts')}
+                value={inputs.accountingCosts}
+                onChange={(value) => updateInput('accountingCosts', value)}
+                min={0}
+                max={3000}
+                step={50}
+                showCurrency
+                info={`${locale === 'de' ? 'Pro Jahr' : 'Per year'}`}
+              />
+              <FinancialSlider
+                label={t('payrollAccountingCosts')}
+                value={inputs.payrollAccountingCosts}
+                onChange={(value) => updateInput('payrollAccountingCosts', value)}
+                min={0}
+                max={1000}
+                step={50}
+                showCurrency
+                info={`${locale === 'de' ? 'Pro Jahr' : 'Per year'}`}
+              />
+            </div>
+            <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                <strong>{locale === 'de' ? 'Gesamt jährliche Buchhaltungskosten' : 'Total annual accounting costs'}:</strong> {metrics.annualAccountingCosts.toFixed(2)} €
+              </p>
+            </div>
+          </div>
+
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-900 dark:text-red-100">
               <strong>{t('totalMonthly')}:</strong> {(inputs.rent + inputs.salaries + inputs.marketing + inputs.technology + inputs.heatingCosts + inputs.otherCosts).toFixed(2)} €
             </p>
             <p className="text-sm text-red-900 dark:text-red-100 mt-1">
-              <strong>{locale === 'de' ? 'Wöchentliche Rücklagen' : 'Weekly Reserves'}:</strong> {inputs.weeklyReserves.toFixed(2)} €
+              <strong>{t('weeklyReserves')}:</strong> {inputs.weeklyReserves.toFixed(2)} €
               <span className="ml-4">≈ {metrics.baseWeeklyCosts.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'} ({locale === 'de' ? 'inkl. Rücklagen' : 'incl. reserves'})</span>
+            </p>
+            <p className="text-sm text-red-900 dark:text-red-100 mt-1">
+              <strong>{locale === 'de' ? 'Jährliche Kosten' : 'Annual Costs'}:</strong> {metrics.annualAccountingCosts.toFixed(2)} €
             </p>
           </div>
         </div>
