@@ -132,6 +132,8 @@ function generateReportText(scenario: FinancialScenario): string {
   
   report += 'EINNAHMEN:\n'
   report += `- Profitraining: ${formatCurrency(inputs.profitraining)}/Monat\n`
+  report += `- Querfinanzierung durch Förderung: ${formatCurrency(inputs.fundingPerMonth)}/Monat\n`
+  report += `- Mitgliedsbeiträge: ${inputs.membershipCount} Mitglieder × ${formatCurrency(inputs.membershipFeePerYear)}/Jahr = ${formatCurrency(inputs.membershipCount * inputs.membershipFeePerYear)}/Jahr\n`
   report += `- Ticketpreis: ${formatCurrency(inputs.ticketPrice)}\n`
   report += `- Tickets pro Woche: ${inputs.ticketsPerWeek}\n`
   report += `- Kurs 1 - Preis pro Teilnehmer: ${formatCurrency(inputs.course1PricePerParticipant)}\n`
@@ -164,6 +166,7 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahrn`
   report += `- Sonstige Kosten: ${formatCurrency(inputs.otherCosts)}/Monat\n`
   report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche\n\n`  report += `\nJährliche Kosten:\n`
+  report += `\nJährliche Kosten:\n`
   report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
   report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
   report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahr\n`
@@ -183,6 +186,8 @@ function generateReportText(scenario: FinancialScenario): string {
   
   report += 'Detaillierte Einnahmen (pro Woche, Netto nach MwSt.):\n'
   report += `- Fixeinnahmen: ${formatCurrency(metrics.fixedIncomePerWeek)}\n`
+  report += `- Querfinanzierung durch Förderung: ${formatCurrency(metrics.fundingRevenuePerWeek)}\n`
+  report += `- Mitgliedsbeiträge: ${formatCurrency(metrics.membershipRevenuePerWeek)}\n`
   report += `- Ticket-Einnahmen: ${formatCurrency(metrics.ticketRevenuePerWeek)}\n`
   report += `- Kurs 1 Einnahmen: ${formatCurrency(metrics.course1RevenuePerWeek)}\n`
   report += `- Kurs 2 Einnahmen: ${formatCurrency(metrics.course2RevenuePerWeek)}\n`
