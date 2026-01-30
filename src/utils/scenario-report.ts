@@ -132,8 +132,6 @@ function generateReportText(scenario: FinancialScenario): string {
   
   report += 'EINNAHMEN:\n'
   report += `- Profitraining: ${formatCurrency(inputs.profitraining)}/Monat\n`
-  report += `- Querfinanzierung durch Förderung: ${formatCurrency(inputs.fundingPerMonth)}/Monatn`
-  report += `- Mitgliedsbeiträge: ${inputs.membershipCount} Mitglieder × ${formatCurrency(inputs.membershipFeePerYear)}/Jahr = ${formatCurrency(inputs.membershipCount * inputs.membershipFeePerYear)}/Jahrn`
   report += `- Ticketpreis: ${formatCurrency(inputs.ticketPrice)}\n`
   report += `- Tickets pro Woche: ${inputs.ticketsPerWeek}\n`
   report += `- Kurs 1 - Preis pro Teilnehmer: ${formatCurrency(inputs.course1PricePerParticipant)}\n`
@@ -160,21 +158,23 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Marketing: ${formatCurrency(inputs.marketing)}/Monat\n`
   report += `- Technik: ${formatCurrency(inputs.technology)}/Monat\n`
   report += `- Heizkosten: ${formatCurrency(inputs.heatingCosts)}/Monat\n`
-  report += `nJährliche Kosten:n`
-  report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahrn`
   report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahrn`
   report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahrn`
   report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahrn`
   report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahrn`
   report += `- Sonstige Kosten: ${formatCurrency(inputs.otherCosts)}/Monat\n`
-  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche\n\n`
+  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche\n\n`  report += `\nJährliche Kosten:\n`
+  report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
+  report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
+  report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahr\n`
+  report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahr\n`
+  report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahr\n\n`
+
   
   // Kennzahlen
   report += '='.repeat(50) + '\n'
   report += 'KENNZAHLEN\n'
   report += '='.repeat(50) + '\n\n'
-  report += `- Querfinanzierung durch Förderung: ${formatCurrency(metrics.fundingRevenuePerWeek)}n`
-  report += `- Mitgliedsbeiträge: ${formatCurrency(metrics.membershipRevenuePerWeek)}n`
   
   report += 'Wöchentliche Basiswerte:\n'
   report += `- Basis-Einnahmen pro Woche (Netto, nach MwSt.): ${formatCurrency(metrics.baseWeeklyRevenue)}\n`
