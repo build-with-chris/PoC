@@ -36,6 +36,8 @@
  * 
  * EINNAHMEN:
  * - Profitraining: 700 €/Monat
+  report += `- Querfinanzierung durch Förderung: ${formatCurrency(inputs.fundingPerMonth)}/Monat\n`
+  report += `- Mitgliedsbeiträge: ${inputs.membershipCount} Mitglieder × ${formatCurrency(inputs.membershipFeePerYear)}/Jahr = ${formatCurrency(inputs.membershipCount * inputs.membershipFeePerYear)}/Jahr\n`
  * - Ticketpreis: 15 €
  * - Tickets pro Woche: 60
  * - Kurs 1 - Preis pro Teilnehmer: 20 €
@@ -160,12 +162,18 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Marketing: ${formatCurrency(inputs.marketing)}/Monat\n`
   report += `- Technik: ${formatCurrency(inputs.technology)}/Monat\n`
   report += `- Heizkosten: ${formatCurrency(inputs.heatingCosts)}/Monat\n`
-  report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahrn`
-  report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahrn`
-  report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahrn`
-  report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahrn`
   report += `- Sonstige Kosten: ${formatCurrency(inputs.otherCosts)}/Monat\n`
-  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche\n\n`  report += `\nJährliche Kosten:\n`
+  report += `- Wöchentliche Rücklagen: ${formatCurrency(inputs.weeklyReserves)}/Woche
+  report += `\nJährliche Kosten:\n`
+  report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
+  report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
+  report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahr\n`
+  report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahr\n`
+  report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahr\n\n`
+`
+  report += `
+Jährliche Kosten:
+`
   report += `\nJährliche Kosten:\n`
   report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
   report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
