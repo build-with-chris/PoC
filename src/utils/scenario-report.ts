@@ -236,6 +236,165 @@ function generateReportText(scenario: FinancialScenario): string {
   
   return report
 }
+/**
+ * Erzeugt einen detaillierten Report mit zeitlicher Komponente (wöchentliche Daten)
+ * 
+ * @param scenario - Das zu exportierende Szenario
+ * @param weekMultipliers - Multiplikatoren für Einnahmen pro Woche (52 Wochen)
+ * @param costMultipliers - Multiplikatoren für Ausgaben pro Woche (52 Wochen)
+ * @param currentWeek - Aktuelle Kalenderwoche
+ * @returns Der detaillierte Report als String
+ */
+function generateDetailedReportText(
+  scenario: FinancialScenario,
+  weekMultipliers: number[],
+  costMultipliers: number[],
+  currentWeek: number
+): string {
+  const { inputs, metrics, name, createdAt, updatedAt } = scenario
+
+  let report = ''
+  
+  // Titel
+  report += '='.repeat(50) + '\n'
+  report += `DETAILLIERTE FINANZ-ANALYSE: ${name}\n`
+  report += '='.repeat(50) + '\n\n'
+  
+  // Metadaten
+  report += `Erstellt am: ${formatDate(createdAt)}\n`
+  report += `Zuletzt geändert: ${formatDate(updatedAt)}\n`
+  report += `Aktuelle Kalenderwoche: ${currentWeek}\n\n`
+  
+  // Standard-Report einfügen
+  report += generateReportText(scenario)
+  
+  // Zeitliche Komponente
+  report += '\n' + '='.repeat(50) + '\n'
+  report += 'WÖCHENTLICHE DETAILLANALYSE\n'
+  report += '='.repeat(50) + '\n\n'
+  
+  report += 'Diese Analyse zeigt die prognostizierten Werte für jede Woche des Jahres.\n'
+  report += 'Multiplikatoren: 0% = ausgeschlossen, 50% = schwach, 100% = normal, 120% = stark\n\n'
+  
+  // Tabellenkopf
+  report += 'KW'.padEnd(5)
+  report += 'Status'.padEnd(12)
+  report += 'Einn.-Mult.'.padEnd(12)
+  report += 'Ausg.-Mult.'.padEnd(12)
+  report += 'Einnahmen'.padEnd(15)
+  report += 'Ausgaben'.padEnd(15)
+  report += 'Gewinn/Verlust'.padEnd(18)
+  report += '\n'
+  report += '-'.repeat(100) + '\n'
+  
+  // Wöchentliche Daten
+  for (let i = 0; i < 52; i++) {
+    const weekNum = i + 1
+    const isHistorical = weekNum < currentWeek
+    const revenueMultiplier = weekMultipliers[i] ?? 1.0
+    const costMultiplier = costMultipliers[i] ?? 1.0
+    
+    const weekRevenue = (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
+    const weekCosts = (metrics.baseWeeklyCosts ?? 0) * costMultiplier
+    const weekProfit = weekRevenue - weekCosts
+    
+    // Status
+    let status = ''
+    if (isHistorical) {
+      status = 'Vergangenheit'
+    } else if (revenueMultiplier === 0 && costMultiplier === 0) {
+      status = 'Ausgeschlossen'
+    } else if (revenueMultiplier === 0) {
+      status = 'Keine Einn.'
+    } else if (costMultiplier === 0) {
+      status = 'Keine Ausg.'
+    } else if (revenueMultiplier === 1.0 && costMultiplier === 1.0) {
+      status = 'Normal'
+    } else if (revenueMultiplier < 1.0 || costMultiplier < 1.0) {
+      status = 'Schwach'
+    } else if (revenueMultiplier > 1.0 || costMultiplier > 1.0) {
+      status = 'Stark'
+    } else {
+      status = 'Angepasst'
+    }
+    
+    // Multiplikator-Formatierung
+    const revenueMultStr = revenueMultiplier === 0 
+      ? '0%' 
+      : revenueMultiplier === 0.5 
+        ? '50%' 
+        : revenueMultiplier === 1.0 
+          ? '100%' 
+          : revenueMultiplier === 1.2 
+            ? '120%' 
+            : `${(revenueMultiplier * 100).toFixed(1)}%`
+    
+    const costMultStr = costMultiplier === 0 
+      ? '0%' 
+      : costMultiplier === 0.5 
+        ? '50%' 
+        : costMultiplier === 1.0 
+          ? '100%' 
+          : costMultiplier === 1.2 
+            ? '120%' 
+            : `${(costMultiplier * 100).toFixed(1)}%`
+    
+    // Zeile
+    report += `KW ${weekNum.toString().padStart(2)}`.padEnd(5)
+    report += status.padEnd(12)
+    report += revenueMultStr.padEnd(12)
+    report += costMultStr.padEnd(12)
+    report += formatCurrency(weekRevenue).padEnd(15)
+    report += formatCurrency(weekCosts).padEnd(15)
+    report += formatCurrency(weekProfit).padEnd(18)
+    report += '\n'
+  }
+  
+  report += '\n' + '='.repeat(50) + '\n'
+  report += 'ZUSAMMENFASSUNG DER WÖCHENTLICHEN DATEN\n'
+  report += '='.repeat(50) + '\n\n'
+  
+  // Statistiken
+  const totalWeeks = 52
+  const historicalWeeks = currentWeek - 1
+  const projectedWeeks = 52 - historicalWeeks
+  const excludedWeeks = weekMultipliers.filter(m => m === 0).length
+  const weakWeeks = weekMultipliers.filter(m => m > 0 && m < 1.0).length
+  const normalWeeks = weekMultipliers.filter(m => m === 1.0).length
+  const strongWeeks = weekMultipliers.filter(m => m > 1.0).length
+  
+  report += `Gesamtanzahl Wochen: ${totalWeeks}\n`
+  report += `Historische Wochen: ${historicalWeeks}\n`
+  report += `Prognostizierte Wochen: ${projectedWeeks}\n\n`
+  
+  report += 'Einnahmen-Multiplikatoren:\n'
+  report += `- Ausgeschlossen (0%): ${excludedWeeks} Wochen\n`
+  report += `- Schwach (<100%): ${weakWeeks} Wochen\n`
+  report += `- Normal (100%): ${normalWeeks} Wochen\n`
+  report += `- Stark (>100%): ${strongWeeks} Wochen\n\n`
+  
+  // Berechne Gesamtwerte aus wöchentlichen Daten
+  let totalProjectedRevenue = 0
+  let totalProjectedCosts = 0
+  
+  for (let i = currentWeek - 1; i < 52; i++) {
+    const revenueMultiplier = weekMultipliers[i] ?? 1.0
+    const costMultiplier = costMultipliers[i] ?? 1.0
+    totalProjectedRevenue += (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
+    totalProjectedCosts += (metrics.baseWeeklyCosts ?? 0) * costMultiplier
+  }
+  
+  report += 'Prognostizierte Werte (ab KW ' + currentWeek + '):\n'
+  report += `- Gesamt-Einnahmen: ${formatCurrency(totalProjectedRevenue)}\n`
+  report += `- Gesamt-Ausgaben: ${formatCurrency(totalProjectedCosts)}\n`
+  report += `- Gesamt-Gewinn/Verlust: ${formatCurrency(totalProjectedRevenue - totalProjectedCosts)}\n\n`
+  
+  report += '='.repeat(50) + '\n'
+  report += `Detaillierter Report generiert am: ${formatDate(new Date().toISOString())}\n`
+  report += '='.repeat(50) + '\n'
+  
+  return report
+}
 
 /**
  * Exportiert ein FinancialScenario als menschenlesbaren Report und startet den Download
@@ -285,3 +444,62 @@ export function exportScenarioReport(
   }
 }
 
+
+/**
+ * Exportiert ein FinancialScenario als detaillierten Report mit zeitlicher Komponente
+ * 
+ * @param scenario - Das zu exportierende Szenario
+ * @param weekMultipliers - Multiplikatoren für Einnahmen pro Woche (52 Wochen)
+ * @param costMultipliers - Multiplikatoren für Ausgaben pro Woche (52 Wochen)
+ * @param currentWeek - Aktuelle Kalenderwoche
+ * @param format - Dateiformat ('txt' oder 'md'), Standard: 'txt'
+ */
+export function exportDetailedScenarioReport(
+  scenario: FinancialScenario,
+  weekMultipliers: number[],
+  costMultipliers: number[],
+  currentWeek: number,
+  format: 'txt' | 'md' = 'txt'
+): void {
+  try {
+    // Generiere den detaillierten Report-Text
+    const reportText = generateDetailedReportText(
+      scenario,
+      weekMultipliers,
+      costMultipliers,
+      currentWeek
+    )
+    
+    // Bestimme den Dateinamen
+    const date = new Date()
+    const dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD
+    const safeName = scenario.name
+      .replace(/[^a-z0-9]/gi, '-')
+      .toLowerCase()
+      .substring(0, 50) // Max 50 Zeichen
+    const filename = `finanz-analyse-detailliert-${safeName}-${dateStr}.${format}`
+    
+    // Erstelle Blob
+    const blob = new Blob([reportText], {
+      type: format === 'md' ? 'text/markdown' : 'text/plain',
+    })
+    
+    // Erstelle Download-Link
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    link.style.display = 'none'
+    
+    // Trigger Download
+    document.body.appendChild(link)
+    link.click()
+    
+    // Cleanup
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Fehler beim Exportieren des detaillierten Reports:', error)
+    throw new Error('Fehler beim Erstellen des detaillierten Reports. Bitte versuche es erneut.')
+  }
+}

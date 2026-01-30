@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { FinancialScenario, createFinancialScenario, calculateMetrics } from '@/types/financial-scenario'
+import { FinancialScenario, createFinancialScenario, calculateMetrics, migrateScenario } from '@/types/financial-scenario'
 import { loadScenarios, saveScenario, deleteScenario } from '@/utils/scenario-storage'
 
 /**
@@ -43,7 +43,9 @@ export function useScenarioManager() {
   // Lade alle Szenarien beim Initialisieren
   useEffect(() => {
     const loaded = loadScenarios()
-    setScenarios(loaded)
+    // Migriere alle geladenen Szenarien, um sicherzustellen, dass sie die aktuelle Struktur haben
+    const migrated = loaded.map(migrateScenario)
+    setScenarios(migrated)
     setIsLoading(false)
   }, [])
 
@@ -99,14 +101,10 @@ export function useScenarioManager() {
   const loadScenarioById = useCallback((id: string): FinancialScenario | null => {
     const scenario = scenarios.find((s) => s.id === id)
     if (scenario) {
-      // Berechne Metrics neu (falls sich die Berechnungslogik geändert hat)
-      const updatedMetrics = calculateMetrics(scenario.inputs)
-      const updatedScenario: FinancialScenario = {
-        ...scenario,
-        metrics: updatedMetrics,
-      }
-      setCurrentScenario(updatedScenario)
-      return updatedScenario
+      // Migriere das Szenario, um sicherzustellen, dass alle Felder vorhanden sind
+      const migrated = migrateScenario(scenario)
+      setCurrentScenario(migrated)
+      return migrated
     }
     return null
   }, [scenarios])

@@ -8,6 +8,7 @@ import {
   createFinancialScenario,
   calculateMetrics,
   updateScenarioMetadata,
+  migrateScenario,
   DEFAULT_FINANCIAL_INPUTS,
 } from '@/types/financial-scenario'
 
@@ -36,8 +37,14 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
   )
 
   // Wöchentliche Multiplikatoren für saisonale Anpassungen (52 Wochen)
-  // 1.0 = normal, 0.5 = schwach, 1.2 = stark
+  // 1.0 = normal, 0.5 = schwach, 1.2 = stark, 0 = ausgeschlossen
   const [weekMultipliers, setWeekMultipliers] = useState<number[]>(() =>
+    Array(52).fill(1.0)
+  )
+
+  // Separate Multiplikatoren für Ausgaben (52 Wochen)
+  // Standardmäßig gleich wie weekMultipliers, aber manuell änderbar
+  const [costMultipliers, setCostMultipliers] = useState<number[]>(() =>
     Array(52).fill(1.0)
   )
 
@@ -53,16 +60,16 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
   // ============================================================================
   // AUTOMATISCHE METRICS-BERECHNUNG
   // ============================================================================
-  // Wird automatisch ausgeführt, wenn sich scenario.inputs oder weekMultipliers ändern
+  // Wird automatisch ausgeführt, wenn sich scenario.inputs, weekMultipliers oder costMultipliers ändern
   // Siehe: calculateMetrics() in financial-scenario.ts für die Berechnungslogik
   useEffect(() => {
-    const updatedMetrics = calculateMetrics(scenario.inputs, currentWeek, weekMultipliers)
+    const updatedMetrics = calculateMetrics(scenario.inputs, currentWeek, weekMultipliers, costMultipliers)
     setScenario((prev) => ({
       ...prev,
       metrics: updatedMetrics,
       updatedAt: new Date().toISOString(),
     }))
-  }, [scenario.inputs, currentWeek, weekMultipliers])
+  }, [scenario.inputs, currentWeek, weekMultipliers, costMultipliers])
 
   /**
    * Aktualisiert einen einzelnen Input-Wert
@@ -122,9 +129,12 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
    * @param newScenario - Das zu ladende Szenario
    * 
    * Wird verwendet beim Laden aus localStorage oder beim Import
+   * Migriert automatisch alte Szenarien auf die aktuelle Struktur
    */
   const loadScenario = useCallback((newScenario: FinancialScenario) => {
-    setScenario(newScenario)
+    // Migriere das Szenario, um sicherzustellen, dass alle Felder vorhanden sind
+    const migrated = migrateScenario(newScenario)
+    setScenario(migrated)
   }, [])
 
   /**
@@ -182,17 +192,102 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
   }, [])
 
   /**
-   * Toggelt einen Wochen-Multiplikator zwischen 1.0, 0.5 und 1.2
+   * Toggelt einen Wochen-Multiplikator zwischen 0 (ausgeschlossen), 0.5, 1.0 und 1.2
+   * Synchronisiert automatisch die costMultipliers, wenn eine Woche ausgeschlossen wird
    */
   const toggleWeekMultiplier = useCallback((weekIndex: number) => {
     setWeekMultipliers((prev) => {
       const updated = [...prev]
-      if (updated[weekIndex] === 1.0) {
+      const current = updated[weekIndex]
+      // Zyklus: 0 (ausgeschlossen) → 0.5 (schwach) → 1.0 (normal) → 1.2 (stark) → 0
+      let newValue: number
+      if (current === 0) {
+        newValue = 0.5
+      } else if (current === 0.5 || (current > 0 && current < 1.0)) {
+        newValue = 1.0
+      } else if (current === 1.0) {
+        newValue = 1.2
+      } else {
+        newValue = 0 // Von 1.2 oder anderen Werten zurück zu 0
+      }
+      updated[weekIndex] = newValue
+      
+      // Wenn Woche ausgeschlossen wird (0), setze auch costMultiplier auf 0
+      // Wenn Woche wieder aktiviert wird, synchronisiere costMultiplier mit weekMultiplier
+      if (newValue === 0) {
+        setCostMultipliers((prevCosts) => {
+          const updatedCosts = [...prevCosts]
+          updatedCosts[weekIndex] = 0
+          return updatedCosts
+        })
+      } else {
+        // Synchronisiere costMultiplier mit weekMultiplier, wenn Woche aktiviert wird
+        setCostMultipliers((prevCosts) => {
+          const updatedCosts = [...prevCosts]
+          // Nur synchronisieren, wenn costMultiplier aktuell 0 ist (also noch nicht manuell angepasst)
+          if (updatedCosts[weekIndex] === 0) {
+            updatedCosts[weekIndex] = newValue
+          }
+          return updatedCosts
+        })
+      }
+      
+      return updated
+    })
+  }, [])
+
+  /**
+   * Setzt einen Wochen-Multiplikator auf einen manuellen Wert (0-200%)
+   */
+  const setWeekMultiplierManually = useCallback((weekIndex: number, value: number) => {
+    // Begrenze auf 0-2.0 (0-200%)
+    const clampedValue = Math.max(0, Math.min(2.0, value))
+    setWeekMultipliers((prev) => {
+      const updated = [...prev]
+      updated[weekIndex] = clampedValue
+      
+      // Wenn Woche ausgeschlossen wird (0), setze auch costMultiplier auf 0
+      if (clampedValue === 0) {
+        setCostMultipliers((prevCosts) => {
+          const updatedCosts = [...prevCosts]
+          updatedCosts[weekIndex] = 0
+          return updatedCosts
+        })
+      }
+      
+      return updated
+    })
+  }, [])
+
+  /**
+   * Setzt einen Kosten-Multiplikator auf einen manuellen Wert (0-200%)
+   */
+  const setCostMultiplierManually = useCallback((weekIndex: number, value: number) => {
+    // Begrenze auf 0-2.0 (0-200%)
+    const clampedValue = Math.max(0, Math.min(2.0, value))
+    setCostMultipliers((prev) => {
+      const updated = [...prev]
+      updated[weekIndex] = clampedValue
+      return updated
+    })
+  }, [])
+
+  /**
+   * Toggelt einen Kosten-Multiplikator zwischen 0 (ausgeschlossen), 0.5, 1.0 und 1.2
+   */
+  const toggleCostMultiplier = useCallback((weekIndex: number) => {
+    setCostMultipliers((prev) => {
+      const updated = [...prev]
+      const current = updated[weekIndex]
+      // Zyklus: 0 (ausgeschlossen) → 0.5 (schwach) → 1.0 (normal) → 1.2 (stark) → 0
+      if (current === 0) {
         updated[weekIndex] = 0.5
-      } else if (updated[weekIndex] === 0.5) {
+      } else if (current === 0.5 || (current > 0 && current < 1.0)) {
+        updated[weekIndex] = 1.0
+      } else if (current === 1.0) {
         updated[weekIndex] = 1.2
       } else {
-        updated[weekIndex] = 1.0
+        updated[weekIndex] = 0 // Von 1.2 oder anderen Werten zurück zu 0
       }
       return updated
     })
@@ -202,6 +297,7 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
     // State
     scenario,
     weekMultipliers,
+    costMultipliers,
     currentWeek,
 
     // Input-Updates
@@ -214,11 +310,21 @@ export function useFinancialScenario(initialName: string = 'Neues Szenario') {
     updateName,
     duplicateScenario,
 
-    // Wochen-Multiplikatoren
+    // Wochen-Multiplikatoren (Einnahmen)
     updateWeekMultipliers,
     setWeekMultiplier,
+    setWeekMultiplierManually,
     setWeekRange,
     toggleWeekMultiplier,
+
+    // Kosten-Multiplikatoren (Ausgaben)
+    setCostMultiplierManually,
+    toggleCostMultiplier,
+    updateCostMultipliers: (multipliers: number[]) => {
+      if (multipliers.length === 52) {
+        setCostMultipliers(multipliers)
+      }
+    },
 
     // Direkter Zugriff (für Kompatibilität)
     inputs: scenario.inputs,

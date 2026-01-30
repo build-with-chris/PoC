@@ -42,7 +42,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { useFinancialScenario } from '@/hooks/useFinancialScenario'
 import { useScenarioManager } from '@/hooks/useScenarioManager'
 import { createFinancialScenario } from '@/types/financial-scenario'
-import { exportScenarioReport } from '@/utils/scenario-report'
+import { exportScenarioReport, exportDetailedScenarioReport } from '@/utils/scenario-report'
 import FinancialSlider from '@/app/components/FinancialSlider'
 import CourseInputGroup from '@/app/components/CourseInputGroup'
 import ScenarioManager from '@/app/components/ScenarioManager'
@@ -91,9 +91,13 @@ export default function PreviewPage() {
     inputs,
     metrics,
     weekMultipliers,
+    costMultipliers,
     currentWeek,
     updateInput,
     toggleWeekMultiplier,
+    setWeekMultiplierManually,
+    setCostMultiplierManually,
+    toggleCostMultiplier,
     setWeekRange,
     updateWeekMultipliers,
     loadScenario,
@@ -112,6 +116,12 @@ export default function PreviewPage() {
   const [loading, setLoading] = useState(true)
   const [analysis, setAnalysis] = useState<string>('')
   const [analyzingLoading, setAnalyzingLoading] = useState(false)
+  
+  // State für manuelle Wochen-Eingabe
+  const [editingWeek, setEditingWeek] = useState<number | null>(null)
+  const [manualValue, setManualValue] = useState<string>('')
+  const [editingType, setEditingType] = useState<'revenue' | 'cost'>('revenue') // Einnahmen oder Ausgaben
+  const [viewMode, setViewMode] = useState<'revenue' | 'cost' | 'both'>('revenue') // Anzeigemodus
 
   // Lade historische Daten
   useEffect(() => {
@@ -132,7 +142,8 @@ export default function PreviewPage() {
   // ============================================================================
   // Berechnet die wöchentlichen Einnahmen und Kosten basierend auf:
   // - metrics (berechnet in calculateMetrics() in financial-scenario.ts)
-  // - weekMultipliers (für saisonale Anpassungen)
+  // - weekMultipliers (für saisonale Anpassungen der Einnahmen)
+  // - costMultipliers (für saisonale Anpassungen der Ausgaben)
   // - historicalData (aus API)
   
   useEffect(() => {
@@ -144,6 +155,7 @@ export default function PreviewPage() {
     const weeklyData: WeekData[] = weekMultipliers.map((multiplier, index) => {
       const weekNumber = index + 1
       const isHistorical = weekNumber < currentWeek
+      const costMultiplier = costMultipliers[index] ?? 1.0 // Verwende costMultiplier für diese Woche
 
       // Wenn historische Daten vorhanden sind, verwende diese
       const historical = historicalData.find((h) => h.week === weekNumber)
@@ -160,8 +172,8 @@ export default function PreviewPage() {
         }
       }
 
-      // Wöchentliche Kosten (inkl. Rücklagen)
-      const weekCosts = metrics?.baseWeeklyCosts ?? 0
+      // Wöchentliche Kosten (inkl. Rücklagen) mit costMultiplier multiplizieren
+      const weekCosts = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier
 
       // Sonst verwende prognostizierte Werte
       const weekRevenue = (metrics?.baseWeeklyRevenue ?? 0) * multiplier
@@ -177,7 +189,7 @@ export default function PreviewPage() {
     })
 
     setWeeks(weeklyData)
-  }, [metrics, weekMultipliers, historicalData, currentWeek])
+  }, [metrics, weekMultipliers, costMultipliers, historicalData, currentWeek])
 
   const markChristmasWeak = () => {
     setWeekRange(50, 51, 0.5)
@@ -369,6 +381,26 @@ export default function PreviewPage() {
     }
   }
 
+  const handleDownloadDetailedReport = () => {
+    try {
+      // Prüfe, ob ein Szenario existiert
+      if (!scenario || !scenario.inputs || !scenario.metrics) {
+        alert(locale === 'de' 
+          ? 'Es ist noch keine Konfiguration aktiv. Bitte erstelle oder lade ein Szenario.' 
+          : 'No active configuration. Please create or load a scenario.')
+        return
+      }
+
+      // Exportiere den detaillierten Report mit zeitlicher Komponente
+      exportDetailedScenarioReport(scenario, weekMultipliers, costMultipliers, currentWeek, 'txt')
+    } catch (error) {
+      console.error('Fehler beim Exportieren des detaillierten Reports:', error)
+      alert(locale === 'de' 
+        ? 'Fehler beim Erstellen des detaillierten Reports. Bitte versuche es erneut.' 
+        : 'Error creating detailed report. Please try again.')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -419,6 +451,13 @@ export default function PreviewPage() {
                   title={locale === 'de' ? 'Analyse als Textdatei herunterladen' : 'Download analysis as text file'}
                 >
                   {locale === 'de' ? '📄 Analyse herunterladen' : '📄 Download Report'}
+                </button>
+                <button
+                  onClick={handleDownloadDetailedReport}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium transition-colors w-full sm:w-auto sm:flex-1"
+                  title={locale === 'de' ? 'Detaillierte Analyse mit wöchentlichen Daten herunterladen' : 'Download detailed analysis with weekly data'}
+                >
+                  {locale === 'de' ? '📊 Detaillierte Analyse' : '📊 Detailed Analysis'}
                 </button>
               </div>
               
@@ -829,9 +868,41 @@ export default function PreviewPage() {
 
         {/* Wochen-Timeline */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Wochen-Timeline' : 'Week Timeline'} ({t('week')} {currentWeek} {locale === 'de' ? 'aktuell' : 'current'})</h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-md p-1">
+                <button
+                  onClick={() => setViewMode('revenue')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'revenue'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {locale === 'de' ? 'Einnahmen' : 'Revenue'}
+                </button>
+                <button
+                  onClick={() => setViewMode('cost')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'cost'
+                      ? 'bg-red-600 text-white'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {locale === 'de' ? 'Ausgaben' : 'Costs'}
+                </button>
+                <button
+                  onClick={() => setViewMode('both')}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewMode === 'both'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {locale === 'de' ? 'Beide' : 'Both'}
+                </button>
+              </div>
               <button
                 onClick={markChristmasWeak}
                 className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm"
@@ -848,38 +919,225 @@ export default function PreviewPage() {
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
             {locale === 'de'
-              ? `Klicke auf Wochen ab KW ${currentWeek}, um sie als normal (grün, 100%), schwach (orange, 50%), oder stark (blau, 120%) zu markieren`
-              : `Click on weeks starting from Week ${currentWeek} to mark them as normal (green, 100%), weak (orange, 50%), or strong (blue, 120%)`
+              ? `Klicke auf Wochen ab KW ${currentWeek}, um sie zu ändern. Doppelklick für manuelle Eingabe. Grau = ausgeschlossen (0%), Grün = normal (100%), Orange = schwach (50%), Blau = stark (120%)`
+              : `Click on weeks starting from Week ${currentWeek} to change them. Double-click for manual input. Gray = excluded (0%), Green = normal (100%), Orange = weak (50%), Blue = strong (120%)`
             }
           </p>
-          <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
-            {weekMultipliers.map((multiplier, index) => {
-              const weekNum = index + 1
-              const isHistorical = weekNum < currentWeek
-              return (
-                <button
-                  key={index}
-                  onClick={() => !isHistorical && toggleWeekMultiplier(index)}
-                  disabled={isHistorical}
-                  className={`h-8 w-8 rounded text-xs font-medium transition-colors ${
-                    isHistorical
-                      ? 'bg-zinc-400 text-white cursor-not-allowed'
-                      : multiplier === 1.0
-                      ? 'bg-green-500 hover:bg-green-600 text-white'
-                      : multiplier === 0.5 || multiplier === 0.7
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
-                  }`}
-                  title={locale === 'de'
-                    ? `Woche ${weekNum}${isHistorical ? ' (Vergangenheit)' : ''}: ${multiplier === 1.0 ? 'Normal' : multiplier < 1.0 ? `Schwach (${(multiplier * 100).toFixed(0)}%)` : 'Stark (120%)'}`
-                    : `Week ${weekNum}${isHistorical ? ' (Past)' : ''}: ${multiplier === 1.0 ? 'Normal' : multiplier < 1.0 ? `Weak (${(multiplier * 100).toFixed(0)}%)` : 'Strong (120%)'}`
+          
+          {/* Einnahmen-Multiplikatoren */}
+          {(viewMode === 'revenue' || viewMode === 'both') && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                {locale === 'de' ? 'Einnahmen-Multiplikatoren' : 'Revenue Multipliers'}
+              </h3>
+              <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
+                  {weekMultipliers.map((multiplier, index) => {
+                    const weekNum = index + 1
+                    const isHistorical = weekNum < currentWeek
+                    const isExcluded = multiplier === 0
+                    
+                    const getButtonClass = () => {
+                      if (isHistorical) return 'bg-zinc-400 text-white cursor-not-allowed'
+                      if (isExcluded) return 'bg-zinc-600 hover:bg-zinc-700 text-white line-through'
+                      if (multiplier === 1.0) return 'bg-green-500 hover:bg-green-600 text-white'
+                      if (multiplier === 0.5 || (multiplier > 0 && multiplier < 1.0)) return 'bg-orange-500 hover:bg-orange-600 text-white'
+                      if (multiplier === 1.2) return 'bg-blue-500 hover:bg-blue-600 text-white'
+                      return 'bg-purple-500 hover:bg-purple-600 text-white' // Custom value
+                    }
+                    
+                    const getTooltip = () => {
+                      if (isHistorical) {
+                        return locale === 'de' 
+                          ? `Woche ${weekNum} (Vergangenheit) - Einnahmen`
+                          : `Week ${weekNum} (Past) - Revenue`
+                      }
+                      if (isExcluded) {
+                        return locale === 'de'
+                          ? `Woche ${weekNum}: Ausgeschlossen (0%) - Keine Einnahmen`
+                          : `Week ${weekNum}: Excluded (0%) - No revenue`
+                      }
+                      const percent = (multiplier * 100).toFixed(0)
+                      if (multiplier === 1.0) {
+                        return locale === 'de' ? `Woche ${weekNum}: Normal (100%) - Einnahmen` : `Week ${weekNum}: Normal (100%) - Revenue`
+                      }
+                      if (multiplier === 0.5) {
+                        return locale === 'de' ? `Woche ${weekNum}: Schwach (50%) - Einnahmen` : `Week ${weekNum}: Weak (50%) - Revenue`
+                      }
+                      if (multiplier === 1.2) {
+                        return locale === 'de' ? `Woche ${weekNum}: Stark (120%) - Einnahmen` : `Week ${weekNum}: Strong (120%) - Revenue`
+                      }
+                      return locale === 'de' 
+                        ? `Woche ${weekNum}: Manuell (${percent}%) - Einnahmen - Doppelklick zum Bearbeiten`
+                        : `Week ${weekNum}: Manual (${percent}%) - Revenue - Double-click to edit`
+                    }
+                    
+                    return (
+                      <button
+                        key={`revenue-${index}`}
+                        onClick={() => !isHistorical && toggleWeekMultiplier(index)}
+                        onDoubleClick={(e) => {
+                          e.preventDefault()
+                          if (!isHistorical) {
+                            setEditingWeek(index)
+                            setEditingType('revenue')
+                            setManualValue((multiplier * 100).toFixed(1))
+                          }
+                        }}
+                        disabled={isHistorical}
+                        className={`h-8 w-8 rounded text-xs font-medium transition-colors ${getButtonClass()}`}
+                        title={getTooltip()}
+                      >
+                        {weekNum}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          
+          {/* Ausgaben-Multiplikatoren */}
+          {(viewMode === 'cost' || viewMode === 'both') && (
+            <div className={viewMode === 'both' ? 'mt-4' : ''}>
+              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                {locale === 'de' ? 'Ausgaben-Multiplikatoren' : 'Cost Multipliers'}
+              </h3>
+              <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
+                {costMultipliers.map((multiplier, index) => {
+                  const weekNum = index + 1
+                  const isHistorical = weekNum < currentWeek
+                  const isExcluded = multiplier === 0
+                  
+                  const getButtonClass = () => {
+                    if (isHistorical) return 'bg-zinc-400 text-white cursor-not-allowed'
+                    if (isExcluded) return 'bg-zinc-600 hover:bg-zinc-700 text-white line-through'
+                    if (multiplier === 1.0) return 'bg-green-500 hover:bg-green-600 text-white'
+                    if (multiplier === 0.5 || (multiplier > 0 && multiplier < 1.0)) return 'bg-orange-500 hover:bg-orange-600 text-white'
+                    if (multiplier === 1.2) return 'bg-blue-500 hover:bg-blue-600 text-white'
+                    return 'bg-purple-500 hover:bg-purple-600 text-white' // Custom value
                   }
-                >
-                  {weekNum}
-                </button>
-              )
-            })}
-          </div>
+                  
+                  const getTooltip = () => {
+                    if (isHistorical) {
+                      return locale === 'de' 
+                        ? `Woche ${weekNum} (Vergangenheit) - Ausgaben`
+                        : `Week ${weekNum} (Past) - Costs`
+                    }
+                    if (isExcluded) {
+                      return locale === 'de'
+                        ? `Woche ${weekNum}: Ausgeschlossen (0%) - Keine Ausgaben`
+                        : `Week ${weekNum}: Excluded (0%) - No costs`
+                    }
+                    const percent = (multiplier * 100).toFixed(0)
+                    if (multiplier === 1.0) {
+                      return locale === 'de' ? `Woche ${weekNum}: Normal (100%) - Ausgaben` : `Week ${weekNum}: Normal (100%) - Costs`
+                    }
+                    if (multiplier === 0.5) {
+                      return locale === 'de' ? `Woche ${weekNum}: Schwach (50%) - Ausgaben` : `Week ${weekNum}: Weak (50%) - Costs`
+                    }
+                    if (multiplier === 1.2) {
+                      return locale === 'de' ? `Woche ${weekNum}: Stark (120%) - Ausgaben` : `Week ${weekNum}: Strong (120%) - Costs`
+                    }
+                    return locale === 'de' 
+                      ? `Woche ${weekNum}: Manuell (${percent}%) - Ausgaben - Doppelklick zum Bearbeiten`
+                      : `Week ${weekNum}: Manual (${percent}%) - Costs - Double-click to edit`
+                  }
+                  
+                  return (
+                    <button
+                      key={`cost-${index}`}
+                      onClick={() => !isHistorical && toggleCostMultiplier(index)}
+                      onDoubleClick={(e) => {
+                        e.preventDefault()
+                        if (!isHistorical) {
+                          setEditingWeek(index)
+                          setEditingType('cost')
+                          setManualValue((multiplier * 100).toFixed(1))
+                        }
+                      }}
+                      disabled={isHistorical}
+                      className={`h-8 w-8 rounded text-xs font-medium transition-colors ${getButtonClass()}`}
+                      title={getTooltip()}
+                    >
+                      {weekNum}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Modal für manuelle Wochen-Eingabe */}
+          {editingWeek !== null && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                <h3 className="text-lg font-bold mb-4 text-zinc-900 dark:text-zinc-50">
+                  {locale === 'de' 
+                    ? `Woche ${editingWeek + 1} - Manueller Wert (${editingType === 'revenue' ? 'Einnahmen' : 'Ausgaben'})`
+                    : `Week ${editingWeek + 1} - Manual Value (${editingType === 'revenue' ? 'Revenue' : 'Costs'})`}
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  {locale === 'de'
+                    ? `Gib einen Prozentwert ein (0-200%). 0% = ausgeschlossen, 100% = normal. ${editingType === 'revenue' ? 'Einnahmen' : 'Ausgaben'} für diese Woche.`
+                    : `Enter a percentage value (0-200%). 0% = excluded, 100% = normal. ${editingType === 'revenue' ? 'Revenue' : 'Costs'} for this week.`}
+                </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    type="number"
+                    min="0"
+                    max="200"
+                    step="0.1"
+                    value={manualValue}
+                    onChange={(e) => setManualValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = parseFloat(manualValue)
+                        if (!isNaN(value) && value >= 0 && value <= 200) {
+                          if (editingType === 'revenue') {
+                            setWeekMultiplierManually(editingWeek, value / 100)
+                          } else {
+                            setCostMultiplierManually(editingWeek, value / 100)
+                          }
+                          setEditingWeek(null)
+                          setManualValue('')
+                        }
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50"
+                    autoFocus
+                  />
+                  <span className="text-zinc-600 dark:text-zinc-400">%</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const value = parseFloat(manualValue)
+                      if (!isNaN(value) && value >= 0 && value <= 200) {
+                        if (editingType === 'revenue') {
+                          setWeekMultiplierManually(editingWeek, value / 100)
+                        } else {
+                          setCostMultiplierManually(editingWeek, value / 100)
+                        }
+                        setEditingWeek(null)
+                        setManualValue('')
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                  >
+                    {locale === 'de' ? 'Speichern' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingWeek(null)
+                      setManualValue('')
+                    }}
+                    className="flex-1 px-4 py-2 bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-50 rounded-md font-medium"
+                  >
+                    {locale === 'de' ? 'Abbrechen' : 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Charts */}

@@ -284,9 +284,10 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
 export function recalculateMetrics(
   inputs: FinancialInputs,
   currentWeek?: number,
-  weekMultipliers?: number[]
+  weekMultipliers?: number[],
+  costMultipliers?: number[]
 ): FinancialMetrics {
-  return calculateMetrics(inputs, currentWeek, weekMultipliers)
+  return calculateMetrics(inputs, currentWeek, weekMultipliers, costMultipliers)
 }
 
 /**
@@ -303,7 +304,8 @@ export function recalculateMetrics(
 export function calculateMetrics(
   inputs: FinancialInputs,
   currentWeek?: number,
-  weekMultipliers?: number[]
+  weekMultipliers?: number[],
+  costMultipliers?: number[]
 ): FinancialMetrics {
   // ============================================================================
   // EINNAHMEN-BERECHNUNG (BRUTTO)
@@ -395,6 +397,11 @@ export function calculateMetrics(
   let totalVAT: number
   let totalCosts: number
 
+  // Verwende costMultipliers falls vorhanden, sonst weekMultipliers
+  const effectiveCostMultipliers = costMultipliers && costMultipliers.length === 52 
+    ? costMultipliers 
+    : weekMultipliers
+
   if (weekMultipliers && weekMultipliers.length === 52) {
     // Berechne mit Multiplikatoren
     const baseWeeklyRevenueBruttoWithMultipliers = weekMultipliers.reduce(
@@ -406,7 +413,12 @@ export function calculateMetrics(
     totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
     
     // Kosten: Basis-Kosten für alle Wochen (inkl. Rücklagen)
-    totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    // Verwende separate costMultipliers falls vorhanden
+    if (effectiveCostMultipliers && effectiveCostMultipliers.length === 52) {
+      totalCosts = effectiveCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    } else {
+      totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    }
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
@@ -449,8 +461,16 @@ export function calculateMetrics(
     )
 
     // Kosten (inkl. Rücklagen und Show-Gebühren)
-    historicalCosts = historicalWeeks.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
-    projectedCosts = projectedWeeks.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    // Verwende separate costMultipliers falls vorhanden
+    const historicalCostMultipliers = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
+      ? effectiveCostMultipliers.slice(0, currentWeek - 1)
+      : historicalWeeks
+    const projectedCostMultipliers = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
+      ? effectiveCostMultipliers.slice(currentWeek - 1)
+      : projectedWeeks
+    
+    historicalCosts = historicalCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+    projectedCosts = projectedCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
   }
 
   const projectedProfit = projectedRevenue - projectedCosts
@@ -486,6 +506,32 @@ export function calculateMetrics(
     netRevenue: totalRevenue, // Alias für Klarheit
     netProfit,
     netProfitMargin,
+  }
+}
+
+/**
+ * Migriert ein altes Szenario auf die aktuelle Struktur
+ * 
+ * Füllt fehlende Felder mit Standardwerten, damit alte gespeicherte Szenarien
+ * weiterhin funktionieren, auch wenn neue Felder hinzugefügt wurden.
+ * 
+ * @param scenario - Das zu migrierende Szenario
+ * @returns Migriertes Szenario mit allen erforderlichen Feldern
+ */
+export function migrateScenario(scenario: FinancialScenario): FinancialScenario {
+  // Merge Inputs mit Standardwerten, um fehlende Felder zu füllen
+  const migratedInputs: FinancialInputs = {
+    ...DEFAULT_FINANCIAL_INPUTS,
+    ...scenario.inputs,
+  }
+  
+  // Berechne Metrics neu mit migrierten Inputs
+  const migratedMetrics = calculateMetrics(migratedInputs)
+  
+  return {
+    ...scenario,
+    inputs: migratedInputs,
+    metrics: migratedMetrics,
   }
 }
 
