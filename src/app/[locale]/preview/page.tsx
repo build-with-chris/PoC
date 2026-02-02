@@ -995,10 +995,13 @@ export default function PreviewPage() {
                     <strong>{locale === 'de' ? 'Zinskosten' : 'Interest Costs'}:</strong> {metrics.loanInterestPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
                   </p>
                   <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    <strong>{locale === 'de' ? 'Tilgungskosten' : 'Repayment Costs'}:</strong> {metrics.loanRepaymentPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'} ({locale === 'de' ? 'Tilgungsfreies erstes Jahr' : 'No repayment in first year'})
+                    <strong>{locale === 'de' ? 'Tilgungskosten' : 'Repayment Costs'}:</strong> {metrics.loanRepaymentPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'} ({locale === 'de' ? 'Tilgungsfreies erstes Jahr' : 'No repayment in first year'}, {locale === 'de' ? 'danach' : 'then'} {inputs.loanAmount === 100000 ? '20.000 €' : '20.000 €'} / {locale === 'de' ? 'Jahr' : 'Year'})
+                  </p>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <strong>{locale === 'de' ? 'Tilgungsplan' : 'Repayment Plan'}:</strong> {inputs.loanAmount === 100000 ? '5' : '10'} {locale === 'de' ? 'Jahre' : 'Years'} ({locale === 'de' ? 'ab Jahr 2' : 'from year 2'})
                   </p>
                   <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-1">
-                    <strong>{locale === 'de' ? 'Gesamtkosten Kredit' : 'Total Loan Costs'}:</strong> {metrics.loanTotalCostsPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
+                    <strong>{locale === 'de' ? 'Gesamtkosten Kredit (Jahr 1)' : 'Total Loan Costs (Year 1)'}:</strong> {metrics.loanTotalCostsPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
                   </p>
                 </div>
               )}
