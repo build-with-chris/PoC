@@ -122,6 +122,7 @@ export default function PreviewPage() {
   const [manualValue, setManualValue] = useState<string>('')
   const [editingType, setEditingType] = useState<'revenue' | 'cost'>('revenue') // Einnahmen oder Ausgaben
   const [viewMode, setViewMode] = useState<'revenue' | 'cost' | 'both'>('revenue') // Anzeigemodus
+  const [showLoanModal, setShowLoanModal] = useState(false) // Modal für Kreditauswahl
 
   // Lade historische Daten
   useEffect(() => {
@@ -237,8 +238,8 @@ export default function PreviewPage() {
   }
 
   const getCosts = (): number => {
-    // Kosten als Brutto anzeigen (Netto + Vorsteuer)
-    const totalCostsBrutto = totalCosts + (metrics?.totalInputVAT ?? 0)
+    // Kosten als Brutto anzeigen (Netto + Vorsteuer + Kreditkosten)
+    const totalCostsBrutto = totalCosts + (metrics?.totalInputVAT ?? 0) + (metrics?.loanTotalCostsPerYear ?? 0)
     return convertToPeriod(totalCostsBrutto, viewPeriod)
   }
 
@@ -683,9 +684,9 @@ export default function PreviewPage() {
                 step={10}
                 showCurrency
                 info={`≈ ${metrics.dailyGastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (14% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
-              />
+                  />
+                </div>
             </div>
-          </div>
 
           {/* Shows/Events - Gebühren */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
@@ -728,9 +729,9 @@ export default function PreviewPage() {
                 step={50}
                 showCurrency
                 info={`${locale === 'de' ? 'Gesamt-Gebühren' : 'Total Fees'}: ${metrics.showFeesPerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
-              />
+                  />
+                </div>
             </div>
-          </div>
 
           {/* Kurse - Verwendet wiederverwendbare CourseInputGroup Komponente */}
           <div className="mb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
@@ -908,7 +909,7 @@ export default function PreviewPage() {
               showCurrency
               info={locale === 'de' ? 'Für unerwartete Ausgaben' : 'For unexpected expenses'}
             />
-          </div>
+            </div>
 
           {/* Jährliche Kosten */}
           <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
@@ -959,7 +960,7 @@ export default function PreviewPage() {
               <p className="text-sm text-zinc-700 dark:text-zinc-300">
                 <strong>{locale === 'de' ? 'Gesamt jährliche Buchhaltungskosten' : 'Total annual accounting costs'}:</strong> {metrics.annualAccountingCosts.toFixed(2)} €
               </p>
-            </div>
+          </div>
           </div>
 
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
@@ -974,7 +975,98 @@ export default function PreviewPage() {
               <strong>{locale === 'de' ? 'Jährliche Kosten' : 'Annual Costs'}:</strong> {metrics.annualAccountingCosts.toFixed(2)} €
             </p>
           </div>
+
+          {/* Kreditfinanzierung */}
+          <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Kreditfinanzierung' : 'Loan Financing'}</h3>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <button
+                onClick={() => setShowLoanModal(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+              >
+                {inputs.loanAmount === 0
+                  ? (locale === 'de' ? 'Kredit hinzufügen' : 'Add Loan')
+                  : `${locale === 'de' ? 'Kredit' : 'Loan'}: ${(inputs.loanAmount / 1000).toFixed(0)}k €`}
+              </button>
+              {inputs.loanAmount > 0 && (
+                <div className="flex-1">
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <strong>{locale === 'de' ? 'Zinskosten' : 'Interest Costs'}:</strong> {metrics.loanInterestPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
+                  </p>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <strong>{locale === 'de' ? 'Tilgungskosten' : 'Repayment Costs'}:</strong> {metrics.loanRepaymentPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'} ({locale === 'de' ? 'Tilgungsfreies erstes Jahr' : 'No repayment in first year'})
+                  </p>
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-1">
+                    <strong>{locale === 'de' ? 'Gesamtkosten Kredit' : 'Total Loan Costs'}:</strong> {metrics.loanTotalCostsPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Modal für Kreditauswahl */}
+        {showLoanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold mb-4 text-zinc-900 dark:text-zinc-50">
+                {locale === 'de' ? 'Kreditfinanzierung wählen' : 'Select Loan Financing'}
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                {locale === 'de' 
+                  ? 'Zinssatz: 4,5% p.a., Tilgungsfreies erstes Jahr'
+                  : 'Interest Rate: 4.5% p.a., No repayment in first year'}
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    updateInput('loanAmount', 0)
+                    setShowLoanModal(false)
+                  }}
+                  className={`px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    inputs.loanAmount === 0
+                      ? 'bg-green-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  {locale === 'de' ? 'Kein Kredit' : 'No Loan'}
+                </button>
+                <button
+                  onClick={() => {
+                    updateInput('loanAmount', 100000)
+                    setShowLoanModal(false)
+                  }}
+                  className={`px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    inputs.loanAmount === 100000
+                      ? 'bg-green-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  100.000 € ({locale === 'de' ? 'Zinsen' : 'Interest'}: ~4.500 € / {locale === 'de' ? 'Jahr' : 'Year'})
+                </button>
+                <button
+                  onClick={() => {
+                    updateInput('loanAmount', 200000)
+                    setShowLoanModal(false)
+                  }}
+                  className={`px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                    inputs.loanAmount === 200000
+                      ? 'bg-green-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
+                >
+                  200.000 € ({locale === 'de' ? 'Zinsen' : 'Interest'}: ~9.000 € / {locale === 'de' ? 'Jahr' : 'Year'})
+                </button>
+              </div>
+              <button
+                onClick={() => setShowLoanModal(false)}
+                className="mt-4 w-full px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-200 rounded-md text-sm font-medium"
+              >
+                {locale === 'de' ? 'Abbrechen' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Wochen-Timeline */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
@@ -1040,10 +1132,10 @@ export default function PreviewPage() {
               <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 {locale === 'de' ? 'Einnahmen-Multiplikatoren' : 'Revenue Multipliers'}
               </h3>
-              <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
-                  {weekMultipliers.map((multiplier, index) => {
-                    const weekNum = index + 1
-                    const isHistorical = weekNum < currentWeek
+          <div className="grid grid-cols-13 sm:grid-cols-26 gap-1">
+            {weekMultipliers.map((multiplier, index) => {
+              const weekNum = index + 1
+              const isHistorical = weekNum < currentWeek
                     const isExcluded = multiplier === 0
                     
                     const getButtonClass = () => {
@@ -1081,8 +1173,8 @@ export default function PreviewPage() {
                         : `Week ${weekNum}: Manual (${percent}%) - Revenue - Double-click to edit`
                     }
                     
-                    return (
-                      <button
+              return (
+                <button
                         key={`revenue-${index}`}
                         onClick={() => !isHistorical && toggleWeekMultiplier(index)}
                         onDoubleClick={(e) => {
@@ -1093,7 +1185,7 @@ export default function PreviewPage() {
                             setManualValue((multiplier * 100).toFixed(1))
                           }
                         }}
-                        disabled={isHistorical}
+                  disabled={isHistorical}
                         className={`h-8 w-8 rounded text-xs font-medium transition-colors ${getButtonClass()}`}
                         title={getTooltip()}
                       >
@@ -1167,12 +1259,12 @@ export default function PreviewPage() {
                       disabled={isHistorical}
                       className={`h-8 w-8 rounded text-xs font-medium transition-colors ${getButtonClass()}`}
                       title={getTooltip()}
-                    >
-                      {weekNum}
-                    </button>
-                  )
-                })}
-              </div>
+                >
+                  {weekNum}
+                </button>
+              )
+            })}
+          </div>
             </div>
           )}
           

@@ -97,6 +97,9 @@ export interface FinancialInputs {
   
   // Rücklagen
   weeklyReserves: number // Wöchentliche Rücklagen für unerwartete Ausgaben
+  
+  // Kreditfinanzierung
+  loanAmount: number // Kreditbetrag (0, 100000, 200000)
 }
 
 /**
@@ -146,6 +149,11 @@ export interface FinancialMetrics {
   
   // Detaillierte Kosten (jährlich)
   annualAccountingCosts: number // Steuerberater + Buchhaltung (pro Jahr)
+  
+  // Kreditfinanzierung
+  loanInterestPerYear: number // Zinskosten pro Jahr
+  loanRepaymentPerYear: number // Tilgungskosten pro Jahr (0 im ersten Jahr)
+  loanTotalCostsPerYear: number // Gesamtkosten Kredit pro Jahr
 
   // Mehrwertsteuer
   totalVAT: number // Gesamte Umsatzsteuer (USt) pro Jahr
@@ -224,6 +232,9 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   payrollAccountingCosts: 400, // Lohnbuchhaltung (pro Jahr)
   
   weeklyReserves: 0, // Wöchentliche Rücklagen für unerwartete Ausgaben
+  
+  // Kreditfinanzierung
+  loanAmount: 0, // Kein Kredit (Standard)
 }
 
 /**
@@ -303,6 +314,7 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     accountingCosts: 0,
     payrollAccountingCosts: 0,
     weeklyReserves: 0,
+    loanAmount: 0,
   }
 
   return createFinancialScenario(name, emptyInputs)
@@ -503,6 +515,16 @@ export function calculateMetrics(
     inputs.payrollAccountingCosts
 
   // ============================================================================
+  // KREDITFINANZIERUNG
+  // ============================================================================
+  // Zinssatz: 4,5%, Tilgungsfreies erstes Jahr
+  const LOAN_INTEREST_RATE = 0.045 // 4,5%
+  const loanInterestPerYear = inputs.loanAmount * LOAN_INTEREST_RATE
+  // Tilgungsfreies erstes Jahr: Keine Tilgung im ersten Jahr
+  const loanRepaymentPerYear = 0 // Im ersten Jahr keine Tilgung
+  const loanTotalCostsPerYear = loanInterestPerYear + loanRepaymentPerYear
+
+  // ============================================================================
   // JAHRESWERTE-BERECHNUNG
   // ============================================================================
   // Wenn weekMultipliers vorhanden, verwende diese für genauere Berechnung
@@ -551,12 +573,14 @@ export function calculateMetrics(
     }
     // Füge jährliche Kosten hinzu (ohne MwSt., da Dienstleistungen)
     totalCosts += annualAccountingCosts
+    // Füge Kreditkosten hinzu
+    totalCosts += loanTotalCostsPerYear
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
     totalRevenue = baseWeeklyRevenue * 52 // Netto
     totalVAT = weeklyVAT * 52 // Umsatzsteuer (USt) pro Jahr
-    totalCosts = baseWeeklyCosts * 52 + annualAccountingCosts
+    totalCosts = baseWeeklyCosts * 52 + annualAccountingCosts + loanTotalCostsPerYear
     totalInputVAT = weeklyInputVAT * 52 // Vorsteuer (VSt) pro Jahr
   }
   
@@ -613,9 +637,11 @@ export function calculateMetrics(
     const projectedWeeksCount = 52 - historicalWeeksCount
     const historicalAnnualCosts = (annualAccountingCosts * historicalWeeksCount) / 52
     const projectedAnnualCosts = (annualAccountingCosts * projectedWeeksCount) / 52
+    const historicalLoanCosts = (loanTotalCostsPerYear * historicalWeeksCount) / 52
+    const projectedLoanCosts = (loanTotalCostsPerYear * projectedWeeksCount) / 52
     
-    historicalCosts += historicalAnnualCosts
-    projectedCosts += projectedAnnualCosts
+    historicalCosts += historicalAnnualCosts + historicalLoanCosts
+    projectedCosts += projectedAnnualCosts + projectedLoanCosts
   }
 
   const projectedProfit = projectedRevenue - projectedCosts
@@ -650,6 +676,9 @@ export function calculateMetrics(
     showFeesPerWeek,
     weeklyReserves,
     annualAccountingCosts,
+    loanInterestPerYear,
+    loanRepaymentPerYear,
+    loanTotalCostsPerYear,
     totalVAT, // Umsatzsteuer (USt)
     weeklyVAT, // Umsatzsteuer (USt) pro Woche
     totalInputVAT, // Vorsteuer (VSt)
