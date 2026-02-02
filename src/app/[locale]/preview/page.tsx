@@ -172,17 +172,18 @@ export default function PreviewPage() {
         }
       }
 
-      // Wöchentliche Kosten (inkl. Rücklagen) mit costMultiplier multiplizieren
-      const weekCosts = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier
+      // Wöchentliche Kosten (inkl. Rücklagen) mit costMultiplier multiplizieren (Brutto)
+      const weekCostsNet = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier
+      const weekCostsBrutto = weekCostsNet + (metrics?.weeklyInputVAT ?? 0) * costMultiplier
 
-      // Sonst verwende prognostizierte Werte
-      const weekRevenue = (metrics?.baseWeeklyRevenue ?? 0) * multiplier
+      // Sonst verwende prognostizierte Werte (Brutto)
+      const weekRevenue = (metrics?.baseWeeklyRevenueBrutto ?? 0) * multiplier
       return {
         week: weekNumber,
         weekLabel: `KW ${weekNumber}`,
         revenue: weekRevenue,
-        costs: weekCosts,
-        margin: weekRevenue - weekCosts,
+        costs: weekCostsBrutto,
+        margin: weekRevenue - weekCostsBrutto,
         isHistorical: false,
         isWeak: multiplier < 1.0,
       }
