@@ -518,10 +518,23 @@ export function calculateMetrics(
   // KREDITFINANZIERUNG
   // ============================================================================
   // Zinssatz: 4,5%, Tilgungsfreies erstes Jahr
+  // Tilgungsplan: 100k = 5 Jahre, 200k = 10 Jahre
   const LOAN_INTEREST_RATE = 0.045 // 4,5%
   const loanInterestPerYear = inputs.loanAmount * LOAN_INTEREST_RATE
-  // Tilgungsfreies erstes Jahr: Keine Tilgung im ersten Jahr
-  const loanRepaymentPerYear = 0 // Im ersten Jahr keine Tilgung
+  
+  // Tilgungsplan berechnen
+  let loanRepaymentPerYear = 0
+  if (inputs.loanAmount === 100000) {
+    // 100k: 5 Jahre Tilgungsplan, aber tilgungsfreies erstes Jahr
+    // Tilgung = 100.000 / 5 = 20.000€ pro Jahr (ab Jahr 2)
+    loanRepaymentPerYear = 0 // Im ersten Jahr keine Tilgung
+  } else if (inputs.loanAmount === 200000) {
+    // 200k: 10 Jahre Tilgungsplan, aber tilgungsfreies erstes Jahr
+    // Tilgung = 200.000 / 10 = 20.000€ pro Jahr (ab Jahr 2)
+    loanRepaymentPerYear = 0 // Im ersten Jahr keine Tilgung
+  }
+  // Bei 0 (kein Kredit) bleibt loanRepaymentPerYear = 0
+  
   const loanTotalCostsPerYear = loanInterestPerYear + loanRepaymentPerYear
 
   // ============================================================================

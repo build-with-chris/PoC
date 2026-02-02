@@ -1043,7 +1043,7 @@ export default function PreviewPage() {
                       : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
                   }`}
                 >
-                  100.000 € ({locale === 'de' ? 'Zinsen' : 'Interest'}: ~4.500 € / {locale === 'de' ? 'Jahr' : 'Year'})
+                  100.000 € ({locale === 'de' ? 'Tilgungsplan' : 'Repayment Plan'}: 5 {locale === 'de' ? 'Jahre' : 'Years'}, {locale === 'de' ? 'Zinsen' : 'Interest'}: ~4.500 € / {locale === 'de' ? 'Jahr' : 'Year'})
                 </button>
                 <button
                   onClick={() => {
@@ -1056,7 +1056,7 @@ export default function PreviewPage() {
                       : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
                   }`}
                 >
-                  200.000 € ({locale === 'de' ? 'Zinsen' : 'Interest'}: ~9.000 € / {locale === 'de' ? 'Jahr' : 'Year'})
+                  200.000 € ({locale === 'de' ? 'Tilgungsplan' : 'Repayment Plan'}: 10 {locale === 'de' ? 'Jahre' : 'Years'}, {locale === 'de' ? 'Zinsen' : 'Interest'}: ~9.000 € / {locale === 'de' ? 'Jahr' : 'Year'})
                 </button>
               </div>
               <button
