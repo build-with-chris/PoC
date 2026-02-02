@@ -238,8 +238,9 @@ export default function PreviewPage() {
   }
 
   const getCosts = (): number => {
-    // Kosten als Brutto anzeigen (Netto + Vorsteuer + Kreditkosten)
-    const totalCostsBrutto = totalCosts + (metrics?.totalInputVAT ?? 0) + (metrics?.loanTotalCostsPerYear ?? 0)
+    // Kosten als Brutto anzeigen (Netto + Vorsteuer)
+    // Kreditkosten sind bereits in totalCosts enthalten
+    const totalCostsBrutto = totalCosts + (metrics?.totalInputVAT ?? 0)
     return convertToPeriod(totalCostsBrutto, viewPeriod)
   }
 
