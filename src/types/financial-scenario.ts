@@ -100,6 +100,10 @@ export interface FinancialInputs {
   
   // Kreditfinanzierung
   loanAmount: number // Kreditbetrag (0, 100000, 200000)
+  
+  // Initiale Ausgaben & Liquidität
+  initialExpenses: number // Initiale Ausgaben (10k - 100k)
+  liquidityBuffer: number // Liquiditätspuffer, der nicht unterschritten werden soll (Standard: 10k)
 }
 
 /**
@@ -164,6 +168,12 @@ export interface FinancialMetrics {
   netRevenue: number // Netto-Umsatz (nach MwSt.)
   netProfit: number // Netto-Gewinn (nach MwSt.)
   netProfitMargin: number // Netto-Gewinnmarge in %
+  
+  // Liquidität
+  initialLiquidity: number // Startliquidität (nach initialen Ausgaben)
+  endOfYearLiquidity: number // Liquidität am Jahresende
+  minLiquidity: number // Minimale Liquidität während des Jahres
+  liquidityBelowBuffer: boolean // Ob Liquidität unter Puffer gefallen ist
 }
 
 /**
@@ -235,6 +245,10 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   
   // Kreditfinanzierung
   loanAmount: 0, // Kein Kredit (Standard)
+  
+  // Initiale Ausgaben & Liquidität
+  initialExpenses: 0, // Initiale Ausgaben
+  liquidityBuffer: 10000, // Liquiditätspuffer (Standard: 10k)
 }
 
 /**
@@ -315,6 +329,8 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     payrollAccountingCosts: 0,
     weeklyReserves: 0,
     loanAmount: 0,
+    initialExpenses: 0,
+    liquidityBuffer: 10000,
   }
 
   return createFinancialScenario(name, emptyInputs)
@@ -659,6 +675,58 @@ export function calculateMetrics(
 
   const projectedProfit = projectedRevenue - projectedCosts
 
+  // ============================================================================
+  // LIQUIDITÄTS-BERECHNUNG
+  // ============================================================================
+  // Startliquidität = Kreditbetrag - Initiale Ausgaben
+  const initialLiquidity = inputs.loanAmount - inputs.initialExpenses
+  
+  // Liquidität am Jahresende = Startliquidität + Gewinn/Verlust
+  const endOfYearLiquidity = initialLiquidity + totalProfit
+  
+  // Berechne minimale Liquidität während des Jahres (mit Wochen-Multiplikatoren)
+  let minLiquidity = initialLiquidity
+  let liquidityBelowBuffer = false
+  
+  if (weekMultipliers && weekMultipliers.length === 52) {
+    let currentLiquidity = initialLiquidity
+    const weeklyProfit = baseWeeklyRevenue - baseWeeklyCosts
+    
+    for (let i = 0; i < 52; i++) {
+      const multiplier = weekMultipliers[i] ?? 1.0
+      const costMultiplier = effectiveCostMultipliers && effectiveCostMultipliers.length === 52 
+        ? effectiveCostMultipliers[i] ?? 1.0
+        : multiplier
+      
+      // Wöchentlicher Gewinn/Verlust
+      const weekRevenue = baseWeeklyRevenue * multiplier
+      const weekCosts = baseWeeklyCosts * costMultiplier
+      const weekProfit = weekRevenue - weekCosts
+      
+      // Liquidität nach dieser Woche
+      currentLiquidity += weekProfit
+      
+      // Prüfe Minimum
+      if (currentLiquidity < minLiquidity) {
+        minLiquidity = currentLiquidity
+      }
+      
+      // Prüfe ob unter Puffer
+      if (currentLiquidity < inputs.liquidityBuffer) {
+        liquidityBelowBuffer = true
+      }
+    }
+  } else {
+    // Einfache Berechnung: Liquidität sinkt linear über das Jahr
+    // Minimum ist am Ende, wenn Gewinn negativ ist
+    if (totalProfit < 0) {
+      minLiquidity = endOfYearLiquidity
+    }
+    if (minLiquidity < inputs.liquidityBuffer) {
+      liquidityBelowBuffer = true
+    }
+  }
+
   return {
     baseWeeklyRevenue,
     baseWeeklyRevenueBrutto,
@@ -700,6 +768,10 @@ export function calculateMetrics(
     netRevenue: totalRevenue, // Alias für Klarheit
     netProfit,
     netProfitMargin,
+    initialLiquidity,
+    endOfYearLiquidity,
+    minLiquidity,
+    liquidityBelowBuffer,
   }
 }
 

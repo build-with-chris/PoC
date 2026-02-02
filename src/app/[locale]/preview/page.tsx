@@ -1072,6 +1072,49 @@ export default function PreviewPage() {
           </div>
         )}
 
+        {/* Initiale Ausgaben & Liquidität */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Initiale Ausgaben & Liquidität' : 'Initial Expenses & Liquidity'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <FinancialSlider
+              label={locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}
+              value={inputs.initialExpenses}
+              onChange={(value) => updateInput('initialExpenses', value)}
+              min={10000}
+              max={100000}
+              step={5000}
+              showCurrency
+              info={locale === 'de' ? 'Einmalige Ausgaben zu Beginn' : 'One-time expenses at start'}
+            />
+            <FinancialSlider
+              label={locale === 'de' ? 'Liquiditätspuffer' : 'Liquidity Buffer'}
+              value={inputs.liquidityBuffer}
+              onChange={(value) => updateInput('liquidityBuffer', value)}
+              min={5000}
+              max={50000}
+              step={1000}
+              showCurrency
+              info={locale === 'de' ? 'Minimale Liquidität, die nicht unterschritten werden soll' : 'Minimum liquidity that should not be undercut'}
+            />
+          </div>
+          <div className={`mt-4 p-4 rounded-md border ${metrics.liquidityBelowBuffer ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'}`}>
+            <p className={`text-sm ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Startliquidität' : 'Initial Liquidity'}:</strong> {metrics.initialLiquidity.toFixed(2)} € ({locale === 'de' ? 'Kredit' : 'Loan'}: {inputs.loanAmount.toFixed(0)} € - {locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}: {inputs.initialExpenses.toFixed(0)} €)
+            </p>
+            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Liquidität am Jahresende' : 'End of Year Liquidity'}:</strong> {metrics.endOfYearLiquidity.toFixed(2)} €
+            </p>
+            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Minimale Liquidität' : 'Minimum Liquidity'}:</strong> {metrics.minLiquidity.toFixed(2)} €
+            </p>
+            {metrics.liquidityBelowBuffer && (
+              <p className="text-sm font-semibold text-red-900 dark:text-red-100 mt-2">
+                ⚠️ {locale === 'de' ? 'Warnung: Liquidität fällt unter den Puffer von' : 'Warning: Liquidity falls below buffer of'} {inputs.liquidityBuffer.toFixed(0)} €
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Wochen-Timeline */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
