@@ -145,9 +145,12 @@ export interface FinancialMetrics {
   // Detaillierte Kosten (jährlich)
   annualAccountingCosts: number // Steuerberater + Buchhaltung (pro Jahr)
 
-  // Mehrwertsteuer (19%)
-  totalVAT: number // Gesamte MwSt. pro Jahr
-  weeklyVAT: number // MwSt. pro Woche
+  // Mehrwertsteuer
+  totalVAT: number // Gesamte Umsatzsteuer (USt) pro Jahr
+  weeklyVAT: number // Umsatzsteuer (USt) pro Woche
+  totalInputVAT: number // Gesamte Vorsteuer (VSt) pro Jahr
+  weeklyInputVAT: number // Vorsteuer (VSt) pro Woche
+  netVATPayable: number // Zu zahlende MwSt. (USt - VSt, kann negativ sein = Erstattung)
   netRevenue: number // Netto-Umsatz (nach MwSt.)
   netProfit: number // Netto-Gewinn (nach MwSt.)
   netProfitMargin: number // Netto-Gewinnmarge in %
@@ -340,26 +343,32 @@ export function calculateMetrics(
   costMultipliers?: number[]
 ): FinancialMetrics {
   // ============================================================================
-  // EINNAHMEN-BERECHNUNG (BRUTTO)
+  // EINNAHMEN-BERECHNUNG (NETTO)
   // ============================================================================
-  // Alle Einnahmen sind in Brutto angegeben (inkl. 19% MwSt.)
+  // Alle Einnahmen werden als Netto-Werte eingegeben, dann mit MwSt. berechnet
   
-  // Wöchentliche Basis-Einnahmen (Brutto)
-  const fixedIncomePerWeek = inputs.profitraining / 4.33
+  // Wöchentliche Basis-Einnahmen (Netto)
+  const fixedIncomePerWeek = inputs.profitraining / 4.33 // 0% MwSt.
   
   // Querfinanzierung durch Förderung (monatlich → wöchentlich)
-  const fundingRevenuePerWeek = inputs.fundingPerMonth / 4.33
+  const fundingRevenuePerWeek = inputs.fundingPerMonth / 4.33 // 0% MwSt.
   
   // Mitgliedsbeiträge (jährlich → wöchentlich)
-  const membershipRevenuePerWeek = (inputs.membershipCount * inputs.membershipFeePerYear) / 52
+  const membershipRevenuePerWeek = (inputs.membershipCount * inputs.membershipFeePerYear) / 52 // 0% MwSt.
   
   // Ticket-Einnahmen: Ticketpreis × Anzahl Tickets pro Woche
-  const ticketRevenuePerWeek = inputs.ticketPrice * inputs.ticketsPerWeek
+  const ticketRevenuePerWeek = inputs.ticketPrice * inputs.ticketsPerWeek // 0% MwSt.
   
   // Gastronomischer Gewinn: Gewinn pro Ticket × Anzahl Tickets pro Woche
-  const gastronomyRevenuePerWeek = inputs.gastronomyProfitPerTicket * inputs.ticketsPerWeek
+  // 14% MwSt. (durchschnittlich)
+  const GASTRO_VAT_RATE = 0.14
+  const gastronomyRevenueNetPerWeek = inputs.gastronomyProfitPerTicket * inputs.ticketsPerWeek
+  const gastronomyRevenueBruttoPerWeek = gastronomyRevenueNetPerWeek * (1 + GASTRO_VAT_RATE)
+  const gastronomyVATPerWeek = gastronomyRevenueBruttoPerWeek - gastronomyRevenueNetPerWeek
+  const gastronomyRevenuePerWeek = gastronomyRevenueNetPerWeek // Für Rückwärtskompatibilität
 
   // Kurs-Einnahmen: (Preis pro Teilnehmer × Teilnehmer - Trainerkosten) × Anzahl Kurse pro Woche
+  // 0% MwSt.
   const course1RevenuePerWeek =
     (inputs.course1PricePerParticipant * inputs.course1Participants - inputs.course1TrainerCosts) *
     inputs.course1PerWeek
@@ -371,63 +380,107 @@ export function calculateMetrics(
     inputs.course3PerWeek
 
   // Workshop-Gewinn: Gewinn pro Teilnehmer × Teilnehmer × Anzahl pro Monat / 4.33 Wochen
-  const workshopRevenuePerWeek =
+  // 7% MwSt.
+  const WORKSHOP_VAT_RATE = 0.07
+  const workshopRevenueNetPerWeek =
     (inputs.workshopProfitPerParticipant * inputs.workshopParticipants * inputs.workshopsPerMonth) / 4.33
-  const rentalRevenuePerWeek = inputs.rentalsPerWeek * inputs.rentalPrice
+  const workshopRevenueBruttoPerWeek = workshopRevenueNetPerWeek * (1 + WORKSHOP_VAT_RATE)
+  const workshopVATPerWeek = workshopRevenueBruttoPerWeek - workshopRevenueNetPerWeek
+  const workshopRevenuePerWeek = workshopRevenueNetPerWeek // Für Rückwärtskompatibilität
+  
+  // Vermietung: 19% MwSt.
+  const RENTAL_VAT_RATE = 0.19
+  const rentalRevenueNetPerWeek = inputs.rentalsPerWeek * inputs.rentalPrice
+  const rentalRevenueBruttoPerWeek = rentalRevenueNetPerWeek * (1 + RENTAL_VAT_RATE)
+  const rentalVATPerWeek = rentalRevenueBruttoPerWeek - rentalRevenueNetPerWeek
+  const rentalRevenuePerWeek = rentalRevenueNetPerWeek // Für Rückwärtskompatibilität
+
+  // Gesamte wöchentliche Netto-Einnahmen
+  const baseWeeklyRevenue =
+    fixedIncomePerWeek + // 0%
+    fundingRevenuePerWeek + // 0%
+    membershipRevenuePerWeek + // 0%
+    ticketRevenuePerWeek + // 0%
+    gastronomyRevenueNetPerWeek + // 14% (Netto)
+    course1RevenuePerWeek + // 0%
+    course2RevenuePerWeek + // 0%
+    course3RevenuePerWeek + // 0%
+    workshopRevenueNetPerWeek + // 7% (Netto)
+    rentalRevenueNetPerWeek // 19% (Netto)
 
   // Gesamte wöchentliche Brutto-Einnahmen
   const baseWeeklyRevenueBrutto =
-    fixedIncomePerWeek +
-    fundingRevenuePerWeek + // Querfinanzierung durch Förderung (keine MwSt., da Förderung)
-    membershipRevenuePerWeek + // Mitgliedsbeiträge (keine MwSt., da Mitgliedsbeiträge)
-    ticketRevenuePerWeek +
-    gastronomyRevenuePerWeek + // Gastronomischer Gewinn (keine MwSt., da bereits Netto)
-    course1RevenuePerWeek +
-    course2RevenuePerWeek +
-    course3RevenuePerWeek +
-    workshopRevenuePerWeek +
-    rentalRevenuePerWeek
+    fixedIncomePerWeek + // 0%
+    fundingRevenuePerWeek + // 0%
+    membershipRevenuePerWeek + // 0%
+    ticketRevenuePerWeek + // 0%
+    gastronomyRevenueBruttoPerWeek + // 14% (Brutto)
+    course1RevenuePerWeek + // 0%
+    course2RevenuePerWeek + // 0%
+    course3RevenuePerWeek + // 0%
+    workshopRevenueBruttoPerWeek + // 7% (Brutto)
+    rentalRevenueBruttoPerWeek // 19% (Brutto)
 
   // ============================================================================
-  // MEHRWERTSTEUER-BERECHNUNG (19%)
+  // UMSATZSTEUER-BERECHNUNG (USt) - auf Einnahmen
   // ============================================================================
-  // MwSt. wird von Brutto-Einnahmen abgezogen
-  // Gastronomischer Gewinn ist bereits Netto (keine MwSt.)
-  // Wenn Brutto = 100€ (inkl. 19% MwSt.), dann:
-  // Netto = Brutto / 1.19 = 84.03€
-  // MwSt. = Brutto - Netto = 15.97€
-  const VAT_RATE = 0.19 // 19% Mehrwertsteuer
-  
-  // Brutto-Einnahmen ohne gastronomischen Gewinn, Förderung und Mitgliedsbeiträge (für MwSt.-Berechnung)
-  // Förderung und Mitgliedsbeiträge sind steuerfrei
-  const baseWeeklyRevenueBruttoForVAT = baseWeeklyRevenueBrutto - gastronomyRevenuePerWeek - fundingRevenuePerWeek - membershipRevenuePerWeek
-  const baseWeeklyRevenueNetFromBrutto = baseWeeklyRevenueBruttoForVAT / (1 + VAT_RATE)
-  
-  // Gesamte Netto-Einnahmen (Brutto-Einnahmen nach MwSt. + steuerfreie Einnahmen)
-  const baseWeeklyRevenue = baseWeeklyRevenueNetFromBrutto + gastronomyRevenuePerWeek + fundingRevenuePerWeek + membershipRevenuePerWeek
-  const weeklyVAT = baseWeeklyRevenueBruttoForVAT - baseWeeklyRevenueNetFromBrutto // MwSt. pro Woche
+  // Berechne USt. für jede Einnahmenquelle separat
+  const weeklyVAT = gastronomyVATPerWeek + workshopVATPerWeek + rentalVATPerWeek
 
   // ============================================================================
   // KOSTEN-BERECHNUNG
   // ============================================================================
   // Wöchentliche Basis-Kosten (monatliche Kosten / 4.33 Wochen)
+  // Alle Kosten werden als Brutto-Werte eingegeben (inkl. 19% MwSt.)
+  const INPUT_VAT_RATE = 0.19 // 19% Vorsteuer auf Kosten
+  
+  // Kosten mit 19% MwSt. (Marketing, Treibstoff, etc.)
+  const marketingBruttoPerWeek = inputs.marketing / 4.33
+  const heatingCostsBruttoPerWeek = inputs.heatingCosts / 4.33
+  const otherCostsBruttoPerWeek = inputs.otherCosts / 4.33
+  const technologyBruttoPerWeek = inputs.technology / 4.33
+  
+  // Kosten ohne MwSt. (Miete, Gehälter)
+  const rentPerWeek = inputs.rent / 4.33 // 0% MwSt.
+  const salariesPerWeek = inputs.salaries / 4.33 // 0% MwSt.
+  
+  // Vorsteuer (VSt) auf Kosten mit MwSt.
+  const marketingVATPerWeek = marketingBruttoPerWeek * INPUT_VAT_RATE / (1 + INPUT_VAT_RATE)
+  const heatingVATPerWeek = heatingCostsBruttoPerWeek * INPUT_VAT_RATE / (1 + INPUT_VAT_RATE)
+  const otherCostsVATPerWeek = otherCostsBruttoPerWeek * INPUT_VAT_RATE / (1 + INPUT_VAT_RATE)
+  const technologyVATPerWeek = technologyBruttoPerWeek * INPUT_VAT_RATE / (1 + INPUT_VAT_RATE)
+  
+  // Netto-Kosten (nach Vorsteuer)
+  const marketingNetPerWeek = marketingBruttoPerWeek - marketingVATPerWeek
+  const heatingCostsNetPerWeek = heatingCostsBruttoPerWeek - heatingVATPerWeek
+  const otherCostsNetPerWeek = otherCostsBruttoPerWeek - otherCostsVATPerWeek
+  const technologyNetPerWeek = technologyBruttoPerWeek - technologyVATPerWeek
+  
+  // Monatliche Kosten pro Woche (Netto)
   const monthlyCostsPerWeek =
-    (inputs.rent +
-      inputs.salaries +
-      inputs.marketing +
-      inputs.technology +
-      inputs.heatingCosts +
-      inputs.otherCosts) /
-    4.33
+    rentPerWeek +
+    salariesPerWeek +
+    marketingNetPerWeek +
+    technologyNetPerWeek +
+    heatingCostsNetPerWeek +
+    otherCostsNetPerWeek
 
   // Show-Gebühren pro Woche (GEMA + KVR + Künstlergagen)
-  const showFeesPerWeek = (inputs.gemaFeePerShow + inputs.kvrFeePerShow + inputs.artistFeePerShow) * inputs.showsPerWeek
+  // GEMA & KVR: 19% MwSt., Künstlergagen: 0%
+  const gemaKvrBruttoPerWeek = (inputs.gemaFeePerShow + inputs.kvrFeePerShow) * inputs.showsPerWeek
+  const gemaKvrVATPerWeek = gemaKvrBruttoPerWeek * INPUT_VAT_RATE / (1 + INPUT_VAT_RATE)
+  const gemaKvrNetPerWeek = gemaKvrBruttoPerWeek - gemaKvrVATPerWeek
+  const artistFeePerWeek = inputs.artistFeePerShow * inputs.showsPerWeek // 0% MwSt.
+  const showFeesPerWeek = gemaKvrNetPerWeek + artistFeePerWeek
 
-  // Wöchentliche Rücklagen für unerwartete Ausgaben
+  // Wöchentliche Rücklagen für unerwartete Ausgaben (0% MwSt.)
   const weeklyReserves = inputs.weeklyReserves
 
-  // Gesamte wöchentliche Kosten (inkl. Rücklagen und Show-Gebühren)
+  // Gesamte wöchentliche Kosten (Netto, nach Vorsteuer)
   const baseWeeklyCosts = monthlyCostsPerWeek + weeklyReserves + showFeesPerWeek
+  
+  // Vorsteuer (VSt) pro Woche
+  const weeklyInputVAT = marketingVATPerWeek + heatingVATPerWeek + otherCostsVATPerWeek + technologyVATPerWeek + gemaKvrVATPerWeek
 
   // Jährliche Kosten (Steuerberater, Buchhaltung)
   const annualAccountingCosts = 
@@ -450,6 +503,8 @@ export function calculateMetrics(
     ? costMultipliers 
     : weekMultipliers
 
+  let totalInputVAT: number // Vorsteuer (VSt) pro Jahr
+  
   if (weekMultipliers && weekMultipliers.length === 52) {
     // Berechne mit Multiplikatoren
     const baseWeeklyRevenueBruttoWithMultipliers = weekMultipliers.reduce(
@@ -457,25 +512,43 @@ export function calculateMetrics(
       0
     )
     totalRevenueBrutto = baseWeeklyRevenueBruttoWithMultipliers
-    totalRevenue = totalRevenueBrutto / (1 + VAT_RATE) // Netto
-    totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
+    
+    // Netto-Einnahmen mit Multiplikatoren
+    const baseWeeklyRevenueWithMultipliers = weekMultipliers.reduce(
+      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
+      0
+    )
+    totalRevenue = baseWeeklyRevenueWithMultipliers
+    
+    // Umsatzsteuer (USt) mit Multiplikatoren
+    const baseWeeklyVATWithMultipliers = weekMultipliers.reduce(
+      (sum, multiplier) => sum + weeklyVAT * multiplier,
+      0
+    )
+    totalVAT = baseWeeklyVATWithMultipliers
     
     // Kosten: Basis-Kosten für alle Wochen (inkl. Rücklagen)
     // Verwende separate costMultipliers falls vorhanden
     if (effectiveCostMultipliers && effectiveCostMultipliers.length === 52) {
       totalCosts = effectiveCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+      totalInputVAT = effectiveCostMultipliers.reduce((sum, multiplier) => sum + weeklyInputVAT * multiplier, 0)
     } else {
       totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
+      totalInputVAT = weekMultipliers.reduce((sum, multiplier) => sum + weeklyInputVAT * multiplier, 0)
     }
-    // Füge jährliche Kosten hinzu
+    // Füge jährliche Kosten hinzu (ohne MwSt., da Dienstleistungen)
     totalCosts += annualAccountingCosts
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
-    totalRevenue = totalRevenueBrutto / (1 + VAT_RATE) // Netto
-    totalVAT = totalRevenueBrutto - totalRevenue // MwSt. pro Jahr
+    totalRevenue = baseWeeklyRevenue * 52 // Netto
+    totalVAT = weeklyVAT * 52 // Umsatzsteuer (USt) pro Jahr
     totalCosts = baseWeeklyCosts * 52 + annualAccountingCosts
+    totalInputVAT = weeklyInputVAT * 52 // Vorsteuer (VSt) pro Jahr
   }
+  
+  // Zu zahlende MwSt. = USt - VSt (kann negativ sein = Erstattung)
+  const netVATPayable = totalVAT - totalInputVAT
 
   const totalProfit = totalRevenue - totalCosts
   const totalProfitBrutto = totalRevenueBrutto - totalCosts
@@ -563,8 +636,11 @@ export function calculateMetrics(
     showFeesPerWeek,
     weeklyReserves,
     annualAccountingCosts,
-    totalVAT,
-    weeklyVAT,
+    totalVAT, // Umsatzsteuer (USt)
+    weeklyVAT, // Umsatzsteuer (USt) pro Woche
+    totalInputVAT, // Vorsteuer (VSt)
+    weeklyInputVAT, // Vorsteuer (VSt) pro Woche
+    netVATPayable, // Zu zahlende MwSt. (USt - VSt)
     netRevenue: totalRevenue, // Alias für Klarheit
     netProfit,
     netProfitMargin,

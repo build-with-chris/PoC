@@ -90,7 +90,7 @@ export default function CourseInputGroup({
       </div>
       <p className="text-xs text-zinc-500 mt-2">
         {t('revenue')}: {(price * participants).toFixed(2)} € - {t('trainerCosts')}: {trainerCosts} € =
-        <strong className="text-zinc-700 dark:text-zinc-300"> {weeklyRevenue.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
+        <strong className="text-zinc-700 dark:text-zinc-300"> {weeklyRevenue.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong> (0% {locale === 'de' ? 'MwSt.' : 'VAT'})
       </p>
     </div>
   )

@@ -569,7 +569,7 @@ export default function PreviewPage() {
             <p className={`text-2xl font-bold ${(projectedRevenue - projectedCosts) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {(projectedRevenue - projectedCosts).toFixed(0)} €
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'Netto (nach 19% MwSt.)' : 'Net (after 19% VAT)'}</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'Netto (nach MwSt.)' : 'Net (after VAT)'}</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
@@ -579,6 +579,32 @@ export default function PreviewPage() {
               {getProfit().toFixed(0)} €
             </p>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{getTypeLabel()}</p>
+          </div>
+        </div>
+
+        {/* MwSt-Übersicht */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Mehrwertsteuer-Übersicht' : 'VAT Overview'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Umsatzsteuer (USt)' : 'Output VAT'}</p>
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalVAT, viewPeriod).toFixed(2)} €</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
+              <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                {convertToPeriod(metrics.netVATPayable, viewPeriod).toFixed(2)} €
+              </p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                {metrics.netVATPayable >= 0 
+                  ? (locale === 'de' ? 'Zu zahlen' : 'To pay')
+                  : (locale === 'de' ? 'Erstattung' : 'Refund')}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -598,7 +624,7 @@ export default function PreviewPage() {
                 max={2000}
                 step={50}
                 showCurrency
-                info={`≈ ${metrics.fixedIncomePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+                info={`≈ ${metrics.fixedIncomePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
               <FinancialSlider
                 label={t('fundingPerMonth')}
@@ -608,7 +634,7 @@ export default function PreviewPage() {
                 max={5000}
                 step={100}
                 showCurrency
-                info={`≈ ${metrics.fundingRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+                info={`≈ ${metrics.fundingRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
             </div>
           </div>
@@ -634,7 +660,7 @@ export default function PreviewPage() {
                 max={1000}
                 step={10}
                 showCurrency
-                info={`≈ ${metrics.membershipRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'}`}
+                info={`≈ ${metrics.membershipRevenuePerWeek.toFixed(2)} € ${locale === 'de' ? 'pro Woche' : 'per week'} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
             </div>
           </div>
@@ -651,7 +677,7 @@ export default function PreviewPage() {
                 max={50}
                 step={1}
                 showCurrency
-                info={t('ticketPriceNote')}
+                info={`${t('ticketPriceNote')} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
               <FinancialSlider
                 label={t('ticketsPerWeek')}
@@ -670,7 +696,7 @@ export default function PreviewPage() {
                 max={10}
                 step={0.5}
                 showCurrency
-                info={`${locale === 'de' ? 'Gewinn' : 'Profit'}: ${metrics.gastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+                info={`${locale === 'de' ? 'Gewinn' : 'Profit'}: ${metrics.gastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (14% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
             </div>
           </div>
@@ -695,6 +721,7 @@ export default function PreviewPage() {
                 max={200}
                 step={5}
                 showCurrency
+                info={`19% ${locale === 'de' ? 'MwSt.' : 'VAT'}`}
               />
               <FinancialSlider
                 label={t('kvrFeePerShow')}
@@ -704,6 +731,7 @@ export default function PreviewPage() {
                 max={200}
                 step={5}
                 showCurrency
+                info={`19% ${locale === 'de' ? 'MwSt.' : 'VAT'}`}
               />
               <FinancialSlider
                 label={t('artistFeePerShow')}
@@ -713,7 +741,7 @@ export default function PreviewPage() {
                 max={1000}
                 step={50}
                 showCurrency
-                info={`${locale === 'de' ? 'Gesamt-Gebühren' : 'Total Fees'}: ${metrics.showFeesPerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+                info={`${locale === 'de' ? 'Gesamt-Gebühren' : 'Total Fees'}: ${metrics.showFeesPerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (0% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
             </div>
           </div>
@@ -788,7 +816,7 @@ export default function PreviewPage() {
               </div>
               <p className="text-xs text-zinc-500 mt-2">
                 {locale === 'de' ? 'Gewinn pro Workshop' : 'Profit per Workshop'}: {(inputs.workshopProfitPerParticipant * inputs.workshopParticipants).toFixed(2)} € × {inputs.workshopsPerMonth} / {locale === 'de' ? 'Monat' : 'Month'} =
-                <strong className="text-zinc-700 dark:text-zinc-300"> {metrics.workshopRevenuePerWeek.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong>
+                <strong className="text-zinc-700 dark:text-zinc-300"> {metrics.workshopRevenuePerWeek.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'}</strong> (7% {locale === 'de' ? 'MwSt.' : 'VAT'})
               </p>
             </div>
 
@@ -810,7 +838,7 @@ export default function PreviewPage() {
                 max={1000}
                 step={50}
                 showCurrency
-                info={`${t('revenue')}: ${metrics.rentalRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'}`}
+                info={`${t('revenue')}: ${metrics.rentalRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (19% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
             </div>
           </div>
@@ -852,6 +880,7 @@ export default function PreviewPage() {
               max={2000}
               step={50}
               showCurrency
+              info={`19% ${locale === 'de' ? 'MwSt. (Vorsteuer)' : 'VAT (Input Tax)'}`}
             />
             <FinancialSlider
               label={t('technology')}
@@ -861,6 +890,7 @@ export default function PreviewPage() {
               max={1000}
               step={50}
               showCurrency
+              info={`19% ${locale === 'de' ? 'MwSt. (Vorsteuer)' : 'VAT (Input Tax)'}`}
             />
             <FinancialSlider
               label={t('fuel')}
@@ -870,6 +900,7 @@ export default function PreviewPage() {
               max={5000}
               step={100}
               showCurrency
+              info={`19% ${locale === 'de' ? 'MwSt. (Vorsteuer)' : 'VAT (Input Tax)'}`}
             />
             <FinancialSlider
               label={t('otherCosts')}
@@ -879,6 +910,7 @@ export default function PreviewPage() {
               max={2000}
               step={50}
               showCurrency
+              info={`19% ${locale === 'de' ? 'MwSt. (Vorsteuer)' : 'VAT (Input Tax)'}`}
             />
             <FinancialSlider
               label={t('weeklyReserves')}
