@@ -170,16 +170,6 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahr\n`
   report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahr\n`
   report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahr\n\n`
-`
-  report += `
-Jährliche Kosten:
-`
-  report += `\nJährliche Kosten:\n`
-  report += `- Steuerberater: ${formatCurrency(inputs.taxAdvisorCosts)}/Jahr\n`
-  report += `- Jahresabschluss/Steuererklärung: ${formatCurrency(inputs.taxReturnCosts)}/Jahr\n`
-  report += `- Finanzbuchhaltung: ${formatCurrency(inputs.accountingCosts)}/Jahr\n`
-  report += `- Lohnbuchhaltung: ${formatCurrency(inputs.payrollAccountingCosts)}/Jahr\n`
-  report += `- Gesamt jährliche Buchhaltungskosten: ${formatCurrency(metrics.annualAccountingCosts)}/Jahr\n\n`
 
   
   // Kennzahlen
