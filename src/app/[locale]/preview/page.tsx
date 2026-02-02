@@ -674,6 +674,16 @@ export default function PreviewPage() {
                 showCurrency
                 info={`${locale === 'de' ? 'Gewinn' : 'Profit'}: ${metrics.gastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (14% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
               />
+              <FinancialSlider
+                label={t('dailyGastronomyRevenue')}
+                value={inputs.dailyGastronomyRevenue}
+                onChange={(value) => updateInput('dailyGastronomyRevenue', value)}
+                min={100}
+                max={500}
+                step={10}
+                showCurrency
+                info={`≈ ${metrics.dailyGastronomyRevenuePerWeek.toFixed(2)} € / ${locale === 'de' ? 'Woche' : 'Week'} (14% ${locale === 'de' ? 'MwSt.' : 'VAT'})`}
+              />
             </div>
           </div>
 

@@ -51,6 +51,7 @@
     "ticketPriceNote": "Note: Fees must be deducted (Outgoing, Payment provider)",
     "ticketsPerWeek": "Tickets/Week",
     "gastronomyProfitPerTicket": "Gastronomy Profit/Ticket",
+    "dailyGastronomyRevenue": "Daily Gastronomy Revenue",
     "showsPerWeek": "Shows/Week",
     "gemaFeePerShow": "GEMA Fee/Show",
     "kvrFeePerShow": "KVR Registration/Show",

@@ -48,6 +48,7 @@ export interface FinancialInputs {
   ticketPrice: number
   ticketsPerWeek: number
   gastronomyProfitPerTicket: number // Gastronomischer Gewinn pro Ticket (z.B. 3€)
+  dailyGastronomyRevenue: number // Tägliche Gastronomie-Einnahmen (z.B. 200€)
   
   // Shows/Events
   showsPerWeek: number // Anzahl Shows/Events pro Woche
@@ -180,6 +181,7 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   ticketPrice: 15,
   ticketsPerWeek: 60,
   gastronomyProfitPerTicket: 3, // Gastronomischer Gewinn pro Ticket
+  dailyGastronomyRevenue: 200, // Tägliche Gastronomie-Einnahmen
   showsPerWeek: 1, // Anzahl Shows/Events pro Woche
   gemaFeePerShow: 50, // GEMA Gebühren pro Show
   kvrFeePerShow: 50, // KVR Anmeldung pro Show
@@ -267,6 +269,7 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     ticketPrice: 0,
     ticketsPerWeek: 0,
     gastronomyProfitPerTicket: 0,
+    dailyGastronomyRevenue: 0,
     showsPerWeek: 0,
     gemaFeePerShow: 0,
     kvrFeePerShow: 0,
@@ -366,6 +369,13 @@ export function calculateMetrics(
   const gastronomyRevenueBruttoPerWeek = gastronomyRevenueNetPerWeek * (1 + GASTRO_VAT_RATE)
   const gastronomyVATPerWeek = gastronomyRevenueBruttoPerWeek - gastronomyRevenueNetPerWeek
   const gastronomyRevenuePerWeek = gastronomyRevenueNetPerWeek // Für Rückwärtskompatibilität
+
+  // Tägliche Gastronomie-Einnahmen: Täglich × 7 Tage pro Woche
+  // 14% MwSt. (durchschnittlich)
+  const dailyGastronomyRevenueNetPerWeek = inputs.dailyGastronomyRevenue * 7
+  const dailyGastronomyRevenueBruttoPerWeek = dailyGastronomyRevenueNetPerWeek * (1 + GASTRO_VAT_RATE)
+  const dailyGastronomyVATPerWeek = dailyGastronomyRevenueBruttoPerWeek - dailyGastronomyRevenueNetPerWeek
+  const dailyGastronomyRevenuePerWeek = dailyGastronomyRevenueNetPerWeek
 
   // Kurs-Einnahmen: (Preis pro Teilnehmer × Teilnehmer - Trainerkosten) × Anzahl Kurse pro Woche
   // 0% MwSt.
@@ -627,6 +637,7 @@ export function calculateMetrics(
     membershipRevenuePerWeek,
     ticketRevenuePerWeek,
     gastronomyRevenuePerWeek,
+    dailyGastronomyRevenuePerWeek,
     course1RevenuePerWeek,
     course2RevenuePerWeek,
     course3RevenuePerWeek,
