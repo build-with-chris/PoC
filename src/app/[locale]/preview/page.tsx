@@ -560,29 +560,77 @@ export default function PreviewPage() {
           </div>
         </div>
 
-        {/* MwSt-Übersicht */}
+        {/* Kreditfinanzierung */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Mehrwertsteuer-Übersicht' : 'VAT Overview'}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Umsatzsteuer (USt)' : 'Output VAT'}</p>
-              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalVAT, viewPeriod).toFixed(2)} €</p>
-            </div>
-            <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
-              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
-            </div>
-            <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
-              <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                {convertToPeriod(metrics.netVATPayable, viewPeriod).toFixed(2)} €
+          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Kreditfinanzierung' : 'Loan Financing'}</h2>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <button
+              onClick={() => setShowLoanModal(true)}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              {inputs.loanAmount === 0
+                ? (locale === 'de' ? 'Kredit hinzufügen' : 'Add Loan')
+                : `${locale === 'de' ? 'Kredit' : 'Loan'}: ${(inputs.loanAmount / 1000).toFixed(0)}k €`}
+            </button>
+            {inputs.loanAmount > 0 && (
+              <div className="flex-1">
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <strong>{locale === 'de' ? 'Zinskosten' : 'Interest Costs'}:</strong> {metrics.loanInterestPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
+                </p>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <strong>{locale === 'de' ? 'Tilgungskosten' : 'Repayment Costs'}:</strong> {metrics.loanRepaymentPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'} ({locale === 'de' ? 'Tilgungsfreies erstes Jahr' : 'No repayment in first year'}, {locale === 'de' ? 'danach' : 'then'} {inputs.loanAmount === 100000 ? '20.000 €' : '20.000 €'} / {locale === 'de' ? 'Jahr' : 'Year'})
+                </p>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <strong>{locale === 'de' ? 'Tilgungsplan' : 'Repayment Plan'}:</strong> {inputs.loanAmount === 100000 ? '5' : '10'} {locale === 'de' ? 'Jahre' : 'Years'} ({locale === 'de' ? 'ab Jahr 2' : 'from year 2'})
+                </p>
+                <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-1">
+                  <strong>{locale === 'de' ? 'Gesamtkosten Kredit (Jahr 1)' : 'Total Loan Costs (Year 1)'}:</strong> {metrics.loanTotalCostsPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Initiale Ausgaben & Liquidität */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Initiale Ausgaben & Liquidität' : 'Initial Expenses & Liquidity'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <FinancialSlider
+              label={locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}
+              value={inputs.initialExpenses}
+              onChange={(value) => updateInput('initialExpenses', value)}
+              min={10000}
+              max={100000}
+              step={5000}
+              showCurrency
+              info={locale === 'de' ? 'Einmalige Ausgaben zu Beginn' : 'One-time expenses at start'}
+            />
+            <FinancialSlider
+              label={locale === 'de' ? 'Liquiditätspuffer' : 'Liquidity Buffer'}
+              value={inputs.liquidityBuffer}
+              onChange={(value) => updateInput('liquidityBuffer', value)}
+              min={5000}
+              max={50000}
+              step={1000}
+              showCurrency
+              info={locale === 'de' ? 'Minimale Liquidität, die nicht unterschritten werden soll' : 'Minimum liquidity that should not be undercut'}
+            />
+          </div>
+          <div className={`mt-4 p-4 rounded-md border ${metrics.liquidityBelowBuffer ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'}`}>
+            <p className={`text-sm ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Startliquidität' : 'Initial Liquidity'}:</strong> {metrics.initialLiquidity.toFixed(2)} € ({locale === 'de' ? 'Kredit' : 'Loan'}: {inputs.loanAmount.toFixed(0)} € - {locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}: {inputs.initialExpenses.toFixed(0)} €)
+            </p>
+            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Liquidität am Jahresende' : 'End of Year Liquidity'}:</strong> {metrics.endOfYearLiquidity.toFixed(2)} €
+            </p>
+            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
+              <strong>{locale === 'de' ? 'Minimale Liquidität' : 'Minimum Liquidity'}:</strong> {metrics.minLiquidity.toFixed(2)} €
+            </p>
+            {metrics.liquidityBelowBuffer && (
+              <p className="text-sm font-semibold text-red-900 dark:text-red-100 mt-2">
+                ⚠️ {locale === 'de' ? 'Warnung: Liquidität fällt unter den Puffer von' : 'Warning: Liquidity falls below buffer of'} {inputs.liquidityBuffer.toFixed(0)} €
               </p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                {metrics.netVATPayable >= 0 
-                  ? (locale === 'de' ? 'Zu zahlen' : 'To pay')
-                  : (locale === 'de' ? 'Erstattung' : 'Refund')}
-              </p>
-            </div>
+            )}
           </div>
         </div>
 
@@ -977,34 +1025,29 @@ export default function PreviewPage() {
             </p>
           </div>
 
-          {/* Kreditfinanzierung */}
+          {/* MwSt-Übersicht */}
           <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Kreditfinanzierung' : 'Loan Financing'}</h3>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <button
-                onClick={() => setShowLoanModal(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
-              >
-                {inputs.loanAmount === 0
-                  ? (locale === 'de' ? 'Kredit hinzufügen' : 'Add Loan')
-                  : `${locale === 'de' ? 'Kredit' : 'Loan'}: ${(inputs.loanAmount / 1000).toFixed(0)}k €`}
-              </button>
-              {inputs.loanAmount > 0 && (
-                <div className="flex-1">
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    <strong>{locale === 'de' ? 'Zinskosten' : 'Interest Costs'}:</strong> {metrics.loanInterestPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
-                  </p>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    <strong>{locale === 'de' ? 'Tilgungskosten' : 'Repayment Costs'}:</strong> {metrics.loanRepaymentPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'} ({locale === 'de' ? 'Tilgungsfreies erstes Jahr' : 'No repayment in first year'}, {locale === 'de' ? 'danach' : 'then'} {inputs.loanAmount === 100000 ? '20.000 €' : '20.000 €'} / {locale === 'de' ? 'Jahr' : 'Year'})
-                  </p>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    <strong>{locale === 'de' ? 'Tilgungsplan' : 'Repayment Plan'}:</strong> {inputs.loanAmount === 100000 ? '5' : '10'} {locale === 'de' ? 'Jahre' : 'Years'} ({locale === 'de' ? 'ab Jahr 2' : 'from year 2'})
-                  </p>
-                  <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-1">
-                    <strong>{locale === 'de' ? 'Gesamtkosten Kredit (Jahr 1)' : 'Total Loan Costs (Year 1)'}:</strong> {metrics.loanTotalCostsPerYear.toFixed(2)} € / {locale === 'de' ? 'Jahr' : 'Year'}
-                  </p>
-                </div>
-              )}
+            <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Mehrwertsteuer-Übersicht' : 'VAT Overview'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Umsatzsteuer (USt)' : 'Output VAT'}</p>
+                <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalVAT, viewPeriod).toFixed(2)} €</p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
+                <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
+                <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                  {convertToPeriod(metrics.netVATPayable, viewPeriod).toFixed(2)} €
+                </p>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                  {metrics.netVATPayable >= 0 
+                    ? (locale === 'de' ? 'Zu zahlen' : 'To pay')
+                    : (locale === 'de' ? 'Erstattung' : 'Refund')}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1072,46 +1115,29 @@ export default function PreviewPage() {
           </div>
         )}
 
-        {/* Initiale Ausgaben & Liquidität */}
+        {/* MwSt-Übersicht */}
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Initiale Ausgaben & Liquidität' : 'Initial Expenses & Liquidity'}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <FinancialSlider
-              label={locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}
-              value={inputs.initialExpenses}
-              onChange={(value) => updateInput('initialExpenses', value)}
-              min={10000}
-              max={100000}
-              step={5000}
-              showCurrency
-              info={locale === 'de' ? 'Einmalige Ausgaben zu Beginn' : 'One-time expenses at start'}
-            />
-            <FinancialSlider
-              label={locale === 'de' ? 'Liquiditätspuffer' : 'Liquidity Buffer'}
-              value={inputs.liquidityBuffer}
-              onChange={(value) => updateInput('liquidityBuffer', value)}
-              min={5000}
-              max={50000}
-              step={1000}
-              showCurrency
-              info={locale === 'de' ? 'Minimale Liquidität, die nicht unterschritten werden soll' : 'Minimum liquidity that should not be undercut'}
-            />
-          </div>
-          <div className={`mt-4 p-4 rounded-md border ${metrics.liquidityBelowBuffer ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'}`}>
-            <p className={`text-sm ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
-              <strong>{locale === 'de' ? 'Startliquidität' : 'Initial Liquidity'}:</strong> {metrics.initialLiquidity.toFixed(2)} € ({locale === 'de' ? 'Kredit' : 'Loan'}: {inputs.loanAmount.toFixed(0)} € - {locale === 'de' ? 'Initiale Ausgaben' : 'Initial Expenses'}: {inputs.initialExpenses.toFixed(0)} €)
-            </p>
-            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
-              <strong>{locale === 'de' ? 'Liquidität am Jahresende' : 'End of Year Liquidity'}:</strong> {metrics.endOfYearLiquidity.toFixed(2)} €
-            </p>
-            <p className={`text-sm mt-1 ${metrics.liquidityBelowBuffer ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
-              <strong>{locale === 'de' ? 'Minimale Liquidität' : 'Minimum Liquidity'}:</strong> {metrics.minLiquidity.toFixed(2)} €
-            </p>
-            {metrics.liquidityBelowBuffer && (
-              <p className="text-sm font-semibold text-red-900 dark:text-red-100 mt-2">
-                ⚠️ {locale === 'de' ? 'Warnung: Liquidität fällt unter den Puffer von' : 'Warning: Liquidity falls below buffer of'} {inputs.liquidityBuffer.toFixed(0)} €
+          <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">{locale === 'de' ? 'Mehrwertsteuer-Übersicht' : 'VAT Overview'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Umsatzsteuer (USt)' : 'Output VAT'}</p>
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalVAT, viewPeriod).toFixed(2)} €</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
+              <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                {convertToPeriod(metrics.netVATPayable, viewPeriod).toFixed(2)} €
               </p>
-            )}
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                {metrics.netVATPayable >= 0 
+                  ? (locale === 'de' ? 'Zu zahlen' : 'To pay')
+                  : (locale === 'de' ? 'Erstattung' : 'Refund')}
+              </p>
+            </div>
           </div>
         </div>
 
