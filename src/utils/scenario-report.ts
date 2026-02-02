@@ -205,6 +205,29 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Gewinn/Verlust (Netto): ${formatCurrency(metrics.totalProfit)}\n`
   report += `- Gewinnmarge (Netto): ${metrics.profitMargin.toFixed(2)}%\n\n`
   
+  // Kreditfinanzierung
+  if (inputs.loanAmount > 0) {
+    report += 'Kreditfinanzierung:\n'
+    report += `- Kreditbetrag: ${formatCurrency(inputs.loanAmount)}\n`
+    report += `- Zinskosten pro Jahr: ${formatCurrency(metrics.loanInterestPerYear)}\n`
+    report += `- Tilgungskosten pro Jahr: ${formatCurrency(metrics.loanRepaymentPerYear)} (${inputs.loanAmount === 100000 ? '5 Jahre' : '10 Jahre'} Tilgungsplan, tilgungsfreies erstes Jahr)\n`
+    report += `- Gesamtkosten Kredit pro Jahr: ${formatCurrency(metrics.loanTotalCostsPerYear)}\n\n`
+  }
+  
+  // Liquidität
+  report += 'LIQUIDITÄT:\n'
+  report += `- Initiale Ausgaben: ${formatCurrency(inputs.initialExpenses)}\n`
+  report += `- Liquiditätspuffer: ${formatCurrency(inputs.liquidityBuffer)}\n`
+  report += `- Startliquidität: ${formatCurrency(metrics.initialLiquidity)} (Kredit: ${formatCurrency(inputs.loanAmount)} - Initiale Ausgaben: ${formatCurrency(inputs.initialExpenses)})\n`
+  report += `- Liquidität am Jahresende: ${formatCurrency(metrics.endOfYearLiquidity)}\n`
+  report += `- Minimale Liquidität: ${formatCurrency(metrics.minLiquidity)}\n`
+  if (metrics.liquidityBelowBuffer) {
+    report += `- ⚠️ WARNUNG: Liquidität fällt unter den Puffer von ${formatCurrency(inputs.liquidityBuffer)}!\n`
+  } else {
+    report += `- ✅ Liquidität bleibt über dem Puffer von ${formatCurrency(inputs.liquidityBuffer)}\n`
+  }
+  report += '\n'
+  
   if (metrics.historicalRevenue > 0 || metrics.projectedRevenue > 0) {
     report += 'Zeitraum-Analyse:\n'
     report += `- Historische Einnahmen: ${formatCurrency(metrics.historicalRevenue)}\n`
@@ -297,8 +320,12 @@ function generateDetailedReportText(
   report += 'Einnahmen'.padEnd(15)
   report += 'Ausgaben'.padEnd(15)
   report += 'Gewinn/Verlust'.padEnd(18)
+  report += 'Liquidität'.padEnd(15)
   report += '\n'
-  report += '-'.repeat(100) + '\n'
+  report += '-'.repeat(115) + '\n'
+  
+  // Berechne Liquidität pro Woche
+  let currentLiquidity = metrics.initialLiquidity
   
   // Wöchentliche Daten
   for (let i = 0; i < 52; i++) {
@@ -310,6 +337,9 @@ function generateDetailedReportText(
     const weekRevenue = (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
     const weekCosts = (metrics.baseWeeklyCosts ?? 0) * costMultiplier
     const weekProfit = weekRevenue - weekCosts
+    
+    // Aktualisiere Liquidität für diese Woche
+    currentLiquidity += weekProfit
     
     // Status
     let status = ''
@@ -352,6 +382,9 @@ function generateDetailedReportText(
             ? '120%' 
             : `${(costMultiplier * 100).toFixed(1)}%`
     
+    // Liquiditäts-Warnung
+    const liquidityWarning = currentLiquidity < inputs.liquidityBuffer ? ' ⚠️' : ''
+    
     // Zeile
     report += `KW ${weekNum.toString().padStart(2)}`.padEnd(5)
     report += status.padEnd(12)
@@ -360,6 +393,8 @@ function generateDetailedReportText(
     report += formatCurrency(weekRevenue).padEnd(15)
     report += formatCurrency(weekCosts).padEnd(15)
     report += formatCurrency(weekProfit).padEnd(18)
+    report += formatCurrency(currentLiquidity).padEnd(15)
+    report += liquidityWarning
     report += '\n'
   }
   
@@ -401,6 +436,20 @@ function generateDetailedReportText(
   report += `- Gesamt-Einnahmen: ${formatCurrency(totalProjectedRevenue)}\n`
   report += `- Gesamt-Ausgaben: ${formatCurrency(totalProjectedCosts)}\n`
   report += `- Gesamt-Gewinn/Verlust: ${formatCurrency(totalProjectedRevenue - totalProjectedCosts)}\n\n`
+  
+  // Liquiditäts-Zusammenfassung
+  report += 'LIQUIDITÄTS-VERLAUF:\n'
+  report += `- Startliquidität (KW 1): ${formatCurrency(metrics.initialLiquidity)}\n`
+  report += `- Liquidität am Jahresende (KW 52): ${formatCurrency(metrics.endOfYearLiquidity)}\n`
+  report += `- Minimale Liquidität während des Jahres: ${formatCurrency(metrics.minLiquidity)}\n`
+  report += `- Liquiditätspuffer: ${formatCurrency(inputs.liquidityBuffer)}\n`
+  if (metrics.liquidityBelowBuffer) {
+    report += `- ⚠️ WARNUNG: Die minimale Liquidität (${formatCurrency(metrics.minLiquidity)}) liegt unter dem Puffer (${formatCurrency(inputs.liquidityBuffer)})!\n`
+    report += '  Es besteht die Gefahr von Liquiditätsengpässen.\n'
+  } else {
+    report += `- ✅ Die Liquidität bleibt über dem Puffer von ${formatCurrency(inputs.liquidityBuffer)}\n`
+  }
+  report += '\n'
   
   report += '='.repeat(50) + '\n'
   report += `Detaillierter Report generiert am: ${formatDate(new Date().toISOString())}\n`
