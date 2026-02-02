@@ -517,31 +517,7 @@ export default function PreviewPage() {
 
             {/* Gross/Net Toggle */}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {locale === 'de' ? 'Ansicht' : 'View'}
-              </label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewType('gross')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewType === 'gross'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
-                  }`}
-                >
-                  {locale === 'de' ? 'Brutto' : 'Gross'}
-                </button>
-                <button
-                  onClick={() => setViewType('net')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewType === 'net'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
-                  }`}
-                >
-                  {locale === 'de' ? 'Netto' : 'Net'}
-                </button>
-              </div>
+              {/* Brutto/Netto Toggle entfernt - alles wird als Brutto angezeigt */}
             </div>
           </div>
         </div>
