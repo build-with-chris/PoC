@@ -72,7 +72,7 @@ export default function PreviewPage() {
 
   // View period and type state
   const [viewPeriod, setViewPeriod] = useState<ViewPeriod>('yearly')
-  const [viewType, setViewType] = useState<ViewType>('net')
+  const [viewType, setViewType] = useState<ViewType>('gross')
 
   // Verwende den Szenario-Manager für gespeicherte Szenarien
   const {
@@ -236,7 +236,9 @@ export default function PreviewPage() {
   }
 
   const getCosts = (): number => {
-    return convertToPeriod(totalCosts, viewPeriod)
+    // Kosten als Brutto anzeigen (Netto + Vorsteuer)
+    const totalCostsBrutto = totalCosts + (metrics?.totalInputVAT ?? 0)
+    return convertToPeriod(totalCostsBrutto, viewPeriod)
   }
 
   const getProfit = (): number => {
@@ -258,11 +260,8 @@ export default function PreviewPage() {
 
   // Get type label
   const getTypeLabel = (): string => {
-    if (viewType === 'gross') {
-      return locale === 'de' ? 'Brutto (inkl. 19% MwSt.)' : 'Gross (incl. 19% VAT)'
-    } else {
-      return locale === 'de' ? 'Netto (nach 19% MwSt.)' : 'Net (after 19% VAT)'
-    }
+    // Immer Brutto anzeigen
+    return locale === 'de' ? 'Brutto' : 'Gross'
   }
 
   const weakWeeks = weekMultipliers.filter(m => m < 1.0).length
@@ -569,7 +568,7 @@ export default function PreviewPage() {
             <p className={`text-2xl font-bold ${(projectedRevenue - projectedCosts) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {(projectedRevenue - projectedCosts).toFixed(0)} €
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'Netto (nach MwSt.)' : 'Net (after VAT)'}</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{locale === 'de' ? 'Brutto' : 'Gross'}</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
@@ -845,7 +844,7 @@ export default function PreviewPage() {
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>{t('weeklyRevenue')}:</strong> {metrics.baseWeeklyRevenue.toFixed(2)} €
+              <strong>{t('weeklyRevenue')}:</strong> {metrics.baseWeeklyRevenueBrutto.toFixed(2)} € {locale === 'de' ? '(Brutto)' : '(Gross)'}
             </p>
           </div>
         </div>
@@ -877,7 +876,7 @@ export default function PreviewPage() {
               value={inputs.marketing}
               onChange={(value) => updateInput('marketing', value)}
               min={0}
-              max={2000}
+              max={5000}
               step={50}
               showCurrency
               info={`19% ${locale === 'de' ? 'MwSt. (Vorsteuer)' : 'VAT (Input Tax)'}`}
@@ -978,11 +977,11 @@ export default function PreviewPage() {
 
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-900 dark:text-red-100">
-              <strong>{t('totalMonthly')}:</strong> {(inputs.rent + inputs.salaries + inputs.marketing + inputs.technology + inputs.heatingCosts + inputs.otherCosts).toFixed(2)} €
+              <strong>{t('totalMonthly')}:</strong> {(inputs.rent + inputs.salaries + inputs.marketing + inputs.technology + inputs.heatingCosts + inputs.otherCosts).toFixed(2)} € {locale === 'de' ? '(Brutto)' : '(Gross)'}
             </p>
             <p className="text-sm text-red-900 dark:text-red-100 mt-1">
               <strong>{t('weeklyReserves')}:</strong> {inputs.weeklyReserves.toFixed(2)} €
-              <span className="ml-4">≈ {metrics.baseWeeklyCosts.toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'} ({locale === 'de' ? 'inkl. Rücklagen' : 'incl. reserves'})</span>
+              <span className="ml-4">≈ {(metrics.baseWeeklyCosts + (metrics?.weeklyInputVAT ?? 0)).toFixed(2)} € / {locale === 'de' ? 'Woche' : 'Week'} ({locale === 'de' ? 'Brutto, inkl. Rücklagen' : 'Gross, incl. reserves'})</span>
             </p>
             <p className="text-sm text-red-900 dark:text-red-100 mt-1">
               <strong>{locale === 'de' ? 'Jährliche Kosten' : 'Annual Costs'}:</strong> {metrics.annualAccountingCosts.toFixed(2)} €
