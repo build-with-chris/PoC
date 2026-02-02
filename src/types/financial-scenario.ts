@@ -131,7 +131,8 @@ export interface FinancialMetrics {
   fundingRevenuePerWeek: number // Querfinanzierung durch Förderung pro Woche
   membershipRevenuePerWeek: number // Mitgliedsbeiträge pro Woche
   ticketRevenuePerWeek: number
-  gastronomyRevenuePerWeek: number // Gastronomischer Gewinn pro Woche
+  gastronomyRevenuePerWeek: number // Gastronomischer Gewinn pro Woche (vom Ticket)
+  dailyGastronomyRevenuePerWeek: number // Tägliche Gastronomie-Einnahmen pro Woche
   course1RevenuePerWeek: number
   course2RevenuePerWeek: number
   course3RevenuePerWeek: number
@@ -412,6 +413,7 @@ export function calculateMetrics(
     membershipRevenuePerWeek + // 0%
     ticketRevenuePerWeek + // 0%
     gastronomyRevenueNetPerWeek + // 14% (Netto)
+    dailyGastronomyRevenueNetPerWeek + // 14% (Netto, täglich)
     course1RevenuePerWeek + // 0%
     course2RevenuePerWeek + // 0%
     course3RevenuePerWeek + // 0%
@@ -425,6 +427,7 @@ export function calculateMetrics(
     membershipRevenuePerWeek + // 0%
     ticketRevenuePerWeek + // 0%
     gastronomyRevenueBruttoPerWeek + // 14% (Brutto)
+    dailyGastronomyRevenueBruttoPerWeek + // 14% (Brutto, täglich)
     course1RevenuePerWeek + // 0%
     course2RevenuePerWeek + // 0%
     course3RevenuePerWeek + // 0%
@@ -435,7 +438,7 @@ export function calculateMetrics(
   // UMSATZSTEUER-BERECHNUNG (USt) - auf Einnahmen
   // ============================================================================
   // Berechne USt. für jede Einnahmenquelle separat
-  const weeklyVAT = gastronomyVATPerWeek + workshopVATPerWeek + rentalVATPerWeek
+  const weeklyVAT = gastronomyVATPerWeek + dailyGastronomyVATPerWeek + workshopVATPerWeek + rentalVATPerWeek
 
   // ============================================================================
   // KOSTEN-BERECHNUNG
