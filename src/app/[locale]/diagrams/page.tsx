@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts'
+import html2canvas from 'html2canvas'
 
 interface RevenueData {
   name: string
@@ -56,6 +57,36 @@ export default function DiagramsPage() {
   const [costData, setCostData] = useState<CostData[]>([])
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Refs für Diagramm-Container
+  const revenuePercentChartRef = useRef<HTMLDivElement>(null)
+  const revenueAbsoluteChartRef = useRef<HTMLDivElement>(null)
+  const liquidityChartRef = useRef<HTMLDivElement>(null)
+  const revenueCostsChartRef = useRef<HTMLDivElement>(null)
+  const costStructureChartRef = useRef<HTMLDivElement>(null)
+
+  const downloadChartAsPNG = async (chartRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
+    if (!chartRef.current) return
+
+    try {
+      const canvas = await html2canvas(chartRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Höhere Qualität
+        logging: false,
+      })
+      
+      const url = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.download = filename
+      link.href = url
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error('Error exporting chart:', error)
+      setError(locale === 'de' ? 'Fehler beim Exportieren des Diagramms' : 'Error exporting chart')
+    }
+  }
 
   const parseLiquidityData = (content: string): { data: LiquidityData[], buffer: number } => {
     const liquidity: LiquidityData[] = []
@@ -737,15 +768,25 @@ export default function DiagramsPage() {
         {revenueData && chartData.length > 0 && (
           <div className="space-y-8">
             {/* 100% Stacked Bar Chart */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                {locale === 'de' ? 'Umsatz-Mix (Anteile)' : 'Revenue Mix (Percentages)'}
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                {locale === 'de' 
-                  ? 'Zeigt die prozentuale Verteilung der Einnahmenquellen'
-                  : 'Shows the percentage distribution of revenue sources'}
-              </p>
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenuePercentChartRef}>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                    {locale === 'de' ? 'Umsatz-Mix (Anteile)' : 'Revenue Mix (Percentages)'}
+                  </h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    {locale === 'de' 
+                      ? 'Zeigt die prozentuale Verteilung der Einnahmenquellen'
+                      : 'Shows the percentage distribution of revenue sources'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => downloadChartAsPNG(revenuePercentChartRef, 'umsatz-mix-anteile.png')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                >
+                  📥 {locale === 'de' ? 'Als PNG' : 'Download PNG'}
+                </button>
+              </div>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={chartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
@@ -768,15 +809,25 @@ export default function DiagramsPage() {
             </div>
 
             {/* Absolute Stacked Bar Chart */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                {locale === 'de' ? 'Umsatz-Mix (Absolute Werte)' : 'Revenue Mix (Absolute Values)'}
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                {locale === 'de' 
-                  ? 'Zeigt die absoluten Einnahmenwerte in Euro'
-                  : 'Shows the absolute revenue values in Euros'}
-              </p>
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenueAbsoluteChartRef}>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                    {locale === 'de' ? 'Umsatz-Mix (Absolute Werte)' : 'Revenue Mix (Absolute Values)'}
+                  </h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    {locale === 'de' 
+                      ? 'Zeigt die absoluten Einnahmenwerte in Euro'
+                      : 'Shows the absolute revenue values in Euros'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => downloadChartAsPNG(revenueAbsoluteChartRef, 'umsatz-mix-absolute.png')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                >
+                  📥 {locale === 'de' ? 'Als PNG' : 'Download PNG'}
+                </button>
+              </div>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={chartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
@@ -928,15 +979,25 @@ export default function DiagramsPage() {
 
             {/* Liquidity Line Chart */}
             {liquidityData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                  {locale === 'de' ? 'Liquidität über 52 Wochen' : 'Liquidity over 52 Weeks'}
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  {locale === 'de' 
-                    ? 'Zeigt die Liquiditätsentwicklung über das Jahr. Die horizontale Linie zeigt den Liquiditätspuffer.'
-                    : 'Shows liquidity development over the year. The horizontal line shows the liquidity buffer.'}
-                </p>
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={liquidityChartRef}>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                      {locale === 'de' ? 'Liquidität über 52 Wochen' : 'Liquidity over 52 Weeks'}
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      {locale === 'de' 
+                        ? 'Zeigt die Liquiditätsentwicklung über das Jahr. Die horizontale Linie zeigt den Liquiditätspuffer.'
+                        : 'Shows liquidity development over the year. The horizontal line shows the liquidity buffer.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => downloadChartAsPNG(liquidityChartRef, 'liquiditaet-52-wochen.png')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  >
+                    📥 {locale === 'de' ? 'Als PNG' : 'Download PNG'}
+                  </button>
+                </div>
                 <ResponsiveContainer width="100%" height={500}>
                   <LineChart data={liquidityData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -1012,15 +1073,25 @@ export default function DiagramsPage() {
 
             {/* Revenue vs Costs Combo Chart */}
             {weeklyData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                  {locale === 'de' ? 'Einnahmen vs. Ausgaben pro Woche' : 'Revenue vs. Costs per Week'}
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  {locale === 'de' 
-                    ? 'Zeigt, wann ihr profitabel seid und wann nicht. Der Hintergrund zeigt den Status jeder Woche (Schwach/Normal).'
-                    : 'Shows when you are profitable and when not. The background shows the status of each week (Weak/Normal).'}
-                </p>
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenueCostsChartRef}>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                      {locale === 'de' ? 'Einnahmen vs. Ausgaben pro Woche' : 'Revenue vs. Costs per Week'}
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      {locale === 'de' 
+                        ? 'Zeigt, wann ihr profitabel seid und wann nicht. Der Hintergrund zeigt den Status jeder Woche (Schwach/Normal).'
+                        : 'Shows when you are profitable and when not. The background shows the status of each week (Weak/Normal).'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => downloadChartAsPNG(revenueCostsChartRef, 'einnahmen-vs-ausgaben.png')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  >
+                    📥 {locale === 'de' ? 'Als PNG' : 'Download PNG'}
+                  </button>
+                </div>
                 <ResponsiveContainer width="100%" height={500}>
                   <ComposedChart data={weeklyData}>
                     <defs>
@@ -1166,15 +1237,25 @@ export default function DiagramsPage() {
 
             {/* Cost Structure Bar Chart - Top 5 */}
             {costData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                  {locale === 'de' ? 'Kostenstruktur (Top 5)' : 'Cost Structure (Top 5)'}
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  {locale === 'de' 
-                    ? 'Zeigt die wichtigsten Kostenblöcke pro Jahr. Große Blöcke wie Gehälter und Marketing sind entscheidend.'
-                    : 'Shows the most important cost blocks per year. Large blocks like salaries and marketing are decisive.'}
-                </p>
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={costStructureChartRef}>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                      {locale === 'de' ? 'Kostenstruktur (Top 5)' : 'Cost Structure (Top 5)'}
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      {locale === 'de' 
+                        ? 'Zeigt die wichtigsten Kostenblöcke pro Jahr. Große Blöcke wie Gehälter und Marketing sind entscheidend.'
+                        : 'Shows the most important cost blocks per year. Large blocks like salaries and marketing are decisive.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => downloadChartAsPNG(costStructureChartRef, 'kostenstruktur-top5.png')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  >
+                    📥 {locale === 'de' ? 'Als PNG' : 'Download PNG'}
+                  </button>
+                </div>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={costData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
