@@ -73,10 +73,54 @@ export default function DiagramsPage() {
     if (!chartRef.current) return
 
     try {
+      // Warte kurz, damit alle Renderings abgeschlossen sind
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const canvas = await html2canvas(chartRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Höhere Qualität
+        scale: 2,
         logging: false,
+        useCORS: true,
+        allowTaint: false,
+        foreignObjectRendering: false,
+        onclone: (clonedDoc, element) => {
+          // Finde alle SVG-Elemente im Original und im Clone
+          const originalSvgElements = element.querySelectorAll('svg path, svg rect, svg circle, svg line, svg polygon, svg polyline, svg ellipse')
+          const clonedSvgElements = clonedDoc.querySelectorAll('svg path, svg rect, svg circle, svg line, svg polygon, svg polyline, svg ellipse')
+          
+          // Konvertiere Farben basierend auf den Original-Elementen
+          originalSvgElements.forEach((originalEl, index) => {
+            const clonedEl = clonedSvgElements[index] as SVGElement
+            if (!clonedEl) return
+            
+            // Hole die tatsächlich gerenderte Farbe aus dem Original-Element
+            const computedStyle = window.getComputedStyle(originalEl as Element)
+            const fill = computedStyle.fill
+            const stroke = computedStyle.stroke
+            
+            // Konvertiere fill, wenn es problematische Farbfunktionen enthält
+            const originalFill = clonedEl.getAttribute('fill')
+            if (originalFill && (originalFill.includes('lab(') || originalFill.includes('oklab(') || originalFill.includes('lch(') || originalFill.includes('color('))) {
+              if (fill && !fill.includes('lab(') && !fill.includes('oklab(') && !fill.includes('lch(') && fill !== 'none') {
+                clonedEl.setAttribute('fill', fill)
+              } else {
+                // Fallback: verwende eine Standardfarbe
+                clonedEl.setAttribute('fill', '#000000')
+              }
+            }
+            
+            // Konvertiere stroke, wenn es problematische Farbfunktionen enthält
+            const originalStroke = clonedEl.getAttribute('stroke')
+            if (originalStroke && (originalStroke.includes('lab(') || originalStroke.includes('oklab(') || originalStroke.includes('lch(') || originalStroke.includes('color('))) {
+              if (stroke && !stroke.includes('lab(') && !stroke.includes('oklab(') && !stroke.includes('lch(') && stroke !== 'none') {
+                clonedEl.setAttribute('stroke', stroke)
+              } else {
+                // Fallback: entferne stroke
+                clonedEl.removeAttribute('stroke')
+              }
+            }
+          })
+        },
       })
       
       const url = canvas.toDataURL('image/png')
