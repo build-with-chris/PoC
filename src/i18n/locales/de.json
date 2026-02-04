@@ -128,5 +128,14 @@
     "error": "Fehler: {{message}}",
     "notMapped": "-- nicht zugeordnet --",
     "required": "*"
+  },
+  "diagrams": {
+    "title": "Diagramme",
+    "subtitle": "Laden Sie eine heruntergeladene Analyse hoch, um visuelle Diagramme zu erstellen",
+    "uploadFile": "Analyse-Datei hochladen",
+    "selectFile": "Datei auswählen",
+    "fileLoaded": "Datei geladen",
+    "error": "Fehler",
+    "noData": "Bitte laden Sie eine Analyse-Datei hoch, um Diagramme zu erstellen."
   }
 }

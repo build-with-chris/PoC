@@ -128,5 +128,14 @@
     "error": "Error: {{message}}",
     "notMapped": "-- not mapped --",
     "required": "*"
+  },
+  "diagrams": {
+    "title": "Diagrams",
+    "subtitle": "Upload a downloaded analysis to create visual diagrams",
+    "uploadFile": "Upload Analysis File",
+    "selectFile": "Select File",
+    "fileLoaded": "File loaded",
+    "error": "Error",
+    "noData": "Please upload an analysis file to create diagrams."
   }
 }

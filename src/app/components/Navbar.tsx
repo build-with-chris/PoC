@@ -14,6 +14,7 @@ export default function Navbar() {
   // Vereinfachte Navigation - nur Prognose
   const links = [
     { href: `/${locale}/preview`, label: locale === 'de' ? 'Prognose' : 'Forecast', icon: '🔮' },
+    { href: `/${locale}/diagrams`, label: locale === 'de' ? 'Diagramme' : 'Diagrams', icon: '📊' },
   ]
 
   const isActive = (href: string) => {
