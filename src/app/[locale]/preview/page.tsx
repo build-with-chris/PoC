@@ -176,7 +176,12 @@ export default function PreviewPage() {
       }
 
       // Wöchentliche Kosten (inkl. Rücklagen) mit costMultiplier multiplizieren (Brutto)
-      const weekCostsNet = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier
+      // Jährliche Kosten und Kreditkosten werden gleichmäßig über alle Wochen verteilt
+      // In der Anlaufphase werden auch diese mit dem costMultiplier multipliziert
+      const annualCostsPerWeek = (metrics?.annualAccountingCosts ?? 0) / 52
+      const loanCostsPerWeek = (metrics?.loanTotalCostsPerYear ?? 0) / 52
+      // Variable Kosten werden mit costMultiplier multipliziert, fixe Kosten auch (für Anlaufphase)
+      const weekCostsNet = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier + (annualCostsPerWeek + loanCostsPerWeek) * costMultiplier
       const weekCostsBrutto = weekCostsNet + (metrics?.weeklyInputVAT ?? 0) * costMultiplier
 
       // Sonst verwende prognostizierte Werte (Brutto)
