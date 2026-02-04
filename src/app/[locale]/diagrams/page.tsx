@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, ReferenceLine } from 'recharts'
 
 interface RevenueData {
   name: string
@@ -14,6 +14,12 @@ interface RevenueData {
   funding: number
   memberships: number
   total: number
+}
+
+interface LiquidityData {
+  week: number
+  liquidity: number
+  isMinimum?: boolean
 }
 
 const COLORS = {
@@ -31,8 +37,145 @@ export default function DiagramsPage() {
   const locale = useLocale()
   const [fileContent, setFileContent] = useState<string | null>(null)
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null)
+  const [liquidityData, setLiquidityData] = useState<LiquidityData[]>([])
+  const [liquidityBuffer, setLiquidityBuffer] = useState<number>(10000)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const parseLiquidityData = (content: string): { data: LiquidityData[], buffer: number } => {
+    const liquidity: LiquidityData[] = []
+    let buffer = 10000 // Default
+    let minLiquidity = Infinity
+    let minWeek = 0
+
+    try {
+      const lines = content.split('\n')
+      
+      // Suche nach Liquiditätspuffer
+      for (const line of lines) {
+        if (line.includes('Liquiditätspuffer') || line.includes('Liquidity Buffer')) {
+          const match = line.match(/[-:]?\s*([\d.,]+)\s*€/)
+          if (match) {
+            buffer = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+          }
+        }
+      }
+
+      // Suche nach wöchentlicher Liquiditätstabelle
+      let foundTable = false
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+        
+        // Suche nach Tabellenkopf mit "Liquidität"
+        if (line.includes('Liquidität') && (line.includes('KW') || line.includes('Week'))) {
+          foundTable = true
+          continue
+        }
+
+        if (foundTable) {
+          // Parse Zeilen wie: "KW  1" oder "KW 1" gefolgt von Liquiditätswert
+          // Format: KW XX | ... | Liquidität | ⚠️
+          const kwMatch = line.match(/KW\s+(\d+)/i)
+          if (kwMatch) {
+            const weekNum = parseInt(kwMatch[1], 10)
+            
+            // Suche nach Liquiditätswert in der Zeile
+            // Format: KW XX | Status | Einnahmen-Mult | Ausgaben-Mult | Einnahmen | Ausgaben | Gewinn/Verlust | Liquidität | ⚠️
+            // Liquidität ist normalerweise der letzte Währungsbetrag vor dem ⚠️
+            let liquidityValue = 0
+            
+            // Finde alle Währungsbeträge in der Zeile
+            const allMatches = Array.from(line.matchAll(/([\d.,]+)\s*€/g))
+            
+            if (allMatches.length > 0) {
+              // Der Liquiditätswert ist der letzte Währungsbetrag (vor dem ⚠️ falls vorhanden)
+              // Normalerweise gibt es 4 Werte: Einnahmen, Ausgaben, Gewinn/Verlust, Liquidität
+              const lastMatch = allMatches[allMatches.length - 1]
+              liquidityValue = parseFloat(lastMatch[1].replace(/\./g, '').replace(',', '.'))
+            }
+
+            // Akzeptiere auch 0-Werte, da Liquidität negativ sein kann
+            if (weekNum <= 52) {
+              liquidity.push({
+                week: weekNum,
+                liquidity: liquidityValue,
+              })
+
+              if (liquidityValue < minLiquidity) {
+                minLiquidity = liquidityValue
+                minWeek = weekNum
+              }
+            }
+
+            // Stoppe nach 52 Wochen
+            if (weekNum >= 52) {
+              break
+            }
+          }
+
+          // Wenn wir zur nächsten Sektion kommen, stoppen
+          if (line.includes('===') || line.includes('ZUSAMMENFASSUNG') || line.includes('SUMMARY')) {
+            break
+          }
+        }
+      }
+
+      // Markiere Minimum
+      if (minWeek > 0) {
+        const minIndex = liquidity.findIndex(d => d.week === minWeek)
+        if (minIndex >= 0) {
+          liquidity[minIndex].isMinimum = true
+        }
+      }
+
+      // Falls keine Daten gefunden wurden, versuche aus "Minimale Liquidität" zu extrahieren
+      if (liquidity.length === 0) {
+        for (const line of lines) {
+          if (line.includes('Minimale Liquidität') || line.includes('Minimum Liquidity')) {
+            const match = line.match(/([\d.,]+)\s*€/)
+            if (match) {
+              const minValue = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              // Erstelle eine einfache Darstellung mit Start- und Endwert
+              // Wir haben nicht genug Daten für 52 Wochen, also erstellen wir eine Schätzung
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('Startliquidität') || lines[i].includes('Initial Liquidity')) {
+                  const startMatch = lines[i].match(/([\d.,]+)\s*€/)
+                  if (startMatch) {
+                    const startValue = parseFloat(startMatch[1].replace(/\./g, '').replace(',', '.'))
+                    const endMatch = lines.find(l => l.includes('Liquidität am Jahresende') || l.includes('End of Year Liquidity'))
+                    let endValue = startValue
+                    if (endMatch) {
+                      const endMatchValue = endMatch.match(/([\d.,]+)\s*€/)
+                      if (endMatchValue) {
+                        endValue = parseFloat(endMatchValue[1].replace(/\./g, '').replace(',', '.'))
+                      }
+                    }
+                    
+                    // Lineare Interpolation über 52 Wochen
+                    const step = (endValue - startValue) / 51
+                    for (let week = 1; week <= 52; week++) {
+                      const value = startValue + (step * (week - 1))
+                      liquidity.push({
+                        week,
+                        liquidity: value,
+                        isMinimum: Math.abs(value - minValue) < 100, // Markiere wenn nahe am Minimum
+                      })
+                    }
+                    break
+                  }
+                }
+              }
+            }
+            break
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error parsing liquidity data:', err)
+    }
+
+    return { data: liquidity, buffer }
+  }
 
   const parseReportFile = (content: string): RevenueData | null => {
     try {
@@ -204,14 +347,19 @@ export default function DiagramsPage() {
       setFileContent(content)
       
       const parsed = parseReportFile(content)
+      const liquidityParsed = parseLiquidityData(content)
+      
       if (parsed) {
         setRevenueData(parsed)
+        setLiquidityData(liquidityParsed.data)
+        setLiquidityBuffer(liquidityParsed.buffer)
         setError(null)
       } else {
         setError(locale === 'de' 
           ? 'Konnte keine Einnahmendaten aus der Datei extrahieren. Bitte stellen Sie sicher, dass es sich um eine gültige Analyse-Datei handelt.'
           : 'Could not extract revenue data from file. Please ensure it is a valid analysis file.')
         setRevenueData(null)
+        setLiquidityData([])
       }
     }
     reader.onerror = () => {
@@ -488,6 +636,90 @@ export default function DiagramsPage() {
                 </table>
               </div>
             </div>
+
+            {/* Liquidity Line Chart */}
+            {liquidityData.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+                  {locale === 'de' ? 'Liquidität über 52 Wochen' : 'Liquidity over 52 Weeks'}
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  {locale === 'de' 
+                    ? 'Zeigt die Liquiditätsentwicklung über das Jahr. Die horizontale Linie zeigt den Liquiditätspuffer.'
+                    : 'Shows liquidity development over the year. The horizontal line shows the liquidity buffer.'}
+                </p>
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart data={liquidityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="week" 
+                      label={{ value: locale === 'de' ? 'Kalenderwoche' : 'Calendar Week', position: 'insideBottom', offset: -5 }}
+                      domain={[1, 52]}
+                      tickCount={13}
+                    />
+                    <YAxis 
+                      label={{ value: locale === 'de' ? 'Liquidität (€)' : 'Liquidity (€)', angle: -90, position: 'insideLeft' }}
+                      tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => `${value.toFixed(2)} €`}
+                      labelFormatter={(week) => `${locale === 'de' ? 'KW' : 'Week'} ${week}`}
+                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                    />
+                    <Legend />
+                    <ReferenceLine 
+                      y={liquidityBuffer} 
+                      stroke="#ef4444" 
+                      strokeDasharray="5 5"
+                      label={{ value: locale === 'de' ? `Puffer (${liquidityBuffer.toFixed(0)} €)` : `Buffer (${liquidityBuffer.toFixed(0)} €)`, position: 'right' }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="liquidity" 
+                      stroke="#3b82f6" 
+                      strokeWidth={2}
+                      dot={(props: any) => {
+                        const isMin = liquidityData[props.payloadIndex]?.isMinimum
+                        return (
+                          <circle
+                            cx={props.cx}
+                            cy={props.cy}
+                            r={isMin ? 8 : 3}
+                            fill={isMin ? '#f59e0b' : '#3b82f6'}
+                            stroke={isMin ? '#f59e0b' : '#3b82f6'}
+                            strokeWidth={isMin ? 2 : 0}
+                          />
+                        )
+                      }}
+                      activeDot={{ r: 6 }}
+                      name={locale === 'de' ? 'Liquidität' : 'Liquidity'}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <strong>{locale === 'de' ? 'Liquiditätspuffer' : 'Liquidity Buffer'}:</strong> {liquidityBuffer.toFixed(2)} €
+                  </p>
+                  {liquidityData.length > 0 && (
+                    <>
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                        <strong>{locale === 'de' ? 'Minimale Liquidität' : 'Minimum Liquidity'}:</strong>{' '}
+                        {Math.min(...liquidityData.map(d => d.liquidity)).toFixed(2)} €
+                        {Math.min(...liquidityData.map(d => d.liquidity)) < liquidityBuffer && (
+                          <span className="ml-2 text-red-600 dark:text-red-400">
+                            ⚠️ {locale === 'de' ? 'Unter Puffer!' : 'Below buffer!'}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                        <strong>{locale === 'de' ? 'Liquidität am Jahresende' : 'End of Year Liquidity'}:</strong>{' '}
+                        {liquidityData[liquidityData.length - 1]?.liquidity.toFixed(2)} €
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
