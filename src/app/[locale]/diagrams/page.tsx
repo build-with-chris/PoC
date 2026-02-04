@@ -8,6 +8,8 @@ import html2canvas from 'html2canvas'
 interface RevenueData {
   name: string
   tickets: number
+  gastronomy: number // Gastronomie-Einnahmen (pro Ticket)
+  dailyGastronomy: number // Tägliche Gastronomie-Einnahmen
   courses: number
   workshops: number
   rental: number
@@ -38,6 +40,8 @@ interface CostData {
 
 const COLORS = {
   tickets: '#3b82f6',
+  gastronomy: '#f97316', // Orange für Gastronomie (pro Ticket)
+  dailyGastronomy: '#fb923c', // Hell-Orange für tägliche Gastronomie
   courses: '#10b981',
   workshops: '#f59e0b',
   rental: '#8b5cf6',
@@ -500,6 +504,8 @@ export default function DiagramsPage() {
       const data: Partial<RevenueData> = {
         name: 'Analyse',
         tickets: 0,
+        gastronomy: 0,
+        dailyGastronomy: 0,
         courses: 0,
         workshops: 0,
         rental: 0,
@@ -548,6 +554,22 @@ export default function DiagramsPage() {
             if (match) {
               const value = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
               data.tickets = value
+            }
+          }
+          
+          if (line.includes('Gastronomie-Einnahmen (pro Ticket)') || line.includes('Gastronomy Revenue (per Ticket)')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€/)
+            if (match) {
+              const value = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              data.gastronomy = value
+            }
+          }
+          
+          if (line.includes('Tägliche Gastronomie-Einnahmen') || line.includes('Daily Gastronomy Revenue')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€/)
+            if (match) {
+              const value = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              data.dailyGastronomy = value
             }
           }
           
@@ -623,15 +645,15 @@ export default function DiagramsPage() {
       }
 
       // Berechne Gesamtsumme
-      data.total = (data.tickets || 0) + (data.courses || 0) + (data.workshops || 0) + 
-                   (data.rental || 0) + (data.fixedIncome || 0) + (data.funding || 0) + 
-                   (data.memberships || 0)
+      data.total = (data.tickets || 0) + (data.gastronomy || 0) + (data.dailyGastronomy || 0) + 
+                   (data.courses || 0) + (data.workshops || 0) + (data.rental || 0) + 
+                   (data.fixedIncome || 0) + (data.funding || 0) + (data.memberships || 0)
       
       // Wenn Gesamtsumme noch 0 ist, versuche aus einzelnen Werten zu berechnen
       if (data.total === 0) {
-        data.total = (data.tickets || 0) + (data.courses || 0) + (data.workshops || 0) + 
-                     (data.rental || 0) + (data.fixedIncome || 0) + (data.funding || 0) + 
-                     (data.memberships || 0)
+        data.total = (data.tickets || 0) + (data.gastronomy || 0) + (data.dailyGastronomy || 0) + 
+                     (data.courses || 0) + (data.workshops || 0) + (data.rental || 0) + 
+                     (data.fixedIncome || 0) + (data.funding || 0) + (data.memberships || 0)
       }
 
       // Prüfe, ob wir Daten gefunden haben
@@ -698,6 +720,8 @@ export default function DiagramsPage() {
       {
         name: locale === 'de' ? 'Umsatz-Mix' : 'Revenue Mix',
         tickets: revenueData.tickets,
+        gastronomy: revenueData.gastronomy,
+        dailyGastronomy: revenueData.dailyGastronomy,
         courses: revenueData.courses,
         workshops: revenueData.workshops,
         rental: revenueData.rental,
@@ -705,6 +729,8 @@ export default function DiagramsPage() {
         funding: revenueData.funding,
         memberships: revenueData.memberships,
         ticketsPercent: (revenueData.tickets / total) * 100,
+        gastronomyPercent: (revenueData.gastronomy / total) * 100,
+        dailyGastronomyPercent: (revenueData.dailyGastronomy / total) * 100,
         coursesPercent: (revenueData.courses / total) * 100,
         workshopsPercent: (revenueData.workshops / total) * 100,
         rentalPercent: (revenueData.rental / total) * 100,
@@ -798,6 +824,8 @@ export default function DiagramsPage() {
                   />
                   <Legend />
                   <Bar dataKey="ticketsPercent" stackId="a" fill={COLORS.tickets} name={locale === 'de' ? 'Tickets' : 'Tickets'} />
+                  <Bar dataKey="gastronomyPercent" stackId="a" fill={COLORS.gastronomy} name={locale === 'de' ? 'Gastronomie (pro Ticket)' : 'Gastronomy (per Ticket)'} />
+                  <Bar dataKey="dailyGastronomyPercent" stackId="a" fill={COLORS.dailyGastronomy} name={locale === 'de' ? 'Tägliche Gastronomie' : 'Daily Gastronomy'} />
                   <Bar dataKey="coursesPercent" stackId="a" fill={COLORS.courses} name={locale === 'de' ? 'Kurse' : 'Courses'} />
                   <Bar dataKey="workshopsPercent" stackId="a" fill={COLORS.workshops} name={locale === 'de' ? 'Workshops' : 'Workshops'} />
                   <Bar dataKey="rentalPercent" stackId="a" fill={COLORS.rental} name={locale === 'de' ? 'Vermietung' : 'Rental'} />
@@ -839,6 +867,8 @@ export default function DiagramsPage() {
                   />
                   <Legend />
                   <Bar dataKey="tickets" stackId="a" fill={COLORS.tickets} name={locale === 'de' ? 'Tickets' : 'Tickets'} />
+                  <Bar dataKey="gastronomy" stackId="a" fill={COLORS.gastronomy} name={locale === 'de' ? 'Gastronomie (pro Ticket)' : 'Gastronomy (per Ticket)'} />
+                  <Bar dataKey="dailyGastronomy" stackId="a" fill={COLORS.dailyGastronomy} name={locale === 'de' ? 'Tägliche Gastronomie' : 'Daily Gastronomy'} />
                   <Bar dataKey="courses" stackId="a" fill={COLORS.courses} name={locale === 'de' ? 'Kurse' : 'Courses'} />
                   <Bar dataKey="workshops" stackId="a" fill={COLORS.workshops} name={locale === 'de' ? 'Workshops' : 'Workshops'} />
                   <Bar dataKey="rental" stackId="a" fill={COLORS.rental} name={locale === 'de' ? 'Vermietung' : 'Rental'} />
@@ -880,6 +910,32 @@ export default function DiagramsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
                           {((revenueData.tickets / revenueData.total) * 100).toFixed(2)}%
+                        </td>
+                      </tr>
+                    )}
+                    {revenueData.gastronomy > 0 && (
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                          {locale === 'de' ? 'Gastronomie (pro Ticket)' : 'Gastronomy (per Ticket)'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                          {revenueData.gastronomy.toFixed(2)} €
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                          {((revenueData.gastronomy / revenueData.total) * 100).toFixed(2)}%
+                        </td>
+                      </tr>
+                    )}
+                    {revenueData.dailyGastronomy > 0 && (
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                          {locale === 'de' ? 'Tägliche Gastronomie' : 'Daily Gastronomy'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                          {revenueData.dailyGastronomy.toFixed(2)} €
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                          {((revenueData.dailyGastronomy / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
