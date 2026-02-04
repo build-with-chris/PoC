@@ -1287,22 +1287,22 @@ export default function DiagramsPage() {
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
-                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+                <div className="mt-4 p-4 bg-zinc-50 rounded-md">
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-yellow-200 dark:bg-yellow-900/30 rounded"></div>
-                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Schwach' : 'Weak'}</span>
+                      <div className="w-4 h-4 bg-yellow-200 rounded"></div>
+                      <span className="text-zinc-700">{locale === 'de' ? 'Schwach' : 'Weak'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-200 dark:bg-blue-900/30 rounded"></div>
-                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Normal' : 'Normal'}</span>
+                      <div className="w-4 h-4 bg-blue-200 rounded"></div>
+                      <span className="text-zinc-700">{locale === 'de' ? 'Normal' : 'Normal'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-200 dark:bg-green-900/30 rounded"></div>
-                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Stark' : 'Strong'}</span>
+                      <div className="w-4 h-4 bg-green-200 rounded"></div>
+                      <span className="text-zinc-700">{locale === 'de' ? 'Stark' : 'Strong'}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                  <p className="text-xs text-zinc-500 mt-2">
                     {locale === 'de' 
                       ? 'Grün = Einnahmen über Ausgaben (profitabel), Rot = Ausgaben über Einnahmen (Verlust)'
                       : 'Green = Revenue above costs (profitable), Red = Costs above revenue (loss)'}
