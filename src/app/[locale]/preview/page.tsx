@@ -100,6 +100,7 @@ export default function PreviewPage() {
     toggleCostMultiplier,
     setWeekRange,
     updateWeekMultipliers,
+    updateCostMultipliers,
     loadScenario,
     updateName,
   } = useFinancialScenario('Standard Szenario')
@@ -122,7 +123,8 @@ export default function PreviewPage() {
   const [manualValue, setManualValue] = useState<string>('')
   const [editingType, setEditingType] = useState<'revenue' | 'cost'>('revenue') // Einnahmen oder Ausgaben
   const [viewMode, setViewMode] = useState<'revenue' | 'cost' | 'both'>('revenue') // Anzeigemodus
-  const [showLoanModal, setShowLoanModal] = useState(false) // Modal für Kreditauswahl
+  const [showLoanModal, setShowLoanModal] = useState(false)
+  const [startupPhaseInitialized, setStartupPhaseInitialized] = useState(false) // Modal für Kreditauswahl
 
   // Lade historische Daten
   useEffect(() => {
@@ -201,8 +203,107 @@ export default function PreviewPage() {
   }
 
   const markSummerWeak = () => {
-    setWeekRange(27, 34, 0.7) // Wochen 28-35 (Juli/August)
+    setWeekRange(27, 34, 0.7)
   }
+
+  /**
+   * Berechnet die Kalenderwoche für ein gegebenes Datum
+   */
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+    return weekNo
+  }
+
+  /**
+   * Setzt die Anlaufphase: Von Startdatum (15.03) bis KW 30
+   * Linear von 40% auf 80% Einnahmen steigern
+   */
+  const setupStartupPhase = () => {
+    // Startdatum: 15. März (aktuelles Jahr oder nächstes Jahr, wenn 15.03 bereits vorbei)
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const startDate = new Date(currentYear, 2, 15) // März = Monat 2 (0-indexed)
+    
+    // Wenn 15.03 bereits vorbei ist, nimm nächstes Jahr
+    if (startDate < now) {
+      startDate.setFullYear(currentYear + 1)
+    }
+    
+    const startWeek = getWeekNumber(startDate)
+    const endWeek = 30
+    
+    // Nur setzen, wenn Start-KW vor End-KW liegt und beide im Bereich 1-52 sind
+    if (startWeek >= 1 && startWeek <= 52 && endWeek >= 1 && endWeek <= 52 && startWeek <= endWeek) {
+    const newMultipliers = [...weekMultipliers]
+      const newCostMultipliers = [...costMultipliers]
+      
+      // Linear interpolieren von 40% (0.4) auf 80% (0.8)
+      for (let week = startWeek; week <= endWeek && week <= 52; week++) {
+        const weekIndex = week - 1 // Array-Index (0-based)
+        if (weekIndex >= 0 && weekIndex < 52) {
+          // Nur setzen, wenn Woche in der Zukunft liegt (nicht historisch)
+          if (week >= currentWeek) {
+            const progress = (week - startWeek) / (endWeek - startWeek) // 0 bis 1
+            const multiplier = 0.4 + (0.8 - 0.4) * progress // Linear von 0.4 zu 0.8
+            newMultipliers[weekIndex] = multiplier
+            newCostMultipliers[weekIndex] = multiplier // Synchronisiere auch Ausgaben
+          }
+        }
+      }
+      
+      updateWeekMultipliers(newMultipliers)
+      // Aktualisiere auch costMultipliers
+      updateCostMultipliers(newCostMultipliers)
+      setStartupPhaseInitialized(true)
+    }
+  }
+
+  // Automatische Initialisierung der Anlaufphase beim ersten Laden
+  useEffect(() => {
+    if (!startupPhaseInitialized) {
+      // Prüfe, ob alle Multiplikatoren noch auf Standard (1.0) sind
+      const allDefault = weekMultipliers.every(m => m === 1.0) && costMultipliers.every(m => m === 1.0)
+      
+      if (allDefault) {
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const startDate = new Date(currentYear, 2, 15) // März = Monat 2 (0-indexed)
+        
+        if (startDate < now) {
+          startDate.setFullYear(currentYear + 1)
+        }
+        
+        const startWeek = getWeekNumber(startDate)
+        const endWeek = 30
+        
+        if (startWeek >= 1 && startWeek <= 52 && endWeek >= 1 && endWeek <= 52 && startWeek <= endWeek) {
+          const newMultipliers: number[] = [...weekMultipliers]
+          const newCostMultipliers: number[] = [...costMultipliers]
+          
+          for (let week = startWeek; week <= endWeek && week <= 52; week++) {
+            const weekIndex = week - 1
+            if (weekIndex >= 0 && weekIndex < 52 && week >= currentWeek) {
+              const progress = (week - startWeek) / (endWeek - startWeek)
+              const multiplier: number = 0.4 + (0.8 - 0.4) * progress
+              newMultipliers[weekIndex] = multiplier
+              newCostMultipliers[weekIndex] = multiplier
+            }
+          }
+          
+          updateWeekMultipliers(newMultipliers)
+          updateCostMultipliers(newCostMultipliers)
+          setStartupPhaseInitialized(true)
+        } else {
+          setStartupPhaseInitialized(true) // Markiere als initialisiert, auch wenn nicht gesetzt
+        }
+      } else {
+        setStartupPhaseInitialized(true) // Bereits angepasst, markiere als initialisiert
+      }
+    }
+  }, [weekMultipliers, costMultipliers, currentWeek, startupPhaseInitialized, updateWeekMultipliers, updateCostMultipliers])
 
   // Verwende die berechneten Metrics aus dem Hook
   // Fallback auf 0 falls metrics noch nicht berechnet wurde
@@ -957,7 +1058,7 @@ export default function PreviewPage() {
               step={25}
               showCurrency
               info={locale === 'de' ? 'Für unerwartete Ausgaben' : 'For unexpected expenses'}
-            />
+              />
             </div>
 
           {/* Jährliche Kosten */}
@@ -1029,15 +1130,15 @@ export default function PreviewPage() {
           <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
             <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">{locale === 'de' ? 'Mehrwertsteuer-Übersicht' : 'VAT Overview'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+            <div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Umsatzsteuer (USt)' : 'Output VAT'}</p>
                 <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalVAT, viewPeriod).toFixed(2)} €</p>
-              </div>
-              <div>
+            </div>
+            <div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
                 <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
-              </div>
-              <div>
+            </div>
+            <div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
                 <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                   {convertToPeriod(metrics.netVATPayable, viewPeriod).toFixed(2)} €
@@ -1046,8 +1147,8 @@ export default function PreviewPage() {
                   {metrics.netVATPayable >= 0 
                     ? (locale === 'de' ? 'Zu zahlen' : 'To pay')
                     : (locale === 'de' ? 'Erstattung' : 'Refund')}
-                </p>
-              </div>
+              </p>
+            </div>
             </div>
           </div>
         </div>
@@ -1126,7 +1227,7 @@ export default function PreviewPage() {
             <div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Vorsteuer (VSt)' : 'Input VAT'}</p>
               <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{convertToPeriod(metrics.totalInputVAT, viewPeriod).toFixed(2)} €</p>
-            </div>
+          </div>
             <div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{locale === 'de' ? 'Zu zahlende MwSt.' : 'VAT Payable'}</p>
               <p className={`text-lg font-semibold ${metrics.netVATPayable >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
@@ -1189,6 +1290,12 @@ export default function PreviewPage() {
                 className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-sm"
               >
                 {locale === 'de' ? 'Sommerpause' : 'Summer Break'}
+              </button>
+              <button
+                onClick={setupStartupPhase}
+                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm"
+              >
+                {locale === 'de' ? 'Anlaufphase' : 'Startup Phase'}
               </button>
             </div>
           </div>
