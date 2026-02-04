@@ -187,6 +187,8 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Querfinanzierung durch Förderung: ${formatCurrency(metrics.fundingRevenuePerWeek)}\n`
   report += `- Mitgliedsbeiträge: ${formatCurrency(metrics.membershipRevenuePerWeek)}\n`
   report += `- Ticket-Einnahmen: ${formatCurrency(metrics.ticketRevenuePerWeek)}\n`
+  report += `- Gastronomie-Einnahmen (pro Ticket): ${formatCurrency(metrics.gastronomyRevenuePerWeek)} (14% MwSt.)\n`
+  report += `- Tägliche Gastronomie-Einnahmen: ${formatCurrency(metrics.dailyGastronomyRevenuePerWeek)} (14% MwSt.)\n`
   report += `- Kurs 1 Einnahmen: ${formatCurrency(metrics.course1RevenuePerWeek)}\n`
   report += `- Kurs 2 Einnahmen: ${formatCurrency(metrics.course2RevenuePerWeek)}\n`
   report += `- Kurs 3 Einnahmen: ${formatCurrency(metrics.course3RevenuePerWeek)}\n`
