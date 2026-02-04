@@ -29,6 +29,12 @@ interface WeeklyData {
   status: 'Schwach' | 'Normal' | 'Stark' | 'Ausgeschlossen' | 'Keine Einn.' | 'Keine Ausg.' | 'Vergangenheit' | 'Angepasst'
 }
 
+interface CostData {
+  name: string
+  value: number
+  label: string
+}
+
 const COLORS = {
   tickets: '#3b82f6',
   courses: '#10b981',
@@ -47,6 +53,7 @@ export default function DiagramsPage() {
   const [liquidityData, setLiquidityData] = useState<LiquidityData[]>([])
   const [liquidityBuffer, setLiquidityBuffer] = useState<number>(10000)
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([])
+  const [costData, setCostData] = useState<CostData[]>([])
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -269,6 +276,190 @@ export default function DiagramsPage() {
     return weekly
   }
 
+  const parseCostData = (content: string): CostData[] => {
+    const costs: CostData[] = []
+
+    try {
+      const lines = content.split('\n')
+      let foundCostsSection = false
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+
+        if (line.includes('KOSTEN:') || line.includes('COSTS:')) {
+          foundCostsSection = true
+          continue
+        }
+
+        if (foundCostsSection) {
+          // Parse monatliche Kosten
+          if (line.includes('Miete') || line.includes('Rent')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'rent',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Miete' : 'Rent',
+              })
+            }
+          }
+
+          if (line.includes('Gehälter') || line.includes('Salaries') || line.includes('Personalkosten')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'salaries',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Gehälter' : 'Salaries',
+              })
+            }
+          }
+
+          if (line.includes('Marketing')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'marketing',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Marketing' : 'Marketing',
+              })
+            }
+          }
+
+          if (line.includes('Technik') || line.includes('Technology')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'technology',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Technik' : 'Technology',
+              })
+            }
+          }
+
+          if (line.includes('Heizkosten') || line.includes('Heating') || line.includes('Treibstoff') || line.includes('Fuel')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'heating',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Heizkosten/Treibstoff' : 'Heating/Fuel',
+              })
+            }
+          }
+
+          if (line.includes('Sonstige Kosten') || line.includes('Other Costs')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
+            if (match) {
+              const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'other',
+                value: monthly * 12,
+                label: locale === 'de' ? 'Sonstige Kosten' : 'Other Costs',
+              })
+            }
+          }
+
+          if (line.includes('Wöchentliche Rücklagen') || line.includes('Weekly Reserves')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Woche/i)
+            if (match) {
+              const weekly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'reserves',
+                value: weekly * 52,
+                label: locale === 'de' ? 'Wöchentliche Rücklagen' : 'Weekly Reserves',
+              })
+            }
+          }
+
+          // Jährliche Kosten
+          if (line.includes('Steuerberater') || line.includes('Tax Advisor')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Jahr/i)
+            if (match) {
+              const annual = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'taxAdvisor',
+                value: annual,
+                label: locale === 'de' ? 'Steuerberater' : 'Tax Advisor',
+              })
+            }
+          }
+
+          if (line.includes('Jahresabschluss') || line.includes('Tax Return') || line.includes('Annual Accounts')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Jahr/i)
+            if (match) {
+              const annual = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'taxReturn',
+                value: annual,
+                label: locale === 'de' ? 'Jahresabschluss/Steuererklärung' : 'Annual Accounts/Tax Return',
+              })
+            }
+          }
+
+          if (line.includes('Finanzbuchhaltung') || line.includes('Financial Accounting')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Jahr/i)
+            if (match) {
+              const annual = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'accounting',
+                value: annual,
+                label: locale === 'de' ? 'Finanzbuchhaltung' : 'Financial Accounting',
+              })
+            }
+          }
+
+          if (line.includes('Lohnbuchhaltung') || line.includes('Payroll Accounting')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Jahr/i)
+            if (match) {
+              const annual = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              costs.push({
+                name: 'payroll',
+                value: annual,
+                label: locale === 'de' ? 'Lohnbuchhaltung' : 'Payroll Accounting',
+              })
+            }
+          }
+
+          if (line.includes('Gesamt jährliche Buchhaltungskosten') || line.includes('Total annual accounting costs')) {
+            const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Jahr/i)
+            if (match) {
+              const annual = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
+              // Überschreibe einzelne Buchhaltungskosten, falls vorhanden
+              const existingIndex = costs.findIndex(c => c.name === 'accounting')
+              if (existingIndex >= 0) {
+                costs[existingIndex].value = annual
+              } else {
+                costs.push({
+                  name: 'accounting',
+                  value: annual,
+                  label: locale === 'de' ? 'Buchhaltung (gesamt)' : 'Accounting (total)',
+                })
+              }
+            }
+          }
+
+          // Wenn wir zur nächsten Sektion kommen, stoppen
+          if (line.includes('KENNZAHLEN') || line.includes('METRICS') || line.includes('===')) {
+            break
+          }
+        }
+      }
+
+      // Sortiere nach Wert und nimm Top-5
+      const sorted = costs.sort((a, b) => b.value - a.value)
+      return sorted.slice(0, 5)
+    } catch (err) {
+      console.error('Error parsing cost data:', err)
+      return []
+    }
+  }
+
   const parseReportFile = (content: string): RevenueData | null => {
     try {
       const lines = content.split('\n')
@@ -441,12 +632,14 @@ export default function DiagramsPage() {
       const parsed = parseReportFile(content)
       const liquidityParsed = parseLiquidityData(content)
       const weeklyParsed = parseWeeklyData(content)
+      const costParsed = parseCostData(content)
       
       if (parsed) {
         setRevenueData(parsed)
         setLiquidityData(liquidityParsed.data)
         setLiquidityBuffer(liquidityParsed.buffer)
         setWeeklyData(weeklyParsed)
+        setCostData(costParsed)
         setError(null)
       } else {
         setError(locale === 'de' 
@@ -455,6 +648,7 @@ export default function DiagramsPage() {
         setRevenueData(null)
         setLiquidityData([])
         setWeeklyData([])
+        setCostData([])
       }
     }
     reader.onerror = () => {
@@ -966,6 +1160,72 @@ export default function DiagramsPage() {
                       ? 'Grün = Einnahmen über Ausgaben (profitabel), Rot = Ausgaben über Einnahmen (Verlust)'
                       : 'Green = Revenue above costs (profitable), Red = Costs above revenue (loss)'}
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Cost Structure Bar Chart - Top 5 */}
+            {costData.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+                  {locale === 'de' ? 'Kostenstruktur (Top 5)' : 'Cost Structure (Top 5)'}
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  {locale === 'de' 
+                    ? 'Zeigt die wichtigsten Kostenblöcke pro Jahr. Große Blöcke wie Gehälter und Marketing sind entscheidend.'
+                    : 'Shows the most important cost blocks per year. Large blocks like salaries and marketing are decisive.'}
+                </p>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={costData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`} />
+                    <YAxis 
+                      type="category" 
+                      dataKey="label" 
+                      width={180}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => `${value.toFixed(2)} €`}
+                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      fill="#ef4444"
+                      radius={[0, 4, 4, 0]}
+                    >
+                      {costData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={
+                            entry.name === 'salaries' ? '#ef4444' :
+                            entry.name === 'marketing' ? '#f59e0b' :
+                            entry.name === 'rent' ? '#8b5cf6' :
+                            entry.name === 'heating' ? '#06b6d4' :
+                            entry.name === 'technology' ? '#10b981' :
+                            '#6366f1'
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
+                    {locale === 'de' ? 'Top 5 Kostenblöcke (jährlich):' : 'Top 5 Cost Blocks (annual):'}
+                  </p>
+                  <div className="space-y-1">
+                    {costData.map((cost, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="text-zinc-700 dark:text-zinc-300">
+                          {index + 1}. {cost.label}
+                        </span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                          {cost.value.toFixed(2)} €
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
