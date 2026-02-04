@@ -764,13 +764,13 @@ export default function DiagramsPage() {
   const chartData = prepareChartData()
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8">
+    <div className="min-h-screen bg-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
+          <h1 className="text-3xl font-bold text-zinc-900 mb-2">
             {locale === 'de' ? 'Diagramme' : 'Diagrams'}
           </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
+          <p className="text-zinc-600">
             {locale === 'de' 
               ? 'Laden Sie eine heruntergeladene Analyse hoch, um visuelle Diagramme zu erstellen'
               : 'Upload a downloaded analysis to create visual diagrams'}
@@ -778,8 +778,8 @@ export default function DiagramsPage() {
         </div>
 
         {/* File Upload */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-zinc-900">
             {locale === 'de' ? 'Analyse-Datei hochladen' : 'Upload Analysis File'}
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -798,14 +798,14 @@ export default function DiagramsPage() {
               {locale === 'de' ? 'Datei auswählen' : 'Select File'}
             </label>
             {fileContent && (
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="text-sm text-zinc-600">
                 {locale === 'de' ? 'Datei geladen' : 'File loaded'}
               </span>
             )}
           </div>
           {error && (
-            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-900 dark:text-red-100">{error}</p>
+            <div className="mt-4 p-4 bg-red-50 rounded-md border border-red-200">
+              <p className="text-sm text-red-900">{error}</p>
             </div>
           )}
         </div>
@@ -814,13 +814,13 @@ export default function DiagramsPage() {
         {revenueData && chartData.length > 0 && (
           <div className="space-y-8">
             {/* 100% Stacked Bar Chart */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenuePercentChartRef}>
+            <div className="bg-white rounded-lg shadow-md p-6" ref={revenuePercentChartRef}>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  <h2 className="text-xl font-semibold text-zinc-900">
                     {locale === 'de' ? 'Umsatz-Mix (Anteile)' : 'Revenue Mix (Percentages)'}
                   </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  <p className="text-sm text-zinc-600 mt-1">
                     {locale === 'de' 
                       ? 'Zeigt die prozentuale Verteilung der Einnahmenquellen'
                       : 'Shows the percentage distribution of revenue sources'}
@@ -857,13 +857,13 @@ export default function DiagramsPage() {
             </div>
 
             {/* Absolute Stacked Bar Chart */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenueAbsoluteChartRef}>
+            <div className="bg-white rounded-lg shadow-md p-6" ref={revenueAbsoluteChartRef}>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  <h2 className="text-xl font-semibold text-zinc-900">
                     {locale === 'de' ? 'Umsatz-Mix (Absolute Werte)' : 'Revenue Mix (Absolute Values)'}
                   </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  <p className="text-sm text-zinc-600 mt-1">
                     {locale === 'de' 
                       ? 'Zeigt die absoluten Einnahmenwerte in Euro'
                       : 'Shows the absolute revenue values in Euros'}
@@ -900,151 +900,151 @@ export default function DiagramsPage() {
             </div>
 
             {/* Summary Table */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4 text-zinc-900">
                 {locale === 'de' ? 'Zusammenfassung' : 'Summary'}
               </h2>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                  <thead className="bg-zinc-50 dark:bg-zinc-800">
+                <table className="min-w-full divide-y divide-zinc-200">
+                  <thead className="bg-zinc-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                         {locale === 'de' ? 'Einnahmenquelle' : 'Revenue Source'}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                         {locale === 'de' ? 'Wert (€)' : 'Value (€)'}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                         {locale === 'de' ? 'Anteil (%)' : 'Share (%)'}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700">
+                  <tbody className="bg-white divide-y divide-zinc-200">
                     {revenueData.tickets > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Tickets' : 'Tickets'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.tickets.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.tickets / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.gastronomy > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Gastronomie (pro Ticket)' : 'Gastronomy (per Ticket)'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.gastronomy.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.gastronomy / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.dailyGastronomy > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Tägliche Gastronomie' : 'Daily Gastronomy'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.dailyGastronomy.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.dailyGastronomy / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.courses > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Kurse' : 'Courses'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.courses.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.courses / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.workshops > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Workshops' : 'Workshops'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.workshops.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.workshops / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.rental > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Vermietung' : 'Rental'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.rental.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.rental / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.fixedIncome > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Fixeinnahmen' : 'Fixed Income'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.fixedIncome.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.fixedIncome / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.funding > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Förderung' : 'Funding'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.funding.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.funding / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
                     {revenueData.memberships > 0 && (
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
                           {locale === 'de' ? 'Mitgliedsbeiträge' : 'Memberships'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {revenueData.memberships.toFixed(2)} €
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
                           {((revenueData.memberships / revenueData.total) * 100).toFixed(2)}%
                         </td>
                       </tr>
                     )}
-                    <tr className="bg-zinc-50 dark:bg-zinc-800 font-semibold">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-50">
+                    <tr className="bg-zinc-50 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
                         {locale === 'de' ? 'Gesamt' : 'Total'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
                         {revenueData.total.toFixed(2)} €
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
                         100.00%
                       </td>
                     </tr>
@@ -1055,13 +1055,13 @@ export default function DiagramsPage() {
 
             {/* Liquidity Line Chart */}
             {liquidityData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={liquidityChartRef}>
+              <div className="bg-white rounded-lg shadow-md p-6" ref={liquidityChartRef}>
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                    <h2 className="text-xl font-semibold text-zinc-900">
                       {locale === 'de' ? 'Liquidität über 52 Wochen' : 'Liquidity over 52 Weeks'}
                     </h2>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="text-sm text-zinc-600 mt-1">
                       {locale === 'de' 
                         ? 'Zeigt die Liquiditätsentwicklung über das Jahr. Die horizontale Linie zeigt den Liquiditätspuffer.'
                         : 'Shows liquidity development over the year. The horizontal line shows the liquidity buffer.'}
@@ -1122,22 +1122,22 @@ export default function DiagramsPage() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                <div className="mt-4 p-4 bg-zinc-50 rounded-md">
+                  <p className="text-sm text-zinc-700">
                     <strong>{locale === 'de' ? 'Liquiditätspuffer' : 'Liquidity Buffer'}:</strong> {liquidityBuffer.toFixed(2)} €
                   </p>
                   {liquidityData.length > 0 && (
                     <>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                      <p className="text-sm text-zinc-700 mt-1">
                         <strong>{locale === 'de' ? 'Minimale Liquidität' : 'Minimum Liquidity'}:</strong>{' '}
                         {Math.min(...liquidityData.map(d => d.liquidity)).toFixed(2)} €
                         {Math.min(...liquidityData.map(d => d.liquidity)) < liquidityBuffer && (
-                          <span className="ml-2 text-red-600 dark:text-red-400">
+                          <span className="ml-2 text-red-600">
                             ⚠️ {locale === 'de' ? 'Unter Puffer!' : 'Below buffer!'}
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                      <p className="text-sm text-zinc-700 mt-1">
                         <strong>{locale === 'de' ? 'Liquidität am Jahresende' : 'End of Year Liquidity'}:</strong>{' '}
                         {liquidityData[liquidityData.length - 1]?.liquidity.toFixed(2)} €
                       </p>
@@ -1149,13 +1149,13 @@ export default function DiagramsPage() {
 
             {/* Revenue vs Costs Combo Chart */}
             {weeklyData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={revenueCostsChartRef}>
+              <div className="bg-white rounded-lg shadow-md p-6" ref={revenueCostsChartRef}>
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                    <h2 className="text-xl font-semibold text-zinc-900">
                       {locale === 'de' ? 'Einnahmen vs. Ausgaben pro Woche' : 'Revenue vs. Costs per Week'}
                     </h2>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="text-sm text-zinc-600 mt-1">
                       {locale === 'de' 
                         ? 'Zeigt, wann ihr profitabel seid und wann nicht. Der Hintergrund zeigt den Status jeder Woche (Schwach/Normal).'
                         : 'Shows when you are profitable and when not. The background shows the status of each week (Weak/Normal).'}
@@ -1313,13 +1313,13 @@ export default function DiagramsPage() {
 
             {/* Cost Structure Bar Chart - Top 5 */}
             {costData.length > 0 && (
-              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6" ref={costStructureChartRef}>
+              <div className="bg-white rounded-lg shadow-md p-6" ref={costStructureChartRef}>
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                    <h2 className="text-xl font-semibold text-zinc-900">
                       {locale === 'de' ? 'Kostenstruktur (Top 5)' : 'Cost Structure (Top 5)'}
                     </h2>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="text-sm text-zinc-600 mt-1">
                       {locale === 'de' 
                         ? 'Zeigt die wichtigsten Kostenblöcke pro Jahr. Große Blöcke wie Gehälter und Marketing sind entscheidend.'
                         : 'Shows the most important cost blocks per year. Large blocks like salaries and marketing are decisive.'}
@@ -1367,17 +1367,17 @@ export default function DiagramsPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
+                <div className="mt-4 p-4 bg-zinc-50 rounded-md">
+                  <p className="text-sm font-semibold text-zinc-900 mb-2">
                     {locale === 'de' ? 'Top 5 Kostenblöcke (jährlich):' : 'Top 5 Cost Blocks (annual):'}
                   </p>
                   <div className="space-y-1">
                     {costData.map((cost, index) => (
                       <div key={index} className="flex justify-between text-sm">
-                        <span className="text-zinc-700 dark:text-zinc-300">
+                        <span className="text-zinc-700">
                           {index + 1}. {cost.label}
                         </span>
-                        <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                        <span className="font-medium text-zinc-900">
                           {cost.value.toFixed(2)} €
                         </span>
                       </div>
@@ -1390,8 +1390,8 @@ export default function DiagramsPage() {
         )}
 
         {!revenueData && !error && (
-          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 text-center">
-            <p className="text-zinc-600 dark:text-zinc-400">
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <p className="text-zinc-600">
               {locale === 'de' 
                 ? 'Bitte laden Sie eine Analyse-Datei hoch, um Diagramme zu erstellen.'
                 : 'Please upload an analysis file to create diagrams.'}
