@@ -177,11 +177,11 @@ export default function PreviewPage() {
 
       // Wöchentliche Kosten (inkl. Rücklagen) mit costMultiplier multiplizieren (Brutto)
       // Jährliche Kosten und Kreditkosten werden gleichmäßig über alle Wochen verteilt
-      // In der Anlaufphase werden auch diese mit dem costMultiplier multipliziert
+      // Diese werden NICHT mit costMultiplier multipliziert (immer vollständig)
       const annualCostsPerWeek = (metrics?.annualAccountingCosts ?? 0) / 52
       const loanCostsPerWeek = (metrics?.loanTotalCostsPerYear ?? 0) / 52
-      // Variable Kosten werden mit costMultiplier multipliziert, fixe Kosten auch (für Anlaufphase)
-      const weekCostsNet = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier + (annualCostsPerWeek + loanCostsPerWeek) * costMultiplier
+      // Variable Kosten werden mit costMultiplier multipliziert, fixe Kosten bleiben unverändert
+      const weekCostsNet = (metrics?.baseWeeklyCosts ?? 0) * costMultiplier + annualCostsPerWeek + loanCostsPerWeek
       const weekCostsBrutto = weekCostsNet + (metrics?.weeklyInputVAT ?? 0) * costMultiplier
 
       // Sonst verwende prognostizierte Werte (Brutto)
@@ -242,10 +242,10 @@ export default function PreviewPage() {
     
     // Nur setzen, wenn Start-KW vor End-KW liegt und beide im Bereich 1-52 sind
     if (startWeek >= 1 && startWeek <= 52 && endWeek >= 1 && endWeek <= 52 && startWeek <= endWeek) {
-    const newMultipliers = [...weekMultipliers]
-      const newCostMultipliers = [...costMultipliers]
+      const newMultipliers = [...weekMultipliers]
       
-      // Linear interpolieren von 40% (0.4) auf 80% (0.8)
+      // Linear interpolieren von 40% (0.4) auf 80% (0.8) - NUR für Einnahmen
+      // Ausgaben bleiben immer auf 100% (Standard)
       for (let week = startWeek; week <= endWeek && week <= 52; week++) {
         const weekIndex = week - 1 // Array-Index (0-based)
         if (weekIndex >= 0 && weekIndex < 52) {
@@ -254,14 +254,13 @@ export default function PreviewPage() {
             const progress = (week - startWeek) / (endWeek - startWeek) // 0 bis 1
             const multiplier = 0.4 + (0.8 - 0.4) * progress // Linear von 0.4 zu 0.8
             newMultipliers[weekIndex] = multiplier
-            newCostMultipliers[weekIndex] = multiplier // Synchronisiere auch Ausgaben
+            // Ausgaben-Multiplikatoren bleiben unverändert (Standard 100%)
           }
         }
       }
       
       updateWeekMultipliers(newMultipliers)
-      // Aktualisiere auch costMultipliers
-      updateCostMultipliers(newCostMultipliers)
+      // Ausgaben-Multiplikatoren werden NICHT geändert - bleiben auf Standard
       setStartupPhaseInitialized(true)
     }
   }
@@ -286,20 +285,21 @@ export default function PreviewPage() {
         
         if (startWeek >= 1 && startWeek <= 52 && endWeek >= 1 && endWeek <= 52 && startWeek <= endWeek) {
           const newMultipliers: number[] = [...weekMultipliers]
-          const newCostMultipliers: number[] = [...costMultipliers]
           
+          // Linear interpolieren von 40% (0.4) auf 80% (0.8) - NUR für Einnahmen
+          // Ausgaben bleiben immer auf 100% (Standard)
           for (let week = startWeek; week <= endWeek && week <= 52; week++) {
             const weekIndex = week - 1
             if (weekIndex >= 0 && weekIndex < 52 && week >= currentWeek) {
               const progress = (week - startWeek) / (endWeek - startWeek)
               const multiplier: number = 0.4 + (0.8 - 0.4) * progress
               newMultipliers[weekIndex] = multiplier
-              newCostMultipliers[weekIndex] = multiplier
+              // Ausgaben-Multiplikatoren bleiben unverändert (Standard 100%)
             }
           }
           
           updateWeekMultipliers(newMultipliers)
-          updateCostMultipliers(newCostMultipliers)
+          // Ausgaben-Multiplikatoren werden NICHT geändert - bleiben auf Standard
           setStartupPhaseInitialized(true)
         } else {
           setStartupPhaseInitialized(true) // Markiere als initialisiert, auch wenn nicht gesetzt
