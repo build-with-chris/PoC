@@ -327,6 +327,10 @@ function generateDetailedReportText(
   // Berechne Liquidität pro Woche
   let currentLiquidity = metrics.initialLiquidity
   
+  // Wöchentliche Anteile für jährliche Kosten
+  const annualCostsPerWeek = metrics.annualAccountingCosts / 52
+  const loanCostsPerWeek = metrics.loanTotalCostsPerYear / 52
+  
   // Wöchentliche Daten
   for (let i = 0; i < 52; i++) {
     const weekNum = i + 1
@@ -334,9 +338,24 @@ function generateDetailedReportText(
     const revenueMultiplier = weekMultipliers[i] ?? 1.0
     const costMultiplier = costMultipliers[i] ?? 1.0
     
-    const weekRevenue = (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
-    const weekCosts = (metrics.baseWeeklyCosts ?? 0) * costMultiplier
-    const weekProfit = weekRevenue - weekCosts
+    // Verwende Brutto-Einnahmen (da in UI alles als Brutto angezeigt wird)
+    const weekRevenue = (metrics.baseWeeklyRevenueBrutto ?? 0) * revenueMultiplier
+    
+    // Wöchentliche Kosten: Basis-Kosten × Multiplikator + jährliche Kosten + Kreditkosten
+    // Jährliche Kosten und Kreditkosten werden gleichmäßig über alle Wochen verteilt
+    const weekCosts = (metrics.baseWeeklyCosts ?? 0) * costMultiplier + annualCostsPerWeek + loanCostsPerWeek
+    
+    // Gewinn/Verlust: Brutto-Einnahmen - Brutto-Kosten
+    // Aber: Wir müssen die Vorsteuer berücksichtigen, die von den Kosten abgezogen werden kann
+    // Für die Liquidität: Netto-Gewinn = Brutto-Einnahmen - Brutto-Kosten + Vorsteuer
+    const weekInputVAT = (metrics.weeklyInputVAT ?? 0) * costMultiplier
+    const weekVAT = (metrics.weeklyVAT ?? 0) * revenueMultiplier
+    
+    // Netto-Gewinn für Liquiditätsberechnung: Brutto-Einnahmen - Brutto-Kosten + Vorsteuer - Umsatzsteuer
+    // Oder einfacher: Netto-Einnahmen - Netto-Kosten
+    const weekRevenueNet = (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
+    const weekCostsNet = (metrics.baseWeeklyCosts ?? 0) * costMultiplier + annualCostsPerWeek + loanCostsPerWeek
+    const weekProfit = weekRevenueNet - weekCostsNet
     
     // Aktualisiere Liquidität für diese Woche
     currentLiquidity += weekProfit
@@ -385,14 +404,14 @@ function generateDetailedReportText(
     // Liquiditäts-Warnung
     const liquidityWarning = currentLiquidity < inputs.liquidityBuffer ? ' ⚠️' : ''
     
-    // Zeile
+    // Zeile - zeige Brutto-Werte (wie in UI)
     report += `KW ${weekNum.toString().padStart(2)}`.padEnd(5)
     report += status.padEnd(12)
     report += revenueMultStr.padEnd(12)
     report += costMultStr.padEnd(12)
-    report += formatCurrency(weekRevenue).padEnd(15)
-    report += formatCurrency(weekCosts).padEnd(15)
-    report += formatCurrency(weekProfit).padEnd(18)
+    report += formatCurrency(weekRevenue).padEnd(15) // Brutto-Einnahmen
+    report += formatCurrency(weekCosts).padEnd(15) // Brutto-Kosten (inkl. jährliche + Kredit)
+    report += formatCurrency(weekProfit).padEnd(18) // Netto-Gewinn/Verlust
     report += formatCurrency(currentLiquidity).padEnd(15)
     report += liquidityWarning
     report += '\n'
@@ -405,7 +424,7 @@ function generateDetailedReportText(
   // Statistiken
   const totalWeeks = 52
   const historicalWeeks = currentWeek - 1
-  const projectedWeeks = 52 - historicalWeeks
+  const projectedWeeksCount = 52 - historicalWeeks
   const excludedWeeks = weekMultipliers.filter(m => m === 0).length
   const weakWeeks = weekMultipliers.filter(m => m > 0 && m < 1.0).length
   const normalWeeks = weekMultipliers.filter(m => m === 1.0).length
@@ -413,7 +432,7 @@ function generateDetailedReportText(
   
   report += `Gesamtanzahl Wochen: ${totalWeeks}\n`
   report += `Historische Wochen: ${historicalWeeks}\n`
-  report += `Prognostizierte Wochen: ${projectedWeeks}\n\n`
+  report += `Prognostizierte Wochen: ${projectedWeeksCount}\n\n`
   
   report += 'Einnahmen-Multiplikatoren:\n'
   report += `- Ausgeschlossen (0%): ${excludedWeeks} Wochen\n`
@@ -421,21 +440,29 @@ function generateDetailedReportText(
   report += `- Normal (100%): ${normalWeeks} Wochen\n`
   report += `- Stark (>100%): ${strongWeeks} Wochen\n\n`
   
-  // Berechne Gesamtwerte aus wöchentlichen Daten
-  let totalProjectedRevenue = 0
+  // Berechne Gesamtwerte aus wöchentlichen Daten (prognostiziert)
+  let totalProjectedRevenueBrutto = 0
+  let totalProjectedRevenueNet = 0
   let totalProjectedCosts = 0
   
   for (let i = currentWeek - 1; i < 52; i++) {
     const revenueMultiplier = weekMultipliers[i] ?? 1.0
     const costMultiplier = costMultipliers[i] ?? 1.0
-    totalProjectedRevenue += (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
+    totalProjectedRevenueBrutto += (metrics.baseWeeklyRevenueBrutto ?? 0) * revenueMultiplier
+    totalProjectedRevenueNet += (metrics.baseWeeklyRevenue ?? 0) * revenueMultiplier
     totalProjectedCosts += (metrics.baseWeeklyCosts ?? 0) * costMultiplier
   }
   
+  // Füge jährliche Kosten und Kreditkosten hinzu (proportional zu prognostizierten Wochen)
+  const projectedAnnualCosts = (metrics.annualAccountingCosts / 52) * projectedWeeksCount
+  const projectedLoanCosts = (metrics.loanTotalCostsPerYear / 52) * projectedWeeksCount
+  totalProjectedCosts += projectedAnnualCosts + projectedLoanCosts
+  
   report += 'Prognostizierte Werte (ab KW ' + currentWeek + '):\n'
-  report += `- Gesamt-Einnahmen: ${formatCurrency(totalProjectedRevenue)}\n`
-  report += `- Gesamt-Ausgaben: ${formatCurrency(totalProjectedCosts)}\n`
-  report += `- Gesamt-Gewinn/Verlust: ${formatCurrency(totalProjectedRevenue - totalProjectedCosts)}\n\n`
+  report += `- Gesamt-Einnahmen (Brutto): ${formatCurrency(totalProjectedRevenueBrutto)}\n`
+  report += `- Gesamt-Einnahmen (Netto): ${formatCurrency(totalProjectedRevenueNet)}\n`
+  report += `- Gesamt-Ausgaben (Brutto): ${formatCurrency(totalProjectedCosts)}\n`
+  report += `- Gesamt-Gewinn/Verlust (Netto): ${formatCurrency(totalProjectedRevenueNet - totalProjectedCosts)}\n\n`
   
   // Liquiditäts-Zusammenfassung
   report += 'LIQUIDITÄTS-VERLAUF:\n'
