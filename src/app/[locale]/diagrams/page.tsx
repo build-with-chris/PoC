@@ -69,81 +69,130 @@ export default function DiagramsPage() {
   const revenueCostsChartRef = useRef<HTMLDivElement>(null)
   const costStructureChartRef = useRef<HTMLDivElement>(null)
 
+  // Hilfsfunktion zum Konvertieren von Farbwerten zu RGB/Hex
+  const convertColorToRGB = (colorValue: string): string => {
+    if (!colorValue || colorValue === 'none' || colorValue === 'transparent') {
+      return '#000000'
+    }
+    
+    // Wenn bereits RGB/RGBA/Hex, zurückgeben
+    if (colorValue.startsWith('#') || colorValue.startsWith('rgb')) {
+      return colorValue
+    }
+    
+    // Erstelle ein temporäres Element, um die Farbe zu berechnen
+    const tempEl = document.createElement('div')
+    tempEl.style.color = colorValue
+    tempEl.style.position = 'absolute'
+    tempEl.style.visibility = 'hidden'
+    document.body.appendChild(tempEl)
+    
+    const computedColor = window.getComputedStyle(tempEl).color
+    document.body.removeChild(tempEl)
+    
+    if (computedColor && !computedColor.includes('lab(') && !computedColor.includes('oklab(') && !computedColor.includes('lch(')) {
+      return computedColor
+    }
+    
+    return '#000000'
+  }
+
   const downloadChartAsPNG = async (chartRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
     if (!chartRef.current) return
 
     try {
       // Warte kurz, damit alle Renderings abgeschlossen sind
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Klone das gesamte Element tief
+      const clone = chartRef.current.cloneNode(true) as HTMLElement
+      
+      // Erstelle ein temporäres Container-Element
+      const tempContainer = document.createElement('div')
+      tempContainer.style.position = 'absolute'
+      tempContainer.style.left = '-9999px'
+      tempContainer.style.top = '-9999px'
+      tempContainer.style.width = chartRef.current.offsetWidth + 'px'
+      tempContainer.style.height = chartRef.current.offsetHeight + 'px'
+      tempContainer.style.backgroundColor = '#ffffff'
+      tempContainer.appendChild(clone)
+      document.body.appendChild(tempContainer)
+      
+      // Warte kurz, damit der Klon gerendert wird
       await new Promise(resolve => setTimeout(resolve, 100))
       
-      // Konvertiere alle SVG-Farben VOR dem Export
-      // Finde alle SVG-Elemente, die Farben haben könnten
-      const svgElements = chartRef.current.querySelectorAll('svg *')
-      const originalAttributes: Array<{ element: SVGElement, fill: string | null, stroke: string | null, style: string | null }> = []
+      // Konvertiere alle SVG-Farben im Klon
+      const svgElements = clone.querySelectorAll('svg *')
       
       svgElements.forEach((el) => {
         // Überspringe Elemente, die keine Farben haben können
-        if (el.tagName === 'defs' || el.tagName === 'clipPath' || el.tagName === 'linearGradient' || el.tagName === 'radialGradient') {
+        if (el.tagName === 'defs' || el.tagName === 'clipPath' || el.tagName === 'linearGradient' || el.tagName === 'radialGradient' || el.tagName === 'stop') {
           return
         }
+        
         const svgEl = el as SVGElement
+        
+        // Hole die tatsächlich gerenderte Farbe aus dem Klon-Element (nachdem es zum DOM hinzugefügt wurde)
+        const computedStyle = window.getComputedStyle(svgEl)
+        const computedFill = computedStyle.fill
+        const computedStroke = computedStyle.stroke
+        
+        // Konvertiere fill
         const fill = svgEl.getAttribute('fill')
-        const stroke = svgEl.getAttribute('stroke')
-        const style = svgEl.getAttribute('style')
-        
-        // Speichere Original-Attribute für späteres Wiederherstellen
-        originalAttributes.push({ element: svgEl, fill, stroke, style })
-        
-        // Prüfe fill-Attribut
         if (fill && (fill.includes('lab(') || fill.includes('oklab(') || fill.includes('lch(') || fill.includes('color('))) {
-          const computedStyle = window.getComputedStyle(svgEl)
-          const computedFill = computedStyle.fill
           if (computedFill && !computedFill.includes('lab(') && !computedFill.includes('oklab(') && !computedFill.includes('lch(') && computedFill !== 'none' && computedFill !== 'rgba(0, 0, 0, 0)') {
             svgEl.setAttribute('fill', computedFill)
           } else {
-            // Fallback: verwende eine Standardfarbe
-            svgEl.setAttribute('fill', '#000000')
+            svgEl.setAttribute('fill', convertColorToRGB(fill))
+          }
+        } else if (!fill && computedFill && computedFill !== 'none' && computedFill !== 'rgba(0, 0, 0, 0)') {
+          // Wenn kein fill-Attribut, aber computed style hat fill, setze es
+          if (!computedFill.includes('lab(') && !computedFill.includes('oklab(') && !computedFill.includes('lch(')) {
+            svgEl.setAttribute('fill', computedFill)
           }
         }
         
-        // Prüfe stroke-Attribut
+        // Konvertiere stroke
+        const stroke = svgEl.getAttribute('stroke')
         if (stroke && (stroke.includes('lab(') || stroke.includes('oklab(') || stroke.includes('lch(') || stroke.includes('color('))) {
-          const computedStyle = window.getComputedStyle(svgEl)
-          const computedStroke = computedStyle.stroke
           if (computedStroke && !computedStroke.includes('lab(') && !computedStroke.includes('oklab(') && !computedStroke.includes('lch(') && computedStroke !== 'none' && computedStroke !== 'rgba(0, 0, 0, 0)') {
             svgEl.setAttribute('stroke', computedStroke)
           } else {
-            svgEl.removeAttribute('stroke')
+            svgEl.setAttribute('stroke', convertColorToRGB(stroke))
           }
         }
         
-        // Prüfe style-Attribut für fill und stroke
+        // Konvertiere style-Attribut
+        const style = svgEl.getAttribute('style')
         if (style) {
           let newStyle = style
-          if (style.includes('fill:') || style.includes('fill :')) {
-            const fillMatch = style.match(/fill\s*:\s*([^;]+)/i)
-            if (fillMatch && (fillMatch[1].includes('lab(') || fillMatch[1].includes('oklab(') || fillMatch[1].includes('lch(') || fillMatch[1].includes('color('))) {
-              const computedStyle = window.getComputedStyle(svgEl)
-              const computedFill = computedStyle.fill
-              if (computedFill && !computedFill.includes('lab(') && !computedFill.includes('oklab(') && !computedFill.includes('lch(') && computedFill !== 'none' && computedFill !== 'rgba(0, 0, 0, 0)') {
-                newStyle = newStyle.replace(/fill\s*:\s*[^;]+/i, `fill: ${computedFill}`)
-              } else {
-                newStyle = newStyle.replace(/fill\s*:\s*[^;]+/i, 'fill: #000000')
-              }
-            }
-          }
-          if (style.includes('stroke:') || style.includes('stroke :')) {
-            const strokeMatch = style.match(/stroke\s*:\s*([^;]+)/i)
-            if (strokeMatch && (strokeMatch[1].includes('lab(') || strokeMatch[1].includes('oklab(') || strokeMatch[1].includes('lch(') || strokeMatch[1].includes('color('))) {
-              const computedStyle = window.getComputedStyle(svgEl)
-              const computedStroke = computedStyle.stroke
-              if (computedStroke && !computedStroke.includes('lab(') && !computedStroke.includes('oklab(') && !computedStroke.includes('lch(') && computedStroke !== 'none' && computedStroke !== 'rgba(0, 0, 0, 0)') {
-                newStyle = newStyle.replace(/stroke\s*:\s*[^;]+/i, `stroke: ${computedStroke}`)
-              } else {
-                newStyle = newStyle.replace(/stroke\s*:\s*[^;]+/i, '')
-              }
-            }
-          }
+          
+          // Ersetze alle lab()/oklab()/lch() Farben in style
+          newStyle = newStyle.replace(/fill\s*:\s*[^;]*lab\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/fill\s*:\s*/i, '').trim()
+            return `fill: ${convertColorToRGB(colorValue)}`
+          })
+          newStyle = newStyle.replace(/fill\s*:\s*[^;]*oklab\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/fill\s*:\s*/i, '').trim()
+            return `fill: ${convertColorToRGB(colorValue)}`
+          })
+          newStyle = newStyle.replace(/fill\s*:\s*[^;]*lch\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/fill\s*:\s*/i, '').trim()
+            return `fill: ${convertColorToRGB(colorValue)}`
+          })
+          newStyle = newStyle.replace(/stroke\s*:\s*[^;]*lab\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/stroke\s*:\s*/i, '').trim()
+            return `stroke: ${convertColorToRGB(colorValue)}`
+          })
+          newStyle = newStyle.replace(/stroke\s*:\s*[^;]*oklab\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/stroke\s*:\s*/i, '').trim()
+            return `stroke: ${convertColorToRGB(colorValue)}`
+          })
+          newStyle = newStyle.replace(/stroke\s*:\s*[^;]*lch\([^)]+\)[^;]*/gi, (match) => {
+            const colorValue = match.replace(/stroke\s*:\s*/i, '').trim()
+            return `stroke: ${convertColorToRGB(colorValue)}`
+          })
+          
           if (newStyle !== style) {
             svgEl.setAttribute('style', newStyle)
           }
@@ -151,35 +200,23 @@ export default function DiagramsPage() {
       })
       
       // Warte kurz, damit die Änderungen angewendet werden
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise(resolve => setTimeout(resolve, 100))
       
-      const canvas = await html2canvas(chartRef.current, {
+      const canvas = await html2canvas(clone, {
         backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: false,
         foreignObjectRendering: false,
+        ignoreElements: (element) => {
+          // Ignoriere Elemente, die problematische Farben haben könnten
+          return false
+        },
       })
       
-      // Stelle Original-Attribute wieder her
-      originalAttributes.forEach(({ element, fill, stroke, style }) => {
-        if (fill !== null) {
-          element.setAttribute('fill', fill)
-        } else {
-          element.removeAttribute('fill')
-        }
-        if (stroke !== null) {
-          element.setAttribute('stroke', stroke)
-        } else {
-          element.removeAttribute('stroke')
-        }
-        if (style !== null) {
-          element.setAttribute('style', style)
-        } else {
-          element.removeAttribute('style')
-        }
-      })
+      // Entferne temporäres Element
+      document.body.removeChild(tempContainer)
       
       const url = canvas.toDataURL('image/png')
       const link = document.createElement('a')
