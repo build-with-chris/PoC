@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, ReferenceLine } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts'
 
 interface RevenueData {
   name: string
@@ -22,6 +22,13 @@ interface LiquidityData {
   isMinimum?: boolean
 }
 
+interface WeeklyData {
+  week: number
+  revenue: number
+  costs: number
+  status: 'Schwach' | 'Normal' | 'Stark' | 'Ausgeschlossen' | 'Keine Einn.' | 'Keine Ausg.' | 'Vergangenheit' | 'Angepasst'
+}
+
 const COLORS = {
   tickets: '#3b82f6',
   courses: '#10b981',
@@ -39,6 +46,7 @@ export default function DiagramsPage() {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null)
   const [liquidityData, setLiquidityData] = useState<LiquidityData[]>([])
   const [liquidityBuffer, setLiquidityBuffer] = useState<number>(10000)
+  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([])
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -175,6 +183,90 @@ export default function DiagramsPage() {
     }
 
     return { data: liquidity, buffer }
+  }
+
+  const parseWeeklyData = (content: string): WeeklyData[] => {
+    const weekly: WeeklyData[] = []
+
+    try {
+      const lines = content.split('\n')
+      
+      // Suche nach wöchentlicher Tabelle
+      let foundTable = false
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+        
+        // Suche nach Tabellenkopf mit "Einnahmen" und "Ausgaben"
+        if ((line.includes('Einnahmen') || line.includes('Revenue')) && 
+            (line.includes('Ausgaben') || line.includes('Costs')) &&
+            (line.includes('KW') || line.includes('Week'))) {
+          foundTable = true
+          continue
+        }
+
+        if (foundTable) {
+          // Parse Zeilen wie: "KW XX | Status | ... | Einnahmen | Ausgaben | ..."
+          const kwMatch = line.match(/KW\s+(\d+)/i)
+          if (kwMatch) {
+            const weekNum = parseInt(kwMatch[1], 10)
+            
+            // Extrahiere Status
+            let status: WeeklyData['status'] = 'Normal'
+            if (line.includes('Schwach') || line.includes('Weak')) {
+              status = 'Schwach'
+            } else if (line.includes('Stark') || line.includes('Strong')) {
+              status = 'Stark'
+            } else if (line.includes('Ausgeschlossen') || line.includes('Excluded')) {
+              status = 'Ausgeschlossen'
+            } else if (line.includes('Keine Einn.') || line.includes('No Rev.')) {
+              status = 'Keine Einn.'
+            } else if (line.includes('Keine Ausg.') || line.includes('No Costs')) {
+              status = 'Keine Ausg.'
+            } else if (line.includes('Vergangenheit') || line.includes('Historical')) {
+              status = 'Vergangenheit'
+            } else if (line.includes('Angepasst') || line.includes('Adjusted')) {
+              status = 'Angepasst'
+            }
+            
+            // Finde alle Währungsbeträge in der Zeile
+            const allMatches = Array.from(line.matchAll(/([\d.,]+)\s*€/g))
+            
+            let revenue = 0
+            let costs = 0
+            
+            // Normalerweise: Einnahmen, Ausgaben, Gewinn/Verlust, Liquidität
+            // Also: Einnahmen = matches[0], Ausgaben = matches[1]
+            if (allMatches.length >= 2) {
+              revenue = parseFloat(allMatches[0][1].replace(/\./g, '').replace(',', '.'))
+              costs = parseFloat(allMatches[1][1].replace(/\./g, '').replace(',', '.'))
+            }
+
+            if (weekNum <= 52) {
+              weekly.push({
+                week: weekNum,
+                revenue,
+                costs,
+                status,
+              })
+            }
+
+            // Stoppe nach 52 Wochen
+            if (weekNum >= 52) {
+              break
+            }
+          }
+
+          // Wenn wir zur nächsten Sektion kommen, stoppen
+          if (line.includes('===') || line.includes('ZUSAMMENFASSUNG') || line.includes('SUMMARY')) {
+            break
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error parsing weekly data:', err)
+    }
+
+    return weekly
   }
 
   const parseReportFile = (content: string): RevenueData | null => {
@@ -348,11 +440,13 @@ export default function DiagramsPage() {
       
       const parsed = parseReportFile(content)
       const liquidityParsed = parseLiquidityData(content)
+      const weeklyParsed = parseWeeklyData(content)
       
       if (parsed) {
         setRevenueData(parsed)
         setLiquidityData(liquidityParsed.data)
         setLiquidityBuffer(liquidityParsed.buffer)
+        setWeeklyData(weeklyParsed)
         setError(null)
       } else {
         setError(locale === 'de' 
@@ -360,6 +454,7 @@ export default function DiagramsPage() {
           : 'Could not extract revenue data from file. Please ensure it is a valid analysis file.')
         setRevenueData(null)
         setLiquidityData([])
+        setWeeklyData([])
       }
     }
     reader.onerror = () => {
@@ -717,6 +812,160 @@ export default function DiagramsPage() {
                       </p>
                     </>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Revenue vs Costs Combo Chart */}
+            {weeklyData.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+                  {locale === 'de' ? 'Einnahmen vs. Ausgaben pro Woche' : 'Revenue vs. Costs per Week'}
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  {locale === 'de' 
+                    ? 'Zeigt, wann ihr profitabel seid und wann nicht. Der Hintergrund zeigt den Status jeder Woche (Schwach/Normal).'
+                    : 'Shows when you are profitable and when not. The background shows the status of each week (Weak/Normal).'}
+                </p>
+                <ResponsiveContainer width="100%" height={500}>
+                  <ComposedChart data={weeklyData}>
+                    <defs>
+                      <linearGradient id="weakGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#fef3c7" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#fef3c7" stopOpacity={0.1} />
+                      </linearGradient>
+                      <linearGradient id="normalGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#dbeafe" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#dbeafe" stopOpacity={0.1} />
+                      </linearGradient>
+                      <linearGradient id="strongGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#dcfce7" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#dcfce7" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="week" 
+                      label={{ value: locale === 'de' ? 'Kalenderwoche' : 'Calendar Week', position: 'insideBottom', offset: -5 }}
+                      domain={[1, 52]}
+                      tickCount={13}
+                    />
+                    <YAxis 
+                      label={{ value: locale === 'de' ? 'Betrag (€)' : 'Amount (€)', angle: -90, position: 'insideLeft' }}
+                      tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => {
+                        const label = name === 'revenue' 
+                          ? (locale === 'de' ? 'Einnahmen' : 'Revenue')
+                          : (locale === 'de' ? 'Ausgaben' : 'Costs')
+                        return [`${value.toFixed(2)} €`, label]
+                      }}
+                      labelFormatter={(week, payload) => {
+                        if (payload && payload[0]) {
+                          const status = (payload[0].payload as WeeklyData).status
+                          return `${locale === 'de' ? 'KW' : 'Week'} ${week} (${status})`
+                        }
+                        return `${locale === 'de' ? 'KW' : 'Week'} ${week}`
+                      }}
+                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                    />
+                    <Legend />
+                    {/* Background areas by status - grouped */}
+                    {(() => {
+                      const areas: Array<{ x1: number; x2: number; fill: string }> = []
+                      let currentStatus: WeeklyData['status'] | null = null
+                      let startWeek = 0
+                      
+                      weeklyData.forEach((entry, index) => {
+                        const status = entry.status
+                        const normalizedStatus = 
+                          status === 'Schwach' || status === 'Keine Einn.' || status === 'Ausgeschlossen' ? 'Schwach' :
+                          status === 'Stark' ? 'Stark' :
+                          'Normal'
+                        
+                        if (normalizedStatus !== currentStatus) {
+                          // End previous area
+                          if (currentStatus !== null && startWeek > 0) {
+                            const fill = 
+                              currentStatus === 'Schwach' ? 'url(#weakGradient)' :
+                              currentStatus === 'Stark' ? 'url(#strongGradient)' :
+                              'url(#normalGradient)'
+                            areas.push({
+                              x1: startWeek - 0.5,
+                              x2: entry.week - 0.5,
+                              fill
+                            })
+                          }
+                          // Start new area
+                          currentStatus = normalizedStatus
+                          startWeek = entry.week
+                        }
+                        
+                        // End area at last entry
+                        if (index === weeklyData.length - 1) {
+                          const fill = 
+                            normalizedStatus === 'Schwach' ? 'url(#weakGradient)' :
+                            normalizedStatus === 'Stark' ? 'url(#strongGradient)' :
+                            'url(#normalGradient)'
+                          areas.push({
+                            x1: startWeek - 0.5,
+                            x2: entry.week + 0.5,
+                            fill
+                          })
+                        }
+                      })
+                      
+                      return areas.map((area, index) => (
+                        <ReferenceArea
+                          key={`area-${index}`}
+                          x1={area.x1}
+                          x2={area.x2}
+                          fill={area.fill}
+                          stroke="none"
+                        />
+                      ))
+                    })()}
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#10b981" 
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      activeDot={{ r: 5 }}
+                      name={locale === 'de' ? 'Einnahmen' : 'Revenue'}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="costs" 
+                      stroke="#ef4444" 
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      activeDot={{ r: 5 }}
+                      name={locale === 'de' ? 'Ausgaben' : 'Costs'}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-yellow-200 dark:bg-yellow-900/30 rounded"></div>
+                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Schwach' : 'Weak'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-blue-200 dark:bg-blue-900/30 rounded"></div>
+                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Normal' : 'Normal'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-green-200 dark:bg-green-900/30 rounded"></div>
+                      <span className="text-zinc-700 dark:text-zinc-300">{locale === 'de' ? 'Stark' : 'Strong'}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                    {locale === 'de' 
+                      ? 'Grün = Einnahmen über Ausgaben (profitabel), Rot = Ausgaben über Einnahmen (Verlust)'
+                      : 'Green = Revenue above costs (profitable), Red = Costs above revenue (loss)'}
+                  </p>
                 </div>
               </div>
             )}
