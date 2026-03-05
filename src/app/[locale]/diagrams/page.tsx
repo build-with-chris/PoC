@@ -348,14 +348,14 @@ export default function DiagramsPage() {
 
         if (foundCostsSection) {
           // Parse monatliche Kosten
-          if (line.includes('Miete') || line.includes('Rent')) {
+          if (line.includes('Versicherung') || line.includes('Insurance') || line.includes('Miete') || line.includes('Rent')) {
             const match = line.match(/[-:]?\s*([\d.,]+)\s*€\/Monat/i)
             if (match) {
               const monthly = parseFloat(match[1].replace(/\./g, '').replace(',', '.'))
               costs.push({
                 name: 'rent',
                 value: monthly * 12,
-                label: locale === 'de' ? 'Miete' : 'Rent',
+                label: locale === 'de' ? 'Versicherung' : 'Insurance',
               })
             }
           }

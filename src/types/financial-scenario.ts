@@ -229,7 +229,7 @@ export const DEFAULT_FINANCIAL_INPUTS: FinancialInputs = {
   rentalPrice: 250,
 
   rent: 0,
-  salaries: 12257.05, // Monatliche Personalkosten (fix)
+  salaries: 600, // Personalkosten: 600 €/Monat = 7.200 €/Jahr
   marketing: 300,
   technology: 200,
   heatingCosts: 3500,
@@ -318,7 +318,7 @@ export function createEmptyScenario(name: string = 'Leeres Szenario'): Financial
     rentalsPerWeek: 0,
     rentalPrice: 0,
     rent: 0,
-    salaries: 0,
+    salaries: 600, // 600 €/Monat = 7.200 €/Jahr
     marketing: 0,
     technology: 0,
     heatingCosts: 0,
@@ -481,7 +481,7 @@ export function calculateMetrics(
   const otherCostsBruttoPerWeek = inputs.otherCosts / 4.33
   const technologyBruttoPerWeek = inputs.technology / 4.33
   
-  // Kosten ohne MwSt. (Miete, Gehälter)
+  // Kosten ohne MwSt. (Versicherung, Gehälter)
   const rentPerWeek = inputs.rent / 4.33 // 0% MwSt.
   const salariesPerWeek = inputs.salaries / 4.33 // 0% MwSt.
   
@@ -556,7 +556,8 @@ export function calculateMetrics(
   // ============================================================================
   // JAHRESWERTE-BERECHNUNG
   // ============================================================================
-  // Wenn weekMultipliers vorhanden, verwende diese für genauere Berechnung
+  // Planungsjahr: Von jetzt (z.B. Anfang März) bis März nächstes Jahr = 52 Wochen.
+  // Ohne Januar–März dieses Jahres: Summe über 52 Wochen ab currentWeek (rollierend).
   let totalRevenueBrutto: number
   let totalRevenue: number // Netto (nach MwSt.)
   let totalVAT: number
@@ -568,42 +569,35 @@ export function calculateMetrics(
     : weekMultipliers
 
   let totalInputVAT: number // Vorsteuer (VSt) pro Jahr
+
+  // Index für Planungswoche k (0..51): Kalenderwoche ab currentWeek, mit Wrap
+  const planningIndex = (k: number) =>
+    currentWeek !== undefined ? (currentWeek - 1 + k) % 52 : k
   
   if (weekMultipliers && weekMultipliers.length === 52) {
-    // Berechne mit Multiplikatoren
-    const baseWeeklyRevenueBruttoWithMultipliers = weekMultipliers.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenueBrutto * multiplier,
-      0
-    )
-    totalRevenueBrutto = baseWeeklyRevenueBruttoWithMultipliers
-    
-    // Netto-Einnahmen mit Multiplikatoren
-    const baseWeeklyRevenueWithMultipliers = weekMultipliers.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
-      0
-    )
-    totalRevenue = baseWeeklyRevenueWithMultipliers
-    
-    // Umsatzsteuer (USt) mit Multiplikatoren
-    const baseWeeklyVATWithMultipliers = weekMultipliers.reduce(
-      (sum, multiplier) => sum + weeklyVAT * multiplier,
-      0
-    )
-    totalVAT = baseWeeklyVATWithMultipliers
-    
-    // Kosten: Basis-Kosten für alle Wochen (inkl. Rücklagen)
-    // Verwende separate costMultipliers falls vorhanden
-    if (effectiveCostMultipliers && effectiveCostMultipliers.length === 52) {
-      totalCosts = effectiveCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
-      totalInputVAT = effectiveCostMultipliers.reduce((sum, multiplier) => sum + weeklyInputVAT * multiplier, 0)
-    } else {
-      totalCosts = weekMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
-      totalInputVAT = weekMultipliers.reduce((sum, multiplier) => sum + weeklyInputVAT * multiplier, 0)
+    // 52 Wochen ab currentWeek (Planungsjahr März → März nächstes Jahr)
+    let sumRevBrutto = 0
+    let sumRev = 0
+    let sumVAT = 0
+    let sumCosts = 0
+    let sumInputVAT = 0
+    for (let k = 0; k < 52; k++) {
+      const i = planningIndex(k)
+      const m = weekMultipliers[i] ?? 1.0
+      const cm = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
+        ? (effectiveCostMultipliers[i] ?? 1.0)
+        : m
+      sumRevBrutto += baseWeeklyRevenueBrutto * m
+      sumRev += baseWeeklyRevenue * m
+      sumVAT += weeklyVAT * m
+      sumCosts += baseWeeklyCosts * cm
+      sumInputVAT += weeklyInputVAT * cm
     }
-    // Füge jährliche Kosten hinzu (ohne MwSt., da Dienstleistungen)
-    totalCosts += annualAccountingCosts
-    // Füge Kreditkosten hinzu
-    totalCosts += loanTotalCostsPerYear
+    totalRevenueBrutto = sumRevBrutto
+    totalRevenue = sumRev
+    totalVAT = sumVAT
+    totalCosts = sumCosts + annualAccountingCosts + loanTotalCostsPerYear
+    totalInputVAT = sumInputVAT
   } else {
     // Einfache Berechnung ohne Multiplikatoren
     totalRevenueBrutto = baseWeeklyRevenueBrutto * 52
@@ -627,51 +621,11 @@ export function calculateMetrics(
   // ============================================================================
   // HISTORISCH VS. PROGNOSE
   // ============================================================================
-  // Berechnet historische und prognostizierte Werte (Netto, nach MwSt.)
+  // Planungsjahr = 52 Wochen ab jetzt: Kein historischer Teil, alles ist Prognose.
   let historicalRevenue = 0
   let historicalCosts = 0
   let projectedRevenue = totalRevenue
   let projectedCosts = totalCosts
-
-  if (currentWeek !== undefined && weekMultipliers && weekMultipliers.length === 52) {
-    const historicalWeeks = weekMultipliers.slice(0, currentWeek - 1)
-    const projectedWeeks = weekMultipliers.slice(currentWeek - 1)
-
-    // Historische Einnahmen (bereits Netto, da baseWeeklyRevenue bereits korrekt berechnet wurde)
-    historicalRevenue = historicalWeeks.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
-      0
-    )
-    
-    // Prognostizierte Einnahmen (bereits Netto)
-    projectedRevenue = projectedWeeks.reduce(
-      (sum, multiplier) => sum + baseWeeklyRevenue * multiplier,
-      0
-    )
-
-    // Kosten (inkl. Rücklagen und Show-Gebühren)
-    // Verwende separate costMultipliers falls vorhanden
-    const historicalCostMultipliers = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
-      ? effectiveCostMultipliers.slice(0, currentWeek - 1)
-      : historicalWeeks
-    const projectedCostMultipliers = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
-      ? effectiveCostMultipliers.slice(currentWeek - 1)
-      : projectedWeeks
-    
-    historicalCosts = historicalCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
-    projectedCosts = projectedCostMultipliers.reduce((sum, multiplier) => sum + baseWeeklyCosts * multiplier, 0)
-    
-    // Jährliche Kosten werden anteilig auf historische und prognostizierte Wochen verteilt
-    const historicalWeeksCount = currentWeek - 1
-    const projectedWeeksCount = 52 - historicalWeeksCount
-    const historicalAnnualCosts = (annualAccountingCosts * historicalWeeksCount) / 52
-    const projectedAnnualCosts = (annualAccountingCosts * projectedWeeksCount) / 52
-    const historicalLoanCosts = (loanTotalCostsPerYear * historicalWeeksCount) / 52
-    const projectedLoanCosts = (loanTotalCostsPerYear * projectedWeeksCount) / 52
-    
-    historicalCosts += historicalAnnualCosts + historicalLoanCosts
-    projectedCosts += projectedAnnualCosts + projectedLoanCosts
-  }
 
   const projectedProfit = projectedRevenue - projectedCosts
 
@@ -690,31 +644,18 @@ export function calculateMetrics(
   
   if (weekMultipliers && weekMultipliers.length === 52) {
     let currentLiquidity = initialLiquidity
-    const weeklyProfit = baseWeeklyRevenue - baseWeeklyCosts
-    
-    for (let i = 0; i < 52; i++) {
+    for (let k = 0; k < 52; k++) {
+      const i = planningIndex(k)
       const multiplier = weekMultipliers[i] ?? 1.0
-      const costMultiplier = effectiveCostMultipliers && effectiveCostMultipliers.length === 52 
+      const costMultiplier = effectiveCostMultipliers && effectiveCostMultipliers.length === 52
         ? effectiveCostMultipliers[i] ?? 1.0
         : multiplier
-      
-      // Wöchentlicher Gewinn/Verlust
       const weekRevenue = baseWeeklyRevenue * multiplier
       const weekCosts = baseWeeklyCosts * costMultiplier
       const weekProfit = weekRevenue - weekCosts
-      
-      // Liquidität nach dieser Woche
       currentLiquidity += weekProfit
-      
-      // Prüfe Minimum
-      if (currentLiquidity < minLiquidity) {
-        minLiquidity = currentLiquidity
-      }
-      
-      // Prüfe ob unter Puffer
-      if (currentLiquidity < inputs.liquidityBuffer) {
-        liquidityBelowBuffer = true
-      }
+      if (currentLiquidity < minLiquidity) minLiquidity = currentLiquidity
+      if (currentLiquidity < inputs.liquidityBuffer) liquidityBelowBuffer = true
     }
   } else {
     // Einfache Berechnung: Liquidität sinkt linear über das Jahr

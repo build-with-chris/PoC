@@ -648,7 +648,7 @@ export default function PreviewPage() {
           </div>
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
-              {locale === 'de' ? 'Prognose' : 'Forecast'} ({locale === 'de' ? 'Rest' : 'Remaining'} {52 - currentWeek} {locale === 'de' ? 'Wochen' : 'Weeks'})
+              {locale === 'de' ? 'Prognose' : 'Forecast'} (52 {locale === 'de' ? 'Wochen' : 'Weeks'} {locale === 'de' ? 'ab jetzt' : 'from now'})
             </h3>
             <p className={`text-2xl font-bold ${(projectedRevenue - projectedCosts) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {(projectedRevenue - projectedCosts).toFixed(0)} €
@@ -805,7 +805,7 @@ export default function PreviewPage() {
                 label={t('ticketPrice')}
                 value={inputs.ticketPrice}
                 onChange={(value) => updateInput('ticketPrice', value)}
-                min={5}
+                min={0}
                 max={50}
                 step={1}
                 showCurrency
@@ -834,7 +834,7 @@ export default function PreviewPage() {
                 label={t('dailyGastronomyRevenue')}
                 value={inputs.dailyGastronomyRevenue}
                 onChange={(value) => updateInput('dailyGastronomyRevenue', value)}
-                min={100}
+                min={0}
                 max={500}
                 step={10}
                 showCurrency
@@ -931,7 +931,7 @@ export default function PreviewPage() {
                   label={t('profitPerParticipant')}
                   value={inputs.workshopProfitPerParticipant}
                   onChange={(value) => updateInput('workshopProfitPerParticipant', value)}
-                  min={10}
+                  min={0}
                   max={30}
                   step={1}
                   showCurrency
@@ -976,7 +976,7 @@ export default function PreviewPage() {
                 label={t('rentalPrice')}
                 value={inputs.rentalPrice}
                 onChange={(value) => updateInput('rentalPrice', value)}
-                min={50}
+                min={0}
                 max={1000}
                 step={50}
                 showCurrency

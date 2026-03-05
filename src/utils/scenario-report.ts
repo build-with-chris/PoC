@@ -47,7 +47,7 @@
  * ...
  * 
  * KOSTEN:
- * - Miete: 0 €/Monat
+ * - Versicherung: 0 €/Monat
  * - Gehälter: 1500 €/Monat
  * - Marketing: 300 €/Monat
  * - Technik: 200 €/Monat
@@ -157,7 +157,7 @@ function generateReportText(scenario: FinancialScenario): string {
   report += `- Mietpreis: ${formatCurrency(inputs.rentalPrice)}\n\n`
   
   report += 'KOSTEN:\n'
-  report += `- Miete: ${formatCurrency(inputs.rent)}/Monat\n`
+  report += `- Versicherung: ${formatCurrency(inputs.rent)}/Monat\n`
   report += `- Gehälter: ${formatCurrency(inputs.salaries)}/Monat\n`
   report += `- Marketing: ${formatCurrency(inputs.marketing)}/Monat\n`
   report += `- Technik: ${formatCurrency(inputs.technology)}/Monat\n`

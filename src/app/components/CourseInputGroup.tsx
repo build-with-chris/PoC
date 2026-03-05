@@ -53,7 +53,7 @@ export default function CourseInputGroup({
           label={t('pricePerParticipant')}
           value={price}
           onChange={(value) => onUpdateInput(priceKey, value)}
-          min={10}
+          min={0}
           max={30}
           step={1}
           showCurrency
