@@ -34,6 +34,16 @@ test('Heizung nur in Wintermonaten, Saison halbiert Shows', () => {
   assert.equal(y.months[0].costs.artists, 400)
 })
 
+test('Cafe: im Sommer taeglich offen, im Winter nur an Showtagen', () => {
+  const winter = Array(12).fill(false)
+  winter[9] = true
+  const y = calculateYear({ ...empty, cafeDaysPerWeek: 3, cafeProfitPerDay: 100, cafeProfitPerGuest: 2, showsPerMonth: 1, guestsPerShow: 50, winterMonths: winter })
+  assert.equal(y.months[9].revenue.cafe, 100)
+  assert.equal(y.months[9].revenue.cafeDays, 0)
+  assert.equal(y.months[0].revenue.cafe, 100)
+  assert.ok(Math.abs(y.months[0].revenue.cafeDays - 3 * WEEKS_PER_MONTH * 100) < 1e-9)
+})
+
 test('Kontostand: Start plus Kredit minus Anschaffungen, dann Monat fuer Monat', () => {
   const y = calculateYear({ ...empty, startingCash: 1000, loanAmount: 5000, initialExpenses: 2000, personnelPerMonth: 500, liquidityBuffer: 2000 })
   assert.equal(y.startBalance, 4000)

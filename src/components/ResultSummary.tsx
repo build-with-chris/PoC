@@ -4,7 +4,16 @@ import { useLocale, useTranslations } from 'next-intl'
 import { formatEuro, monthName } from '@/lib/format'
 import type { Inputs, YearResult } from '@/lib/model'
 
-export default function ResultSummary({ year, inputs }: { year: YearResult; inputs: Inputs }) {
+export default function ResultSummary({
+  year,
+  inputs,
+  baseYear,
+}: {
+  year: YearResult
+  inputs: Inputs
+  /** Grundstand zum Vergleich; nur gesetzt, wenn etwas geaendert wurde */
+  baseYear?: YearResult
+}) {
   const t = useTranslations('result')
   const locale = useLocale()
   const e = (v: number, signed = false) => formatEuro(v, locale, signed)
@@ -48,6 +57,15 @@ export default function ResultSummary({ year, inputs }: { year: YearResult; inpu
           <p className={`tabular text-4xl font-bold tracking-tight ${carries ? 'text-plus' : 'text-minus'}`}>
             {e(year.avgMonthlyResult, true)}
           </p>
+          {baseYear && Math.abs(year.avgMonthlyResult - baseYear.avgMonthlyResult) >= 0.5 && (
+            <p
+              className={`tabular mt-1 text-sm font-medium ${
+                year.avgMonthlyResult > baseYear.avgMonthlyResult ? 'text-plus' : 'text-minus'
+              }`}
+            >
+              {t('vsPlan', { amount: e(year.avgMonthlyResult - baseYear.avgMonthlyResult, true) })}
+            </p>
+          )}
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-semibold ${

@@ -23,7 +23,7 @@
       "title": "The Pepe Dome in numbers",
       "text": "A place like the Dome costs money every month, even when nobody is in the ring. In four short steps you will see where the money comes from, where it goes and what has to happen for it all to pay for itself.",
       "point1": "All amounts are monthly averages, excluding VAT.",
-      "point2": "The planning year runs from March to February.",
+      "point2": "The planning year runs from March to February. In summer the café is open daily, in winter only on show days.",
       "point3": "Afterwards you can turn every dial yourself. You cannot break anything."
     },
     "fixed": {
@@ -60,7 +60,8 @@
     "title": "Try it yourself",
     "intro": "Pick a template and move the sliders. The result changes immediately.",
     "mainTitle": "The most important dials",
-    "mainIntro": "These eight sliders already get you very far."
+    "mainIntro": "These eight sliders already get you very far.",
+    "nudge": "{step} more: {effect} per month"
   },
   "presets": {
     "title": "Templates",
@@ -92,7 +93,7 @@
   },
   "groups": {
     "shows": {
-      "title": "Shows and café"
+      "title": "Shows"
     },
     "courses": {
       "title": "Classes"
@@ -111,6 +112,9 @@
     },
     "money": {
       "title": "Bank balance, loan and safety buffer"
+    },
+    "cafe": {
+      "title": "Café"
     }
   },
   "fields": {
@@ -127,8 +131,8 @@
       "help": "What a ticket brings in on average, discounts included."
     },
     "cafeProfitPerGuest": {
-      "label": "Café profit per guest",
-      "help": "What is left per guest after purchasing."
+      "label": "Café profit per show guest",
+      "help": "What is left per guest on show days after purchasing. Applies all year."
     },
     "artistFeePerShow": {
       "label": "Artist fee per show",
@@ -261,24 +265,33 @@
     "liquidityBuffer": {
       "label": "Safety buffer",
       "help": "At least this much should always be in the account."
+    },
+    "cafeDaysPerWeek": {
+      "label": "Café days per week in summer",
+      "help": "Outside the winter months the café is also open without a show."
+    },
+    "cafeProfitPerDay": {
+      "label": "Café profit per day",
+      "help": "What is left on a normal café day without show guests, after purchasing."
     }
   },
   "season": {
     "title": "Season",
-    "intro": "How much is going on in which month? 100 % is a normal month. Shows, classes, workshops and rentals change with it, fixed costs do not. Tick the months in which the Dome is heated.",
+    "intro": "How much is going on in which month? 100 % is a normal month. Shows, classes, workshops, rentals and the café change with it, fixed costs do not. Tick the winter months: then the Dome is heated and the café only opens on show days.",
     "activity": "Activity",
-    "winter": "heated",
-    "winterShort": "heated"
+    "winter": "Winter",
+    "winterShort": "winter"
   },
   "revenue": {
     "tickets": "Tickets",
-    "cafe": "Café",
+    "cafe": "Café at shows",
     "courses": "Classes",
     "workshops": "Workshops",
     "rentals": "Rentals",
     "profiTraining": "Pro training",
     "funding": "Funding",
-    "members": "Membership fees"
+    "members": "Membership fees",
+    "cafeDays": "Café in summer"
   },
   "costs": {
     "artists": "Artist fees",
@@ -310,7 +323,8 @@
     "warnZeroStart": "The account is already in the red at the start.",
     "warnBuffer": "From {month} there is less than the safety buffer of {buffer} in the account.",
     "warnBufferStart": "Already at the start there is less than the safety buffer of {buffer} in the account.",
-    "balanceOk": "The account stays above the safety buffer all year."
+    "balanceOk": "The account stays above the safety buffer all year.",
+    "vsPlan": "{amount} per month compared with our plan"
   },
   "need": {
     "title": "What has to happen?",
@@ -326,7 +340,8 @@
     "overSeats": "more than the {seats} seats in the Dome, so this alone is not enough",
     "noEffect": "does not help here, because costs rise with it",
     "combine": "Usually it is a mix: a few more guests, one more class, slightly lower costs.",
-    "notNeeded": "even at zero the year stays positive"
+    "notNeeded": "even at zero the year stays positive",
+    "allSafe": "Any one of these dials could drop to zero on its own and the year would still be positive."
   },
   "chart": {
     "title": "The year at a glance",
@@ -334,7 +349,7 @@
     "result": "Result",
     "balance": "Bank balance",
     "buffer": "Buffer",
-    "winter": "heated"
+    "winter": "winter"
   },
   "breakdown": {
     "title": "Where does the money go?",
@@ -365,7 +380,8 @@
     "sharedLoaded": "Shared scenario loaded: {name}",
     "sharedInvalid": "The link does not contain a valid scenario. The base values apply.",
     "sharedDefaultName": "Shared scenario",
-    "storageFailed": "Saving did not work. Maybe the browser is in private mode."
+    "storageFailed": "Saving did not work. Maybe the browser is in private mode.",
+    "edited": "adjusted"
   },
   "export": {
     "row": "Row",
@@ -383,5 +399,30 @@
     "perMonth": "Month by month",
     "inputs": "Inputs",
     "note": "All amounts excluding VAT. A planning aid, not accounting."
+  },
+  "missions": {
+    "title": "Challenges",
+    "intro": "See how it feels when things get tight. Each challenge starts in a difficult situation. You solve the rest with the sliders.",
+    "ruleLabel": "Rule",
+    "start": "Start challenge",
+    "done": "Done!",
+    "open": "Not solved yet",
+    "ruleBroken": "Rule broken",
+    "stop": "Stop",
+    "noFunding": {
+      "title": "No funding",
+      "goal": "Get through a year without a loss although the funding stops.",
+      "rule": "funding stays at €0"
+    },
+    "weakWinter": {
+      "title": "Weak winter",
+      "goal": "Stay above the safety buffer all year although winter is quiet.",
+      "rule": "the season stays as it is"
+    },
+    "firstYear": {
+      "title": "The first year",
+      "goal": "The account must never go into the red in the first year.",
+      "rule": "the season stays as it is"
+    }
   }
 }

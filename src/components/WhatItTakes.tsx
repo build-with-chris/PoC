@@ -35,6 +35,9 @@ export default function WhatItTakes({ inputs, year }: { inputs: Inputs; year: Ye
     return { key, text: null, value: rounded, current, unit, over }
   })
 
+  // Wenn jede Stellschraube allein auf null fallen koennte, reicht ein Satz statt vier gleicher Zeilen
+  const allSafe = !missing && rows.every((r) => r.value === null && r.text === t('notNeeded'))
+
   return (
     <section className="rounded-xl border border-line bg-surface p-5">
       <h2 className="text-lg font-semibold">{t('title')}</h2>
@@ -43,6 +46,9 @@ export default function WhatItTakes({ inputs, year }: { inputs: Inputs; year: Ye
           ? t('missing', { amount: formatEuro(-year.avgMonthlyResult, locale) })
           : t('surplus', { amount: formatEuro(year.avgMonthlyResult, locale) })}
       </p>
+      {allSafe ? (
+        <p className="mt-3 rounded-lg bg-plus-soft px-3 py-2 text-sm text-plus">{t('allSafe')}</p>
+      ) : (
       <ul className="mt-3 space-y-2">
         {rows.map((row) => (
           <li key={row.key} className="rounded-lg bg-sunken px-3 py-2 text-sm">
@@ -62,6 +68,7 @@ export default function WhatItTakes({ inputs, year }: { inputs: Inputs; year: Ye
           </li>
         ))}
       </ul>
+      )}
       {missing && <p className="mt-3 text-xs text-muted">{t('combine')}</p>}
     </section>
   )

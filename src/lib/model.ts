@@ -8,8 +8,10 @@
  * - Alle Betraege sind netto, also ohne Mehrwertsteuer.
  * - Das Planungsjahr laeuft von Maerz bis Februar (12 Monate).
  * - Die Saison (activity) skaliert alles, was vom Betrieb abhaengt:
- *   Shows, Kurse, Workshops und Vermietungen. Feste Einnahmen und Kosten
- *   bleiben jeden Monat gleich. Heizkosten fallen nur in Wintermonaten an.
+ *   Shows, Kurse, Workshops, Vermietungen und das Cafe. Feste Einnahmen und
+ *   Kosten bleiben jeden Monat gleich.
+ * - Wintermonate: Es wird geheizt, und das Cafe hat nur an Showtagen offen.
+ *   In den anderen Monaten hat es zusaetzlich an normalen Tagen offen.
  */
 
 /** Kalendermonat, mit dem das Planungsjahr beginnt (0 = Januar, 2 = Maerz). */
@@ -26,6 +28,9 @@ export interface Inputs {
   guestsPerShow: number
   ticketPrice: number
   cafeProfitPerGuest: number
+  // Cafe ausserhalb der Shows, nur in Monaten ohne Winter
+  cafeDaysPerWeek: number
+  cafeProfitPerDay: number
   artistFeePerShow: number
   gemaPerShow: number
   kvrPerShow: number
@@ -77,6 +82,7 @@ export type NumberKey = {
 export const REVENUE_KEYS = [
   'tickets',
   'cafe',
+  'cafeDays',
   'courses',
   'workshops',
   'rentals',
@@ -192,6 +198,7 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
   const revenue: Record<RevenueKey, number> = {
     tickets: guests * i.ticketPrice,
     cafe: guests * i.cafeProfitPerGuest,
+    cafeDays: isWinter ? 0 : i.cafeDaysPerWeek * WEEKS_PER_MONTH * f * i.cafeProfitPerDay,
     courses: courseSessions * i.participantsPerCourse * i.pricePerParticipant,
     workshops: i.workshopsPerMonth * f * i.participantsPerWorkshop * i.profitPerWorkshopParticipant,
     rentals: i.rentalsPerMonth * f * i.rentalPrice,

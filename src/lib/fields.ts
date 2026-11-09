@@ -21,6 +21,8 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   guestsPerShow: f('guestsPerShow', 'count', SEATS),
   ticketPrice: f('ticketPrice', 'euro', 60),
   cafeProfitPerGuest: f('cafeProfitPerGuest', 'euro', 15, 0.5),
+  cafeDaysPerWeek: f('cafeDaysPerWeek', 'count', 7),
+  cafeProfitPerDay: f('cafeProfitPerDay', 'euro', 1000, 10),
   artistFeePerShow: f('artistFeePerShow', 'euro', 5000, 50),
   gemaPerShow: f('gemaPerShow', 'euro', 500, 5),
   kvrPerShow: f('kvrPerShow', 'euro', 500, 5),
@@ -74,9 +76,25 @@ export const MAIN_FIELDS: NumberKey[] = [
   'heatingPerWinterMonth',
 ]
 
+/**
+ * Lernschritt pro Hauptregler: Um wie viel aendert sich das Monatsergebnis,
+ * wenn man den Regler um diesen Schritt erhoeht?
+ */
+export const NUDGE: Partial<Record<NumberKey, number>> = {
+  showsPerMonth: 1,
+  guestsPerShow: 10,
+  ticketPrice: 1,
+  artistFeePerShow: 100,
+  coursesPerWeek: 1,
+  participantsPerCourse: 1,
+  fundingPerMonth: 100,
+  heatingPerWinterMonth: 100,
+}
+
 /** Gruppen im Expertenmodus. Die Saison hat einen eigenen Bereich. */
 export const EXPERT_GROUPS: { id: string; keys: NumberKey[] }[] = [
-  { id: 'shows', keys: ['showsPerMonth', 'guestsPerShow', 'ticketPrice', 'cafeProfitPerGuest', 'artistFeePerShow', 'gemaPerShow', 'kvrPerShow'] },
+  { id: 'shows', keys: ['showsPerMonth', 'guestsPerShow', 'ticketPrice', 'artistFeePerShow', 'gemaPerShow', 'kvrPerShow'] },
+  { id: 'cafe', keys: ['cafeProfitPerGuest', 'cafeDaysPerWeek', 'cafeProfitPerDay'] },
   { id: 'courses', keys: ['coursesPerWeek', 'participantsPerCourse', 'pricePerParticipant', 'trainerCostPerCourse'] },
   { id: 'workshops', keys: ['workshopsPerMonth', 'participantsPerWorkshop', 'profitPerWorkshopParticipant'] },
   { id: 'otherIncome', keys: ['profiTrainingPerMonth', 'fundingPerMonth', 'rentalsPerMonth', 'rentalPrice', 'members', 'memberFeePerYear'] },

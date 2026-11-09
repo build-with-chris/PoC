@@ -12,10 +12,12 @@ interface Props {
   baseValue: number
   onChange: (value: number) => void
   large?: boolean
+  /** Kurzer Satz, was ein Schritt mehr im Monat bewirkt */
+  nudge?: { text: string; positive: boolean } | null
 }
 
 /** Regler mit Zahlenfeld. Zeigt an, wenn der Wert vom Grundstand abweicht. */
-export default function NumberField({ field, value, baseValue, onChange, large }: Props) {
+export default function NumberField({ field, value, baseValue, onChange, large, nudge }: Props) {
   const t = useTranslations('fields')
   const locale = useLocale()
   const def = FIELDS[field]
@@ -73,7 +75,12 @@ export default function NumberField({ field, value, baseValue, onChange, large }
         className="mt-2 w-full"
       />
       <div className="flex justify-between gap-3 text-xs text-muted">
-        <span>{help}</span>
+        <span>
+          {help}
+          {nudge && (
+            <span className={`mt-0.5 block font-medium ${nudge.positive ? 'text-plus' : 'text-minus'}`}>{nudge.text}</span>
+          )}
+        </span>
         {changed && (
           <button type="button" onClick={() => onChange(baseValue)} className="shrink-0 underline hover:text-ink">
             {formatValue(baseValue, def.unit, locale)}

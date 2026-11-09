@@ -7,6 +7,8 @@ Ein interaktiver Rechner für alle, die beim [Pepe Dome](https://pepe-dome.de/de
 - **Rundgang** (`/de`): In fünf Schritten von den festen Kosten über eine einzelne Show bis zum Monatsergebnis.
 - **Regler** (`/de/regler`): Acht Hauptregler, dahinter ein Expertenmodus mit allen Zahlen und der Saison pro Monat.
 - **Vorlagen**: Unsere Planung, Gutes Jahr, Schwacher Winter, Ohne Förderung, Startjahr.
+- **Aufgaben**: Ohne Förderung, Schwacher Winter, Startjahr. Jede startet in einer schwierigen Lage, hat eine Regel und ein Ziel, der Status rechnet live mit.
+- **Wirkung pro Schritt**: Unter jedem Hauptregler steht, was ein Schritt mehr im Monat bringt oder kostet. Oben steht der Unterschied zur Planung.
 - **Was muss passieren?**: Wie viele Gäste, Shows, Kursteilnehmende oder welcher Ticketpreis allein reichen würden.
 - **Speichern** im Browser, **Teilen** per Link, **Herunterladen** als Tabelle (.csv) oder Bericht (.txt).
 - Deutsch und Englisch, heller und dunkler Modus.
@@ -27,7 +29,7 @@ Es reicht, die Felder anzugeben, die vom Beispiel abweichen. Den kompletten aktu
 npm run werte:vorlage
 ```
 
-Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison sind zwei Listen mit je zwölf Werten, beginnend mit März: `activity` (Betrieb in Prozent) und `winterMonths` (in welchen Monaten geheizt wird).
+Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison sind zwei Listen mit je zwölf Werten, beginnend mit März: `activity` (Betrieb in Prozent) und `winterMonths` (Wintermonate: geheizt, Café nur an Showtagen).
 
 **Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer die App öffnet, sieht die Startwerte trotzdem an den Reglern.
 
@@ -35,7 +37,8 @@ Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison s
 
 - Alle Beträge sind netto, ohne Mehrwertsteuer.
 - Planungsjahr März bis Februar, ein Monat hat 52 / 12 Wochen.
-- Die Saison skaliert Shows, Kurse, Workshops und Vermietungen. Feste Kosten bleiben gleich, Heizen fällt nur in den markierten Wintermonaten an.
+- Die Saison skaliert Shows, Kurse, Workshops, Vermietungen und das Café. Feste Kosten bleiben gleich.
+- Wintermonate: Es wird geheizt, und das Café hat nur an Showtagen offen. In den übrigen Monaten kommt der Café-Gewinn an normalen Tagen dazu.
 - Kontostand am Anfang = Kontostand + Kredit − Anschaffungen. Beim Kredit wird im ersten Jahr nur Zins gezahlt.
 
 Die ganze Rechnung steckt in `src/lib/model.ts` und ist mit `npm test` abgedeckt.

@@ -23,7 +23,7 @@ const FIXED_COSTS: CostKey[] = [
   'reserves',
   'loanInterest',
 ]
-const OTHER_INCOME: RevenueKey[] = ['courses', 'funding', 'profiTraining', 'rentals', 'workshops', 'members']
+const OTHER_INCOME: RevenueKey[] = ['cafeDays', 'courses', 'funding', 'profiTraining', 'rentals', 'workshops', 'members']
 
 export default function Tour({ base }: { base: Inputs }) {
   const t = useTranslations()
@@ -155,7 +155,7 @@ export default function Tour({ base }: { base: Inputs }) {
         )}
       </div>
 
-      <div className="mt-10 flex items-center justify-between gap-4">
+      <div className="sticky bottom-0 mt-10 flex items-center justify-between gap-4 border-t border-line bg-bg/95 py-4 backdrop-blur">
         <button
           type="button"
           onClick={() => setStep((s) => Math.max(0, s - 1))}

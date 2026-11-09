@@ -13,6 +13,8 @@ export const EXAMPLE_INPUTS: Inputs = {
   guestsPerShow: 70,
   ticketPrice: 16,
   cafeProfitPerGuest: 3,
+  cafeDaysPerWeek: 5,
+  cafeProfitPerDay: 80,
   artistFeePerShow: 1000,
   gemaPerShow: 60,
   kvrPerShow: 40,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { PRESET_IDS, type PresetId } from '@/lib/presets'
 import type { SavedScenario } from '@/lib/storage'
@@ -18,19 +18,42 @@ interface Props {
   onDelete: (s: SavedScenario) => void
   onShare: () => void
   onDownload: (kind: 'csv' | 'txt') => void
+  missions: ReactNode
+  missionActive: boolean
 }
 
 export default function ScenarioPanel(p: Props) {
   const t = useTranslations()
   const locale = useLocale()
   const [draftName, setDraftName] = useState('')
+  const [tab, setTab] = useState<'presets' | 'missions'>(p.missionActive ? 'missions' : 'presets')
 
   const button = 'rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-ink'
 
   return (
     <section className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('presets.title')}</h2>
-      <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div role="tablist" className="flex gap-1 border-b border-line">
+        {(['presets', 'missions'] as const).map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className={`-mb-px border-b-2 px-3 pb-2 text-sm font-semibold ${
+              tab === id ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink'
+            }`}
+          >
+            {t(id === 'presets' ? 'presets.title' : 'missions.title')}
+            {id === 'missions' && p.missionActive && <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-accent" />}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3">
+      {tab === 'missions' ? (
+        p.missions
+      ) : (
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {PRESET_IDS.map((id) => {
           const active = p.activePreset === id
           return (
@@ -49,8 +72,10 @@ export default function ScenarioPanel(p: Props) {
           )
         })}
       </div>
+      )}
+      </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line pt-4">
         <div className="mr-auto">
           <p className="text-xs text-muted">{t('scenario.current')}</p>
           <p className="font-semibold">
@@ -91,12 +116,17 @@ export default function ScenarioPanel(p: Props) {
         <button type="button" onClick={p.onShare} className={button}>
           {t('scenario.share')}
         </button>
-        <button type="button" onClick={() => p.onDownload('csv')} className={button}>
-          ↓ {t('scenario.downloadCsv')}
-        </button>
-        <button type="button" onClick={() => p.onDownload('txt')} className={button}>
-          ↓ {t('scenario.downloadTxt')}
-        </button>
+        <details className="relative">
+          <summary className={`${button} cursor-pointer list-none`}>↓ {t('scenario.download')}</summary>
+          <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-line bg-surface p-1 shadow-lg">
+            <button type="button" onClick={() => p.onDownload('csv')} className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-sunken">
+              {t('scenario.downloadCsv')}
+            </button>
+            <button type="button" onClick={() => p.onDownload('txt')} className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-sunken">
+              {t('scenario.downloadTxt')}
+            </button>
+          </div>
+        </details>
       </div>
 
       <details className="mt-4 border-t border-line pt-3">
