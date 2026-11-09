@@ -5,12 +5,11 @@ import { SEATS, type Inputs } from './model'
  * eigenen Zahlen im Code stehen. Texte stehen in den Sprachdateien unter
  * presets.<id>.
  */
-export const PRESET_IDS = ['plan', 'goodYear', 'weakWinter', 'noFunding', 'firstYear'] as const
+export const PRESET_IDS = ['plan', 'goodYear', 'weakWinter', 'noFunding', 'livingWage'] as const
 export type PresetId = (typeof PRESET_IDS)[number]
 
 // Index 0 = Maerz
 const WINTER_SLUMP = [8, 9, 10, 11] // November bis Februar
-const RAMP_UP = [40, 50, 60, 70, 80] // Maerz bis Juli
 
 export function applyPreset(id: PresetId, base: Inputs): Inputs {
   switch (id) {
@@ -29,10 +28,7 @@ export function applyPreset(id: PresetId, base: Inputs): Inputs {
       }
     case 'noFunding':
       return { ...base, fundingPerMonth: 0 }
-    case 'firstYear':
-      return {
-        ...base,
-        activity: base.activity.map((a, idx) => (idx < RAMP_UP.length ? Math.min(a, RAMP_UP[idx]) : a)),
-      }
+    case 'livingWage':
+      return { ...base, salaryPerPerson: Math.max(base.salaryPerPerson, base.livingSalaryTarget) }
   }
 }

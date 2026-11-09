@@ -6,8 +6,8 @@ Ein interaktiver Rechner für alle, die beim [Pepe Dome](https://pepe-dome.de/de
 
 - **Rundgang** (`/de`): In fünf Schritten von den festen Kosten über eine einzelne Show bis zum Monatsergebnis.
 - **Regler** (`/de/regler`): Acht Hauptregler, dahinter ein Expertenmodus mit allen Zahlen und der Saison pro Monat.
-- **Vorlagen**: Unsere Planung, Gutes Jahr, Schwacher Winter, Ohne Förderung, Startjahr.
-- **Aufgaben**: Ohne Förderung, Schwacher Winter, Startjahr. Jede startet in einer schwierigen Lage, hat eine Regel und ein Ziel, der Status rechnet live mit.
+- **Vorlagen**: Unsere Planung, Gutes Jahr, Schwacher Winter, Ohne Förderung, Davon leben.
+- **Aufgaben**: Davon leben können, Sicherheitsarbeiten stemmen, Ohne Förderung, Schwacher Winter. Jede startet in einer schwierigen Lage, hat eine Regel und ein Ziel, der Status rechnet live mit.
 - **Wirkung pro Schritt**: Unter jedem Hauptregler steht, was ein Schritt mehr im Monat bringt oder kostet. Oben steht der Unterschied zur Planung.
 - **Was muss passieren?**: Wie viele Gäste, Shows, Kursteilnehmende oder welcher Ticketpreis allein reichen würden.
 - **Speichern** im Browser, **Teilen** per Link, **Herunterladen** als Tabelle (.csv) oder Bericht (.txt).
@@ -39,7 +39,8 @@ Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison s
 - Planungsjahr März bis Februar, ein Monat hat 52 / 12 Wochen.
 - Die Saison skaliert Shows, Kurse, Workshops, Vermietungen und das Café. Feste Kosten bleiben gleich.
 - Wintermonate: Es wird geheizt, und das Café hat nur an Showtagen offen. In den übrigen Monaten kommt der Café-Gewinn an normalen Tagen dazu.
-- Kontostand am Anfang = Kontostand + Kredit − Anschaffungen. Beim Kredit wird im ersten Jahr nur Zins gezahlt.
+- Kontostand am Anfang = Kontostand + einmalige Zuschüsse + Kredit − Anschaffungen.
+- Personal = Personen im Kernteam × Gehalt pro Person + Teilzeit und Minijobs. Beim Kredit wird im ersten Jahr nur Zins gezahlt.
 
 Die ganze Rechnung steckt in `src/lib/model.ts` und ist mit `npm test` abgedeckt.
 

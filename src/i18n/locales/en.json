@@ -81,9 +81,9 @@
       "title": "No funding",
       "text": "What if the funding stops?"
     },
-    "firstYear": {
-      "title": "First year",
-      "text": "Things start slowly in March and reach 80 % by July."
+    "livingWage": {
+      "title": "Living from it",
+      "text": "The core team gets a salary you can live on."
     }
   },
   "expert": {
@@ -115,6 +115,9 @@
     },
     "cafe": {
       "title": "Café"
+    },
+    "team": {
+      "title": "Team"
     }
   },
   "fields": {
@@ -198,13 +201,9 @@
       "label": "Fee per year",
       "help": ""
     },
-    "personnelPerMonth": {
-      "label": "Staff",
-      "help": "Wages and mini jobs, excluding artists and trainers."
-    },
     "insurancePerMonth": {
-      "label": "Insurance",
-      "help": ""
+      "label": "Insurance per month",
+      "help": "Ongoing insurance, quarterly payments divided by three."
     },
     "toiletsPerMonth": {
       "label": "Toilets",
@@ -260,7 +259,7 @@
     },
     "initialExpenses": {
       "label": "Purchases at the start",
-      "help": "One-off spending at the start, for example equipment or a stage."
+      "help": "One-off spending at the start, for example fire safety, equipment or a stage."
     },
     "liquidityBuffer": {
       "label": "Safety buffer",
@@ -273,6 +272,30 @@
     "cafeProfitPerDay": {
       "label": "Café profit per day",
       "help": "What is left on a normal café day without show guests, after purchasing."
+    },
+    "coreTeamCount": {
+      "label": "People in the core team",
+      "help": "People who should live from the Dome."
+    },
+    "salaryPerPerson": {
+      "label": "Salary per core team member",
+      "help": "What the Dome pays per person and month, including employer costs."
+    },
+    "livingSalaryTarget": {
+      "label": "Target salary per person",
+      "help": "From this amount you can live from it without working elsewhere."
+    },
+    "partTimePerMonth": {
+      "label": "Part-time and mini jobs",
+      "help": "All part-time staff together per month."
+    },
+    "eventInsurancePerYear": {
+      "label": "Event insurance",
+      "help": "Once a year."
+    },
+    "oneOffFunding": {
+      "label": "One-off grants",
+      "help": "For example state funding or a grant for materials. Paid into the account at the start."
     }
   },
   "season": {
@@ -297,7 +320,6 @@
     "artists": "Artist fees",
     "showFees": "GEMA and KVR",
     "trainers": "Trainers",
-    "personnel": "Staff",
     "heating": "Heating",
     "toilets": "Toilets",
     "insurance": "Insurance",
@@ -306,7 +328,9 @@
     "other": "Other",
     "admin": "Tax and bookkeeping",
     "loanInterest": "Loan interest",
-    "reserves": "Reserve"
+    "reserves": "Reserve",
+    "coreTeam": "Core team",
+    "partTime": "Part-time and mini jobs"
   },
   "result": {
     "avgMonth": "Result per month",
@@ -419,10 +443,15 @@
       "goal": "Stay above the safety buffer all year although winter is quiet.",
       "rule": "the season stays as it is"
     },
-    "firstYear": {
-      "title": "The first year",
-      "goal": "The account must never go into the red in the first year.",
-      "rule": "the season stays as it is"
+    "livingWage": {
+      "title": "Living from it",
+      "goal": "Pay the core team enough to live from the Dome and still get through a year without a loss.",
+      "rule": "salary at least the target salary, core team not smaller"
+    },
+    "safetyWork": {
+      "title": "Pay for the safety work",
+      "goal": "Fire safety and technical work must be paid for without the account going into the red.",
+      "rule": "purchases at the start stay at least as high"
     }
   }
 }

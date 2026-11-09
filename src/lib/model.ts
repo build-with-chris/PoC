@@ -10,6 +10,8 @@
  * - Die Saison (activity) skaliert alles, was vom Betrieb abhaengt:
  *   Shows, Kurse, Workshops, Vermietungen und das Cafe. Feste Einnahmen und
  *   Kosten bleiben jeden Monat gleich.
+ * - Kontostand am Anfang = Kontostand + einmalige Zuschuesse + Kredit
+ *   minus Anschaffungen.
  * - Wintermonate: Es wird geheizt, und das Cafe hat nur an Showtagen offen.
  *   In den anderen Monaten hat es zusaetzlich an normalen Tagen offen.
  */
@@ -50,8 +52,12 @@ export interface Inputs {
   rentalPrice: number
   members: number
   memberFeePerYear: number
+  // Personal
+  coreTeamCount: number
+  salaryPerPerson: number
+  livingSalaryTarget: number
+  partTimePerMonth: number
   // Laufende Kosten pro Monat
-  personnelPerMonth: number
   insurancePerMonth: number
   toiletsPerMonth: number
   marketingPerMonth: number
@@ -64,8 +70,10 @@ export interface Inputs {
   annualReportPerYear: number
   bookkeepingPerYear: number
   payrollPerYear: number
+  eventInsurancePerYear: number
   // Start, Kredit, Polster
   startingCash: number
+  oneOffFunding: number
   loanAmount: number
   loanInterestRate: number
   initialExpenses: number
@@ -96,7 +104,8 @@ export const COST_KEYS = [
   'artists',
   'showFees',
   'trainers',
-  'personnel',
+  'coreTeam',
+  'partTime',
   'heating',
   'toilets',
   'insurance',
@@ -165,8 +174,10 @@ export function perCourse(i: Inputs) {
 /** Kosten, die jeden Monat gleich anfallen, egal ob gespielt wird. */
 export function fixedMonthlyCosts(i: Inputs) {
   return (
-    i.personnelPerMonth +
+    i.coreTeamCount * i.salaryPerPerson +
+    i.partTimePerMonth +
     i.insurancePerMonth +
+    eventInsuranceMonthly(i) +
     i.toiletsPerMonth +
     i.marketingPerMonth +
     i.technologyPerMonth +
@@ -179,6 +190,11 @@ export function fixedMonthlyCosts(i: Inputs) {
 
 export function annualCosts(i: Inputs) {
   return i.taxAdvisorPerYear + i.annualReportPerYear + i.bookkeepingPerYear + i.payrollPerYear
+}
+
+/** Kosten pro Jahr, die als eigene Zeile gezeigt werden (nicht unter Steuer und Buchhaltung). */
+export function eventInsuranceMonthly(i: Inputs) {
+  return i.eventInsurancePerYear / 12
 }
 
 /** Im ersten Jahr wird nur Zins gezahlt, noch keine Tilgung. */
@@ -211,10 +227,11 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
     artists: shows * i.artistFeePerShow,
     showFees: shows * (i.gemaPerShow + i.kvrPerShow),
     trainers: courseSessions * i.trainerCostPerCourse,
-    personnel: i.personnelPerMonth,
+    coreTeam: i.coreTeamCount * i.salaryPerPerson,
+    partTime: i.partTimePerMonth,
     heating: isWinter ? i.heatingPerWinterMonth : 0,
     toilets: i.toiletsPerMonth,
-    insurance: i.insurancePerMonth,
+    insurance: i.insurancePerMonth + i.eventInsurancePerYear / 12,
     marketing: i.marketingPerMonth,
     technology: i.technologyPerMonth,
     other: i.otherCostsPerMonth,
@@ -240,7 +257,7 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
 }
 
 export function calculateYear(i: Inputs): YearResult {
-  const startBalance = i.startingCash + i.loanAmount - i.initialExpenses
+  const startBalance = i.startingCash + i.oneOffFunding + i.loanAmount - i.initialExpenses
   let balance = startBalance
   let lowestBalance = startBalance
   let lowestBalanceMonth = -1

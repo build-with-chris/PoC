@@ -44,8 +44,14 @@ test('Cafe: im Sommer taeglich offen, im Winter nur an Showtagen', () => {
   assert.ok(Math.abs(y.months[0].revenue.cafeDays - 3 * WEEKS_PER_MONTH * 100) < 1e-9)
 })
 
+test('Kernteam: Personen mal Gehalt, Veranstaltungsversicherung anteilig pro Monat', () => {
+  const y = calculateYear({ ...empty, coreTeamCount: 2, salaryPerPerson: 1500, eventInsurancePerYear: 600, insurancePerMonth: 100 })
+  assert.equal(y.months[0].costs.coreTeam, 3000)
+  assert.equal(y.months[0].costs.insurance, 150)
+})
+
 test('Kontostand: Start plus Kredit minus Anschaffungen, dann Monat fuer Monat', () => {
-  const y = calculateYear({ ...empty, startingCash: 1000, loanAmount: 5000, initialExpenses: 2000, personnelPerMonth: 500, liquidityBuffer: 2000 })
+  const y = calculateYear({ ...empty, startingCash: 500, oneOffFunding: 500, loanAmount: 5000, initialExpenses: 2000, partTimePerMonth: 500, liquidityBuffer: 2000 })
   assert.equal(y.startBalance, 4000)
   assert.equal(y.months[0].balance, 3500)
   assert.equal(y.endBalance, 4000 - 12 * 500)
@@ -62,7 +68,7 @@ test('Break-even: so viele Gaeste, dass das Jahr bei null landet', () => {
 })
 
 test('Break-even gibt null, wenn die Stellschraube nicht hilft', () => {
-  assert.equal(breakEvenValue({ ...empty, personnelPerMonth: 100 }, 'guestsPerShow'), null)
+  assert.equal(breakEvenValue({ ...empty, partTimePerMonth: 100 }, 'guestsPerShow'), null)
 })
 
 test('Link: nur Aenderungen, hin und zurueck gleich', () => {

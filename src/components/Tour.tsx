@@ -12,7 +12,8 @@ const STEPS = ['intro', 'fixed', 'show', 'more', 'result'] as const
 
 /** Kosten, die unabhaengig vom Programm jeden Monat anfallen. */
 const FIXED_COSTS: CostKey[] = [
-  'personnel',
+  'coreTeam',
+  'partTime',
   'heating',
   'toilets',
   'insurance',

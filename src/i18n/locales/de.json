@@ -81,9 +81,9 @@
       "title": "Ohne Förderung",
       "text": "Was wäre, wenn die Förderung wegfällt?"
     },
-    "firstYear": {
-      "title": "Startjahr",
-      "text": "Der Betrieb läuft ab März langsam an, bis Juli auf 80 %."
+    "livingWage": {
+      "title": "Davon leben",
+      "text": "Das Kernteam bekommt ein Gehalt, von dem man leben kann."
     }
   },
   "expert": {
@@ -115,6 +115,9 @@
     },
     "cafe": {
       "title": "Café"
+    },
+    "team": {
+      "title": "Team"
     }
   },
   "fields": {
@@ -198,13 +201,9 @@
       "label": "Beitrag pro Jahr",
       "help": ""
     },
-    "personnelPerMonth": {
-      "label": "Personal",
-      "help": "Löhne und Minijobs, ohne Künstler:innen und Trainer."
-    },
     "insurancePerMonth": {
-      "label": "Versicherungen",
-      "help": ""
+      "label": "Versicherungen pro Monat",
+      "help": "Laufende Versicherungen, quartalsweise Zahlungen durch drei geteilt."
     },
     "toiletsPerMonth": {
       "label": "Toiletten",
@@ -260,7 +259,7 @@
     },
     "initialExpenses": {
       "label": "Anschaffungen am Anfang",
-      "help": "Einmalige Ausgaben zu Beginn, zum Beispiel Technik oder Bühne."
+      "help": "Einmalige Ausgaben zu Beginn, zum Beispiel Brandschutz, Technik oder Bühne."
     },
     "liquidityBuffer": {
       "label": "Sicherheitspolster",
@@ -273,6 +272,30 @@
     "cafeProfitPerDay": {
       "label": "Café-Gewinn pro Tag",
       "help": "Was an einem normalen Café-Tag ohne Showgäste nach Einkauf übrig bleibt."
+    },
+    "coreTeamCount": {
+      "label": "Personen im Kernteam",
+      "help": "Leute, die vom Dome leben sollen."
+    },
+    "salaryPerPerson": {
+      "label": "Gehalt pro Person im Kernteam",
+      "help": "Was der Dome pro Person und Monat zahlt, mit Arbeitgeberanteil."
+    },
+    "livingSalaryTarget": {
+      "label": "Ziel-Gehalt pro Person",
+      "help": "Ab diesem Betrag kann man davon leben, ohne woanders zu arbeiten."
+    },
+    "partTimePerMonth": {
+      "label": "Teilzeit und Minijobs",
+      "help": "Alle Teilzeitkräfte zusammen pro Monat."
+    },
+    "eventInsurancePerYear": {
+      "label": "Veranstaltungsversicherung",
+      "help": "Einmal im Jahr."
+    },
+    "oneOffFunding": {
+      "label": "Einmalige Zuschüsse",
+      "help": "Zum Beispiel Landesförderung oder Zuschuss für Material. Kommt am Anfang aufs Konto."
     }
   },
   "season": {
@@ -297,7 +320,6 @@
     "artists": "Gagen",
     "showFees": "GEMA und KVR",
     "trainers": "Trainer",
-    "personnel": "Personal",
     "heating": "Heizen",
     "toilets": "Toiletten",
     "insurance": "Versicherungen",
@@ -306,7 +328,9 @@
     "other": "Sonstiges",
     "admin": "Steuer und Buchhaltung",
     "loanInterest": "Kreditzinsen",
-    "reserves": "Rücklage"
+    "reserves": "Rücklage",
+    "coreTeam": "Kernteam",
+    "partTime": "Teilzeit und Minijobs"
   },
   "result": {
     "avgMonth": "Ergebnis pro Monat",
@@ -419,10 +443,15 @@
       "goal": "Bleib das ganze Jahr über dem Sicherheitspolster, obwohl im Winter wenig los ist.",
       "rule": "die Saison bleibt, wie sie ist"
     },
-    "firstYear": {
-      "title": "Das Startjahr",
-      "goal": "Das Konto darf im Startjahr nie ins Minus rutschen.",
-      "rule": "die Saison bleibt, wie sie ist"
+    "livingWage": {
+      "title": "Davon leben können",
+      "goal": "Bezahl das Kernteam so, dass es vom Dome leben kann, und schaff trotzdem ein Jahr ohne Minus.",
+      "rule": "Gehalt mindestens beim Ziel-Gehalt, Kernteam nicht kleiner"
+    },
+    "safetyWork": {
+      "title": "Sicherheitsarbeiten stemmen",
+      "goal": "Brandschutz und Technik müssen bezahlt werden, ohne dass das Konto ins Minus rutscht.",
+      "rule": "Anschaffungen am Anfang bleiben mindestens so hoch"
     }
   }
 }

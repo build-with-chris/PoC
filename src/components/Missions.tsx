@@ -22,7 +22,7 @@ export default function Missions({ active, inputs, base, year, onStart }: Props)
   return (
     <div>
       <p className="text-sm text-muted">{t('intro')}</p>
-      <div className="mt-2 grid gap-2 md:grid-cols-3">
+      <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {MISSION_IDS.map((id) => {
           const isActive = active === id
           const kept = isActive && ruleKept(id, inputs, base)

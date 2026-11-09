@@ -43,7 +43,10 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   members: f('members', 'count', 1000, 5),
   memberFeePerYear: f('memberFeePerYear', 'euro', 500, 5),
 
-  personnelPerMonth: f('personnelPerMonth', 'euro', 20000, 100),
+  coreTeamCount: f('coreTeamCount', 'count', 10),
+  salaryPerPerson: f('salaryPerPerson', 'euro', 6000, 50),
+  livingSalaryTarget: f('livingSalaryTarget', 'euro', 6000, 50),
+  partTimePerMonth: f('partTimePerMonth', 'euro', 10000, 50),
   insurancePerMonth: f('insurancePerMonth', 'euro', 3000, 10),
   toiletsPerMonth: f('toiletsPerMonth', 'euro', 3000, 10),
   marketingPerMonth: f('marketingPerMonth', 'euro', 3000, 10),
@@ -56,8 +59,10 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   annualReportPerYear: f('annualReportPerYear', 'euro', 10000, 50),
   bookkeepingPerYear: f('bookkeepingPerYear', 'euro', 10000, 50),
   payrollPerYear: f('payrollPerYear', 'euro', 10000, 50),
+  eventInsurancePerYear: f('eventInsurancePerYear', 'euro', 5000, 10),
 
   startingCash: f('startingCash', 'euro', 200000, 500),
+  oneOffFunding: f('oneOffFunding', 'euro', 200000, 500),
   loanAmount: f('loanAmount', 'euro', 300000, 5000),
   loanInterestRate: f('loanInterestRate', 'percent', 15, 0.1),
   initialExpenses: f('initialExpenses', 'euro', 200000, 500),
@@ -73,7 +78,7 @@ export const MAIN_FIELDS: NumberKey[] = [
   'coursesPerWeek',
   'participantsPerCourse',
   'fundingPerMonth',
-  'heatingPerWinterMonth',
+  'salaryPerPerson',
 ]
 
 /**
@@ -88,7 +93,7 @@ export const NUDGE: Partial<Record<NumberKey, number>> = {
   coursesPerWeek: 1,
   participantsPerCourse: 1,
   fundingPerMonth: 100,
-  heatingPerWinterMonth: 100,
+  salaryPerPerson: 100,
 }
 
 /** Gruppen im Expertenmodus. Die Saison hat einen eigenen Bereich. */
@@ -98,9 +103,10 @@ export const EXPERT_GROUPS: { id: string; keys: NumberKey[] }[] = [
   { id: 'courses', keys: ['coursesPerWeek', 'participantsPerCourse', 'pricePerParticipant', 'trainerCostPerCourse'] },
   { id: 'workshops', keys: ['workshopsPerMonth', 'participantsPerWorkshop', 'profitPerWorkshopParticipant'] },
   { id: 'otherIncome', keys: ['profiTrainingPerMonth', 'fundingPerMonth', 'rentalsPerMonth', 'rentalPrice', 'members', 'memberFeePerYear'] },
-  { id: 'monthlyCosts', keys: ['personnelPerMonth', 'heatingPerWinterMonth', 'toiletsPerMonth', 'insurancePerMonth', 'marketingPerMonth', 'technologyPerMonth', 'otherCostsPerMonth', 'reservesPerMonth'] },
-  { id: 'annualCosts', keys: ['taxAdvisorPerYear', 'annualReportPerYear', 'bookkeepingPerYear', 'payrollPerYear'] },
-  { id: 'money', keys: ['startingCash', 'liquidityBuffer', 'initialExpenses', 'loanAmount', 'loanInterestRate'] },
+  { id: 'team', keys: ['coreTeamCount', 'salaryPerPerson', 'livingSalaryTarget', 'partTimePerMonth'] },
+  { id: 'monthlyCosts', keys: ['heatingPerWinterMonth', 'toiletsPerMonth', 'insurancePerMonth', 'marketingPerMonth', 'technologyPerMonth', 'otherCostsPerMonth', 'reservesPerMonth'] },
+  { id: 'annualCosts', keys: ['taxAdvisorPerYear', 'annualReportPerYear', 'bookkeepingPerYear', 'payrollPerYear', 'eventInsurancePerYear'] },
+  { id: 'money', keys: ['startingCash', 'oneOffFunding', 'liquidityBuffer', 'initialExpenses', 'loanAmount', 'loanInterestRate'] },
 ]
 
 /** Stellschrauben fuer die Frage "Was muss passieren?" */

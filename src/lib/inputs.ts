@@ -35,7 +35,10 @@ export const EXAMPLE_INPUTS: Inputs = {
   members: 0,
   memberFeePerYear: 0,
 
-  personnelPerMonth: 3000,
+  coreTeamCount: 2,
+  salaryPerPerson: 1000,
+  livingSalaryTarget: 2500,
+  partTimePerMonth: 1000,
   insurancePerMonth: 400,
   toiletsPerMonth: 600,
   marketingPerMonth: 300,
@@ -48,8 +51,10 @@ export const EXAMPLE_INPUTS: Inputs = {
   annualReportPerYear: 2000,
   bookkeepingPerYear: 1200,
   payrollPerYear: 400,
+  eventInsurancePerYear: 400,
 
   startingCash: 10000,
+  oneOffFunding: 0,
   loanAmount: 0,
   loanInterestRate: 4.5,
   initialExpenses: 0,
