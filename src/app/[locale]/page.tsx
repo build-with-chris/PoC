@@ -1,11 +1,16 @@
-import { redirect } from 'next/navigation'
+import { setRequestLocale } from 'next-intl/server'
+import Tour from '@/components/Tour'
+import ExampleBanner from '@/components/ExampleBanner'
+import { getBaseInputs } from '@/lib/base-inputs'
 
-export default async function Home({
-  params
-}: {
-  params: Promise<{ locale: string }>
-}) {
+export default async function TourPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  // Umleitung zur Prognose-Seite - das ist die einzige relevante Funktion
-  redirect(`/${locale}/preview`)
+  setRequestLocale(locale)
+  const { inputs, source } = getBaseInputs()
+  return (
+    <>
+      {source === 'example' && <ExampleBanner />}
+      <Tour base={inputs} />
+    </>
+  )
 }

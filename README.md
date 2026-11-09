@@ -1,203 +1,75 @@
-# Finanz-Tracking App
+# Pepe Dome Finanzregler
 
-Eine umfassende Finanz-Tracking-Anwendung für Fitnessstudios und ähnliche Unternehmen, gebaut mit Next.js 16, Prisma und TypeScript.
+Ein interaktiver Rechner für alle, die beim [Pepe Dome](https://pepe-dome.de/de) mitmachen wollen. Er zeigt ohne BWL-Vorwissen, was der Dome jeden Monat kostet, woher das Geld kommt und was passieren muss, damit er sich trägt.
 
-## Features
+## Was die App kann
 
-- **Dashboard**: KPI-Übersicht mit Einnahmen, Kosten und Deckungsbeitrag
-- **Transaktionsverwaltung**: Erfassung von Einnahmen und Ausgaben mit Kategorisierung
-- **Schulden-Tracking**: Verwaltung vorgestreckter Beträge
-- **CSV-Import**: Bulk-Import von Transaktionen
-- **Prognose**: 12-Monats-Vorhersage mit verschiedenen Szenarien
-- **Preview-Calculator**: Detaillierte Umsatzplanung mit realistischen Berechnungen
-  - Kurse: Pro-Teilnehmer-Preise mit Trainerkosten
-  - Workshops: Gewinn pro Teilnehmer
-  - Vermietung und Fixeinnahmen
-- **Dark Mode**: Vollständige Unterstützung für helles und dunkles Theme
-- **Responsive Design**: Optimiert für Desktop und Mobile
+- **Rundgang** (`/de`): In fünf Schritten von den festen Kosten über eine einzelne Show bis zum Monatsergebnis.
+- **Regler** (`/de/regler`): Acht Hauptregler, dahinter ein Expertenmodus mit allen Zahlen und der Saison pro Monat.
+- **Vorlagen**: Unsere Planung, Gutes Jahr, Schwacher Winter, Ohne Förderung, Startjahr.
+- **Was muss passieren?**: Wie viele Gäste, Shows, Kursteilnehmende oder welcher Ticketpreis allein reichen würden.
+- **Speichern** im Browser, **Teilen** per Link, **Herunterladen** als Tabelle (.csv) oder Bericht (.txt).
+- Deutsch und Englisch, heller und dunkler Modus.
 
-## Tech Stack
+Es gibt keine Datenbank und keine Anmeldung.
 
-- **Framework**: Next.js 16 (App Router)
-- **Database**: PostgreSQL mit Prisma ORM
-- **Styling**: Tailwind CSS 4
-- **Charts**: Recharts
-- **Language**: TypeScript
+## Die Grundwerte
 
-## Lokale Entwicklung
+Das Repo ist öffentlich. Die echten Zahlen stehen deshalb **nicht im Code**, sondern in der Umgebungsvariable `PEPE_DOME_WERTE` als JSON in einer Zeile.
 
-### Voraussetzungen
+- Lokal: in `.env` (wird nicht committet).
+- Online: in Vercel unter *Settings → Environment Variables*. Danach neu deployen.
+- Fehlt die Variable, zeigt die App Beispielwerte aus `src/lib/inputs.ts` und weist oben darauf hin.
 
-- Node.js 18+
-- PostgreSQL-Datenbank
+Es reicht, die Felder anzugeben, die vom Beispiel abweichen. Den kompletten aktuellen Stand gibt dieser Befehl aus, fertig zum Kopieren:
 
-### Installation
-
-1. Repository klonen:
 ```bash
-git clone <repository-url>
-cd PoC
+npm run werte:vorlage
 ```
 
-2. Dependencies installieren:
+Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison sind zwei Listen mit je zwölf Werten, beginnend mit März: `activity` (Betrieb in Prozent) und `winterMonths` (in welchen Monaten geheizt wird).
+
+**Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer die App öffnet, sieht die Startwerte trotzdem an den Reglern.
+
+## Rechenregeln
+
+- Alle Beträge sind netto, ohne Mehrwertsteuer.
+- Planungsjahr März bis Februar, ein Monat hat 52 / 12 Wochen.
+- Die Saison skaliert Shows, Kurse, Workshops und Vermietungen. Feste Kosten bleiben gleich, Heizen fällt nur in den markierten Wintermonaten an.
+- Kontostand am Anfang = Kontostand + Kredit − Anschaffungen. Beim Kredit wird im ersten Jahr nur Zins gezahlt.
+
+Die ganze Rechnung steckt in `src/lib/model.ts` und ist mit `npm test` abgedeckt.
+
+## Entwicklung
+
 ```bash
 npm install
 ```
 
-3. Umgebungsvariablen einrichten:
-```bash
-cp .env.example .env
-```
-
-Füge deine Datenbank-URL in `.env` ein:
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/finanztracking"
-```
-
-4. Datenbank migrieren und seeden:
-```bash
-npm run db:migrate
-npm run db:seed
-```
-
-5. Development Server starten:
 ```bash
 npm run dev
 ```
 
-Öffne [http://localhost:3000](http://localhost:3000) im Browser.
-
-## Deployment auf Vercel
-
-### 1. Vercel Postgres Datenbank erstellen
-
-1. Gehe zu [vercel.com](https://vercel.com) und logge dich ein
-2. Navigiere zu deinem Projekt (oder erstelle ein neues)
-3. Gehe zu **Storage** → **Create Database** → **Postgres**
-4. Erstelle eine neue Postgres-Datenbank
-5. Kopiere die Umgebungsvariablen aus dem **`.env.local`** Tab
-
-### 2. Umgebungsvariablen konfigurieren
-
-1. Gehe zu **Settings** → **Environment Variables**
-2. Füge folgende Variablen hinzu:
-   - `DATABASE_URL` (von Vercel Postgres)
-   - `POSTGRES_URL_NON_POOLING` (von Vercel Postgres, für Migrations)
-
-### 3. Deploy
-
-#### Option A: GitHub Integration (empfohlen)
-
-1. Verbinde dein GitHub-Repository mit Vercel
-2. Vercel deployt automatisch bei jedem Push zu `main`
-3. Die erste Deployment wird automatisch die Datenbank migrieren
-
-#### Option B: Vercel CLI
+Prüfen vor dem Commit:
 
 ```bash
-# Vercel CLI installieren
-npm i -g vercel
-
-# Einloggen
-vercel login
-
-# Deploy
-vercel --prod
+npm run typecheck && npm run lint && npm test
 ```
 
-### 4. Datenbank initialisieren (nur beim ersten Deploy)
-
-Nach dem ersten erfolgreichen Deployment:
-
-1. Öffne die Vercel-Konsole für dein Projekt
-2. Gehe zu **Deployments** → wähle das letzte Deployment
-3. Klicke auf **...** → **Redeploy**
-4. Die Migrations laufen automatisch während des Build-Prozesses
-
-Optional: Seed-Daten hinzufügen (über Vercel CLI):
-```bash
-vercel env pull .env.local
-npm run db:seed
-```
-
-## Verfügbare Scripts
-
-```bash
-npm run dev              # Development Server
-npm run build            # Production Build (mit Prisma Generate & Migrate)
-npm run start            # Production Server
-npm run lint             # ESLint
-
-# Database
-npm run db:migrate       # Neue Migration erstellen (dev)
-npm run db:migrate:prod  # Migrations ausführen (production)
-npm run db:seed          # Seed-Daten einfügen
-npm run db:studio        # Prisma Studio öffnen
-npm run db:generate      # Prisma Client generieren
-npm run db:reset         # Datenbank zurücksetzen
-```
-
-## Projektstruktur
+## Aufbau
 
 ```
-PoC/
-├── src/
-│   └── app/
-│       ├── actions/         # Server Actions
-│       ├── api/             # API Routes
-│       ├── components/      # React Components
-│       ├── debts/          # Schulden-Seite
-│       ├── forecast/       # Prognose-Seite
-│       ├── import/         # CSV-Import-Seite
-│       ├── preview/        # Preview-Calculator
-│       └── page.tsx        # Dashboard
-├── prisma/
-│   ├── schema.prisma       # Datenbankschema
-│   └── seed.ts             # Seed-Daten
-├── lib/
-│   └── prisma.ts           # Prisma Client
-└── vercel.json             # Vercel Konfiguration
+src/
+├── app/[locale]/page.tsx         Rundgang
+├── app/[locale]/regler/page.tsx  Regler
+├── components/                   Oberfläche
+├── i18n/locales/{de,en}.json     Alle Texte
+└── lib/
+    ├── model.ts                  Rechenkern
+    ├── inputs.ts                 Beispielwerte und Prüfung
+    ├── base-inputs.ts            Liest PEPE_DOME_WERTE (nur Server)
+    ├── fields.ts                 Regler, Gruppen, Hauptregler
+    ├── presets.ts                Vorlagen
+    ├── share.ts / storage.ts     Link und Browser-Speicher
+    └── export.ts                 CSV und Bericht
 ```
-
-## Datenbank-Schema
-
-Die App verwendet folgende Haupttabellen:
-
-- **Transaction**: Einnahmen und Ausgaben
-  - Felder: date, amount, categoryId, counterparty, note
-  - Advanced Payments: isAdvanced, advancedBy, isSettled
-- **Category**: Kategorisierung von Transaktionen
-  - Felder: name, type (income/expense), color
-
-## Troubleshooting
-
-### Prisma Client Fehler
-
-```bash
-npm run db:generate
-```
-
-### Migrations schlagen fehl
-
-```bash
-# Development
-npm run db:reset
-
-# Production (Vercel)
-# Redeploy über Vercel Dashboard
-```
-
-### Build-Fehler auf Vercel
-
-Stelle sicher, dass:
-- `DATABASE_URL` und `POSTGRES_URL_NON_POOLING` gesetzt sind
-- Die Datenbank erreichbar ist
-- `postinstall` Script in package.json vorhanden ist
-
-## License
-
-MIT
-
-## Kontakt
-
-Bei Fragen oder Problemen, bitte ein Issue erstellen.

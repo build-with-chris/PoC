@@ -1,79 +1,49 @@
-import type { Metadata } from "next";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "../components/Navbar";
-import "../globals.css";
+import type { Metadata } from 'next'
+import { NextIntlClientProvider, hasLocale } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { notFound } from 'next/navigation'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { routing } from '@/i18n/routing'
+import SiteHeader from '@/components/SiteHeader'
+import '../globals.css'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "Finanz-Prognose | Finanzkalkulator",
-  description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen. Erstellen Sie Szenarien, analysieren Sie Kennzahlen und planen Sie Ihre Finanzen präzise.",
-  keywords: ["Finanzkalkulator", "Finanzprognose", "Einnahmen", "Ausgaben", "Gewinn", "Kostenplanung"],
-  authors: [{ name: "Finanz-Team" }],
-  openGraph: {
-    title: "Finanz-Prognose | Finanzkalkulator",
-    description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen. Erstellen Sie Szenarien, analysieren Sie Kennzahlen und planen Sie Ihre Finanzen präzise.",
-    type: "website",
-    locale: "de_DE",
-    siteName: "Finanz-Prognose",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Finanz-Prognose | Finanzkalkulator",
-    description: "Professioneller Finanzkalkulator für detaillierte Einnahmen- und Ausgabenprognosen.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
-
-const locales = ['de', 'en'];
-
-export default async function LocaleLayout({
-  children,
-  params
-}: {
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
-}) {
-  // Await the params in Next.js 16
-  const { locale } = await params;
-
-  // Validate that the incoming `locale` parameter is valid
-  if (!locales.includes(locale)) {
-    notFound();
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'meta' })
+  return {
+    title: t('title'),
+    description: t('description'),
+    // Interne Planungshilfe, nicht fuer Suchmaschinen gedacht
+    robots: { index: false, follow: false },
   }
-
-  // Providing all messages to the client
-  // side is the easiest way to get started
-  const messages = await getMessages();
-
-  return (
-    <html lang={locale}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="pt-16">
-            {children}
-          </main>
-        </NextIntlClientProvider>
-      </body>
-    </html>
-  );
 }
 
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }))
+}
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  setRequestLocale(locale)
+
+  return (
+    <html lang={locale}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
+        <NextIntlClientProvider>
+          <SiteHeader />
+          <main>{children}</main>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  )
 }

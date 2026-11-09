@@ -1,141 +1,387 @@
 {
+  "meta": {
+    "title": "Pepe Dome Finanzregler",
+    "description": "Probier selbst aus, was der Pepe Dome jeden Monat braucht und was passieren muss, damit er sich trägt."
+  },
   "nav": {
-    "dashboard": "Dashboard",
-    "preview": "Vorschau",
-    "forecast": "Prognose",
-    "debts": "Schulden",
-    "import": "Import"
+    "brand": "Pepe Dome",
+    "brandSub": "Finanzregler",
+    "tour": "Rundgang",
+    "calculator": "Selbst ausprobieren",
+    "switchLanguage": "English"
   },
-  "dashboard": {
-    "title": "Finanz-Tracking",
-    "subtitle": "Erfasse deine Einnahmen und Ausgaben",
-    "kpi": {
-      "revenue": "Einnahmen",
-      "costs": "Kosten",
-      "margin": "Deckungsbeitrag"
+  "banner": {
+    "example": "Hier stehen Beispielwerte, nicht die echten Zahlen des Dome. Die echten Werte kommen aus der Umgebungsvariable PEPE_DOME_WERTE."
+  },
+  "tour": {
+    "stepOf": "Schritt {current} von {total}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "skip": "Direkt zum Regler",
+    "finish": "Jetzt selbst ausprobieren",
+    "intro": {
+      "title": "Der Pepe Dome in Zahlen",
+      "text": "Ein Ort wie der Dome kostet jeden Monat Geld, auch wenn gerade niemand in der Manege steht. In vier kurzen Schritten siehst du, woher das Geld kommt, wohin es geht und was passieren muss, damit sich alles trägt.",
+      "point1": "Alle Beträge sind Durchschnittswerte pro Monat, ohne Mehrwertsteuer.",
+      "point2": "Das Planungsjahr läuft von März bis Februar.",
+      "point3": "Danach kannst du an allen Reglern selbst drehen. Kaputt machen kannst du nichts."
     },
-    "newTransaction": "Neue Transaktion erfassen",
-    "recentTransactions": "Letzte Transaktionen",
-    "noTransactions": "Noch keine Transaktionen vorhanden"
+    "fixed": {
+      "title": "Was jeden Monat sowieso anfällt",
+      "text": "Diese Kosten kommen, egal ob gerade Shows laufen oder nicht.",
+      "total": "Zusammen im Schnitt",
+      "after": "Dieses Geld muss jeden Monat reinkommen, bevor überhaupt etwas übrig bleibt.",
+      "heatingNote": "Heizen kostet nur im Winter. Hier ist es auf alle zwölf Monate verteilt."
+    },
+    "show": {
+      "title": "Eine Show durchgerechnet",
+      "text": "Shows sind das Herz des Dome. So sieht eine einzelne Show aus:",
+      "tickets": "{guests} Gäste × {price} Ticket",
+      "cafe": "{guests} Gäste × {amount} Café",
+      "artists": "Gage für die Künstler:innen",
+      "fees": "GEMA und KVR",
+      "result": "Bleibt pro Show",
+      "perMonth": "Bei {shows} Shows im Monat sind das {amount}.",
+      "seats": "Der Dome hat {seats} Plätze. Bei {guests} Gästen ist er zu {percent} % voll."
+    },
+    "more": {
+      "title": "Kurse, Training und Förderung",
+      "text": "Neben den Shows gibt es Einnahmen, die jede Woche oder jeden Monat fließen.",
+      "courseLine": "Ein Kurstermin: {participants} Teilnehmende × {price}, minus {trainer} Trainer",
+      "courseResult": "Bleibt pro Kurstermin",
+      "perMonth": "Pro Monat im Schnitt"
+    },
+    "result": {
+      "title": "Trägt es sich?",
+      "text": "Alles zusammen ergibt im Schnitt pro Monat:"
+    }
   },
-  "transaction": {
-    "date": "Datum",
-    "amount": "Betrag (EUR)",
-    "category": "Kategorie",
-    "counterparty": "Gegenpartei",
-    "note": "Notiz",
-    "isAdvanced": "Wurde vorgestreckt?",
-    "advancedBy": "Von wem vorgestreckt?",
-    "save": "Transaktion speichern",
-    "saving": "Wird gespeichert...",
-    "success": "Transaktion erfolgreich gespeichert!",
-    "required": "Pflichtfelder",
-    "income": "Einnahmen",
-    "expenses": "Ausgaben",
-    "selectCategory": "Bitte wählen...",
-    "yes": "Ja",
-    "no": "Nein"
+  "calc": {
+    "title": "Selbst ausprobieren",
+    "intro": "Wähle eine Vorlage und dreh an den Reglern. Das Ergebnis ändert sich sofort.",
+    "mainTitle": "Die wichtigsten Stellschrauben",
+    "mainIntro": "Mit diesen acht Reglern kommst du schon sehr weit."
   },
-  "preview": {
-    "title": "Umsatz-Vorschau",
-    "subtitle": "Simuliere deine wöchentlichen Einnahmen und Ausgaben für das gesamte Jahr",
-    "backToDashboard": "Zurück",
-    "fixedIncome": "Fixeinnahmen",
-    "profitraining": "Profi-Training",
-    "fundingPerMonth": "Querfinanzierung durch Förderung (monatlich)",
-    "memberships": "Mitgliedsbeiträge",
-    "membershipCount": "Anzahl Mitglieder",
-    "membershipFeePerYear": "Beitrag pro Jahr pro Mitglied",
+  "presets": {
+    "title": "Vorlagen",
+    "plan": {
+      "title": "Unsere Planung",
+      "text": "Die aktuellen Grundwerte."
+    },
+    "goodYear": {
+      "title": "Gutes Jahr",
+      "text": "20 % mehr Gäste und Kursteilnehmende."
+    },
+    "weakWinter": {
+      "title": "Schwacher Winter",
+      "text": "Von November bis Februar halb so viel Betrieb."
+    },
+    "noFunding": {
+      "title": "Ohne Förderung",
+      "text": "Was wäre, wenn die Förderung wegfällt?"
+    },
+    "firstYear": {
+      "title": "Startjahr",
+      "text": "Der Betrieb läuft ab März langsam an, bis Juli auf 80 %."
+    }
+  },
+  "expert": {
+    "open": "Alle Regler zeigen",
+    "close": "Weniger Regler zeigen",
+    "intro": "Hier findest du jede einzelne Zahl, mit der gerechnet wird. Alle Beträge ohne Mehrwertsteuer."
+  },
+  "groups": {
+    "shows": {
+      "title": "Shows und Café"
+    },
+    "courses": {
+      "title": "Kurse"
+    },
+    "workshops": {
+      "title": "Workshops"
+    },
+    "otherIncome": {
+      "title": "Weitere Einnahmen"
+    },
+    "monthlyCosts": {
+      "title": "Kosten jeden Monat"
+    },
+    "annualCosts": {
+      "title": "Kosten einmal im Jahr"
+    },
+    "money": {
+      "title": "Kontostand, Kredit und Polster"
+    }
+  },
+  "fields": {
+    "showsPerMonth": {
+      "label": "Shows pro Monat",
+      "help": "In einem normalen Monat. Die Saison verändert das noch."
+    },
+    "guestsPerShow": {
+      "label": "Gäste pro Show",
+      "help": "Der Dome hat 170 Plätze."
+    },
+    "ticketPrice": {
+      "label": "Ticketpreis",
+      "help": "Was ein Ticket im Schnitt einbringt, Ermäßigungen eingerechnet."
+    },
+    "cafeProfitPerGuest": {
+      "label": "Café-Gewinn pro Gast",
+      "help": "Was pro Gast nach Einkauf übrig bleibt."
+    },
+    "artistFeePerShow": {
+      "label": "Gage pro Show",
+      "help": "Was die Künstler:innen für eine Show bekommen."
+    },
+    "gemaPerShow": {
+      "label": "GEMA pro Show",
+      "help": "Gebühr für die Musik."
+    },
+    "kvrPerShow": {
+      "label": "KVR pro Show",
+      "help": "Anmeldung beim Kreisverwaltungsreferat."
+    },
+    "coursesPerWeek": {
+      "label": "Kurstermine pro Woche",
+      "help": "Alle Kurse zusammen, für Kinder, Teens und Erwachsene."
+    },
+    "participantsPerCourse": {
+      "label": "Teilnehmende pro Kurs",
+      "help": "Im Schnitt über alle Kurse."
+    },
+    "pricePerParticipant": {
+      "label": "Preis pro Teilnahme",
+      "help": "Was eine Person im Schnitt pro Termin zahlt."
+    },
+    "trainerCostPerCourse": {
+      "label": "Trainer pro Kurstermin",
+      "help": "Honorar für einen Termin."
+    },
+    "workshopsPerMonth": {
+      "label": "Workshops pro Monat",
+      "help": ""
+    },
+    "participantsPerWorkshop": {
+      "label": "Teilnehmende pro Workshop",
+      "help": ""
+    },
+    "profitPerWorkshopParticipant": {
+      "label": "Gewinn pro Workshop-Teilnahme",
+      "help": "Was nach allen Kosten pro Person übrig bleibt."
+    },
+    "profiTrainingPerMonth": {
+      "label": "Profitraining pro Monat",
+      "help": "Einnahmen aus dem offenen Training für Profis."
+    },
+    "fundingPerMonth": {
+      "label": "Förderung pro Monat",
+      "help": "Zuschüsse, zum Beispiel von der Stadt. Aufs Jahr gerechnet durch zwölf."
+    },
+    "rentalsPerMonth": {
+      "label": "Vermietungen pro Monat",
+      "help": "Wenn andere den Dome mieten."
+    },
+    "rentalPrice": {
+      "label": "Preis pro Vermietung",
+      "help": ""
+    },
+    "members": {
+      "label": "Mitglieder",
+      "help": "Zahlende Mitglieder im Verein."
+    },
+    "memberFeePerYear": {
+      "label": "Beitrag pro Jahr",
+      "help": ""
+    },
+    "personnelPerMonth": {
+      "label": "Personal",
+      "help": "Löhne und Minijobs, ohne Künstler:innen und Trainer."
+    },
+    "insurancePerMonth": {
+      "label": "Versicherungen",
+      "help": ""
+    },
+    "toiletsPerMonth": {
+      "label": "Toiletten",
+      "help": "Miete und Reinigung der Toiletten."
+    },
+    "marketingPerMonth": {
+      "label": "Werbung",
+      "help": "Plakate, Flyer, Anzeigen."
+    },
+    "technologyPerMonth": {
+      "label": "Technik und Software",
+      "help": ""
+    },
+    "otherCostsPerMonth": {
+      "label": "Sonstiges",
+      "help": "Alles Kleine, das sonst nirgends hinpasst."
+    },
+    "heatingPerWinterMonth": {
+      "label": "Heizen pro Wintermonat",
+      "help": "Fällt nur in den Wintermonaten an. Welche das sind, legst du bei der Saison fest."
+    },
+    "reservesPerMonth": {
+      "label": "Rücklage",
+      "help": "Geld, das jeden Monat für Unvorhergesehenes beiseitegelegt wird."
+    },
+    "taxAdvisorPerYear": {
+      "label": "Steuerberatung",
+      "help": ""
+    },
+    "annualReportPerYear": {
+      "label": "Jahresabschluss",
+      "help": ""
+    },
+    "bookkeepingPerYear": {
+      "label": "Buchhaltung",
+      "help": ""
+    },
+    "payrollPerYear": {
+      "label": "Lohnabrechnung",
+      "help": ""
+    },
+    "startingCash": {
+      "label": "Kontostand am Anfang",
+      "help": "Geld auf dem Konto zu Beginn des Planungsjahres."
+    },
+    "loanAmount": {
+      "label": "Kredit",
+      "help": "Kommt am Anfang aufs Konto. Im ersten Jahr werden nur Zinsen gezahlt."
+    },
+    "loanInterestRate": {
+      "label": "Zinssatz pro Jahr",
+      "help": ""
+    },
+    "initialExpenses": {
+      "label": "Anschaffungen am Anfang",
+      "help": "Einmalige Ausgaben zu Beginn, zum Beispiel Technik oder Bühne."
+    },
+    "liquidityBuffer": {
+      "label": "Sicherheitspolster",
+      "help": "So viel soll immer mindestens auf dem Konto sein."
+    }
+  },
+  "season": {
+    "title": "Saison",
+    "intro": "Wie viel ist in welchem Monat los? 100 % ist ein normaler Monat. Shows, Kurse, Workshops und Vermietungen ändern sich damit, feste Kosten nicht. Mit dem Häkchen legst du fest, in welchen Monaten geheizt wird.",
+    "activity": "Betrieb",
+    "winter": "geheizt",
+    "winterShort": "geheizt"
+  },
+  "revenue": {
     "tickets": "Tickets",
-    "ticketPrice": "Ticket-Preis",
-    "ticketPriceNote": "Achtung: Gebühren müssen abgezogen werden (Rausgegangen, Zahlungsanbieter)",
-    "ticketsPerWeek": "Tickets/Woche",
-    "gastronomyProfitPerTicket": "Gastronomischer Gewinn/Ticket",
-    "dailyGastronomyRevenue": "Tägliche Gastronomie-Einnahmen",
-    "showsPerWeek": "Shows/Woche",
-    "gemaFeePerShow": "GEMA Gebühren/Show",
-    "kvrFeePerShow": "KVR Anmeldung/Show",
-    "artistFeePerShow": "Künstlergagen/Show",
+    "cafe": "Café",
     "courses": "Kurse",
-    "course1": "Kurs 1 (z.B. Anfängerkurs)",
-    "course2": "Kurs 2 (z.B. Fortgeschritten)",
-    "course3": "Kurs 3 (z.B. Profi)",
-    "pricePerParticipant": "Preis/Teilnehmer",
-    "participants": "Teilnehmer",
-    "trainerCosts": "Trainerkosten/Kurs",
-    "coursesPerWeek": "Kurse/Woche",
     "workshops": "Workshops",
-    "profitPerParticipant": "Gewinn/Teilnehmer",
-    "workshopsPerMonth": "Workshops/Monat",
-    "rental": "Vermietung",
-    "rentalsPerWeek": "Vermietungen/Woche",
-    "rentalPrice": "Mietpreis",
-    "costs": "Kosten",
-    "rent": "Versicherung",
-    "salaries": "Personalkosten (monatlich)",
-    "marketing": "Marketing",
+    "rentals": "Vermietung",
+    "profiTraining": "Profitraining",
+    "funding": "Förderung",
+    "members": "Mitgliedsbeiträge"
+  },
+  "costs": {
+    "artists": "Gagen",
+    "showFees": "GEMA und KVR",
+    "trainers": "Trainer",
+    "personnel": "Personal",
+    "heating": "Heizen",
+    "toilets": "Toiletten",
+    "insurance": "Versicherungen",
+    "marketing": "Werbung",
     "technology": "Technik",
-    "fuel": "Treibstoff (monatlich)",
-    "heatingRental": "Heizanlage-Miete (Saison)",
-    "otherCosts": "Sonstige Kosten",
-    "taxAdvisorCosts": "Steuerberater (jährlich)",
-    "taxReturnCosts": "Jahresabschluss/Steuererklärung (jährlich)",
-    "accountingCosts": "Finanzbuchhaltung (jährlich)",
-    "payrollAccountingCosts": "Lohnbuchhaltung (jährlich)",
-    "weeklyReserves": "Wöchentliche Rücklagen",
-    "weeklyRevenue": "Wöchentliche Basis-Einnahmen",
-    "totalMonthly": "Monatliche Gesamtkosten",
-    "heatingSeason": "Heizanlage-Miete (einmalig/Saison)",
-    "heatingDistribution": "Verteilt auf KW 44-52 (2025) und KW 1-5 (2026)",
-    "weeklyChart": "Wöchentliche Übersicht",
-    "week": "KW",
-    "revenue": "Umsatz",
-    "margin": "Marge"
+    "other": "Sonstiges",
+    "admin": "Steuer und Buchhaltung",
+    "loanInterest": "Kreditzinsen",
+    "reserves": "Rücklage"
   },
-  "forecast": {
-    "title": "Prognose",
-    "subtitle": "12-Monats-Vorhersage basierend auf historischen Daten",
-    "scenario": "Szenario",
-    "base": "Basis (Trend)",
-    "optimistic": "Optimistisch (+20%)",
-    "pessimistic": "Pessimistisch (-20%)",
-    "breakEven": "Break-Even",
-    "breakEvenMonth": "Voraussichtlich im",
-    "revenueAndCosts": "Umsatz & Kosten",
-    "marginChart": "Deckungsbeitrag",
-    "loading": "Lade Daten..."
+  "result": {
+    "avgMonth": "Ergebnis pro Monat",
+    "avgMonthHint": "im Schnitt übers Jahr",
+    "carries": "Es trägt sich",
+    "notCarries": "Es trägt sich noch nicht",
+    "income": "Einnahmen",
+    "costs": "Kosten",
+    "year": "Ergebnis im ganzen Jahr",
+    "startBalance": "Kontostand am Anfang",
+    "endBalance": "Kontostand nach einem Jahr",
+    "lowestBalance": "Tiefster Kontostand",
+    "warnZero": "Ab {month} ist das Konto im Minus.",
+    "warnZeroStart": "Schon am Anfang ist das Konto im Minus.",
+    "warnBuffer": "Ab {month} ist weniger als das Sicherheitspolster von {buffer} auf dem Konto.",
+    "warnBufferStart": "Schon am Anfang ist weniger als das Sicherheitspolster von {buffer} auf dem Konto.",
+    "balanceOk": "Das Konto bleibt das ganze Jahr über dem Sicherheitspolster."
   },
-  "debts": {
-    "title": "Schulden-Übersicht",
-    "subtitle": "Offene vorgestreckte Beträge",
-    "totalDebt": "Gesamt-Schulden",
-    "noDebts": "Keine offenen Schulden vorhanden.",
-    "date": "Datum",
-    "category": "Kategorie",
-    "amount": "Betrag",
-    "note": "Notiz"
+  "need": {
+    "title": "Was muss passieren?",
+    "missing": "Es fehlen im Schnitt {amount} pro Monat. Jede dieser Änderungen allein würde reichen:",
+    "surplus": "Pro Monat bleiben im Schnitt {amount} übrig. So weit dürfte es sinken, bevor es kippt:",
+    "from": "statt {current}",
+    "levers": {
+      "guestsPerShow": "{value} Gäste pro Show",
+      "showsPerMonth": "{value} Shows pro Monat",
+      "participantsPerCourse": "{value} Teilnehmende pro Kurs",
+      "ticketPrice": "{value} pro Ticket"
+    },
+    "overSeats": "mehr als die {seats} Plätze im Dome, das allein reicht also nicht",
+    "noEffect": "hilft hier nicht, weil damit auch die Kosten steigen",
+    "combine": "Meist ist es eine Mischung: ein paar Gäste mehr, ein Kurs mehr, etwas weniger Kosten.",
+    "notNeeded": "auch ganz ohne bleibt das Jahr im Plus"
   },
-  "import": {
-    "title": "CSV Import",
-    "subtitle": "Lade eine CSV-Datei hoch und ordne die Spalten zu",
-    "selectFile": "CSV-Datei auswählen",
-    "mapColumns": "Spalten zuordnen",
-    "preview": "Vorschau",
-    "rows": "Zeilen",
-    "import": "Importieren",
-    "importing": "Importiere...",
-    "success": "Erfolgreich {{count}} Transaktionen importiert",
-    "error": "Fehler: {{message}}",
-    "notMapped": "-- nicht zugeordnet --",
-    "required": "*"
+  "chart": {
+    "title": "Das Jahr im Verlauf",
+    "intro": "Balken: Ergebnis im Monat. Linie: Kontostand am Monatsende.",
+    "result": "Ergebnis",
+    "balance": "Kontostand",
+    "buffer": "Polster",
+    "winter": "geheizt"
   },
-  "diagrams": {
-    "title": "Diagramme",
-    "subtitle": "Laden Sie eine heruntergeladene Analyse hoch, um visuelle Diagramme zu erstellen",
-    "uploadFile": "Analyse-Datei hochladen",
-    "selectFile": "Datei auswählen",
-    "fileLoaded": "Datei geladen",
-    "error": "Fehler",
-    "noData": "Bitte laden Sie eine Analyse-Datei hoch, um Diagramme zu erstellen."
+  "breakdown": {
+    "title": "Wohin fließt das Geld?",
+    "intro": "Durchschnitt pro Monat",
+    "income": "Einnahmen",
+    "costs": "Kosten"
+  },
+  "scenario": {
+    "current": "Aktuelles Szenario",
+    "unsaved": "nicht gespeichert",
+    "changed": "{count, plural, =0 {keine Änderungen} one {# Wert geändert} other {# Werte geändert}}",
+    "reset": "Zurücksetzen",
+    "namePlaceholder": "Name für dieses Szenario",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "savedTitle": "Gespeicherte Szenarien",
+    "savedHint": "Nur in diesem Browser gespeichert.",
+    "empty": "Noch nichts gespeichert.",
+    "load": "Laden",
+    "delete": "Löschen",
+    "deleteConfirm": "Szenario „{name}“ löschen?",
+    "share": "Link kopieren",
+    "copied": "Link kopiert",
+    "copyFailed": "Kopieren ging nicht. Hier ist der Link:",
+    "download": "Herunterladen",
+    "downloadCsv": "Tabelle (.csv)",
+    "downloadTxt": "Bericht (.txt)",
+    "sharedLoaded": "Geteiltes Szenario geladen: {name}",
+    "sharedInvalid": "Der Link enthält kein gültiges Szenario. Es gilt der Grundstand.",
+    "sharedDefaultName": "Geteiltes Szenario",
+    "storageFailed": "Speichern ging nicht. Vielleicht ist der Browser im privaten Modus."
+  },
+  "export": {
+    "row": "Zeile",
+    "year": "Jahr",
+    "activity": "Betrieb in %",
+    "income": "Einnahme",
+    "cost": "Kosten",
+    "totalIncome": "Einnahmen gesamt",
+    "totalCosts": "Kosten gesamt",
+    "result": "Ergebnis",
+    "balance": "Kontostand",
+    "reportTitle": "Pepe Dome Finanzregler",
+    "createdAt": "Erstellt",
+    "summary": "Zusammenfassung",
+    "perMonth": "Monat für Monat",
+    "inputs": "Eingaben",
+    "note": "Alle Beträge ohne Mehrwertsteuer. Eine Planungshilfe, keine Buchhaltung."
   }
 }

@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Farben als Tokens. Tailwind erzeugt daraus Klassen wie bg-surface,
+ * text-ink oder border-line. Dunkler Modus folgt der Systemeinstellung.
+ */
+@theme {
+  --color-bg: #f7f4ef;
+  --color-surface: #ffffff;
+  --color-sunken: #f1ece5;
+  --color-ink: #1d1a17;
+  --color-muted: #6a625b;
+  --color-line: #e4ddd3;
+  --color-accent: #b4471f;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #f7e7de;
+  --color-plus: #177245;
+  --color-plus-soft: #e2f2e8;
+  --color-minus: #b42318;
+  --color-minus-soft: #fbe6e3;
+  --color-warn: #8a5a00;
+  --color-warn-soft: #fbf0d6;
+  --color-winter: #2f6db3;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-bg: #151311;
+    --color-surface: #1f1c19;
+    --color-sunken: #191714;
+    --color-ink: #f2eee8;
+    --color-muted: #a59c93;
+    --color-line: #35302b;
+    --color-accent: #e8875c;
+    --color-accent-ink: #1d1a17;
+    --color-accent-soft: #3a261c;
+    --color-plus: #5fd08f;
+    --color-plus-soft: #17301f;
+    --color-minus: #ff8a7a;
+    --color-minus-soft: #3b1c18;
+    --color-warn: #f2c14e;
+    --color-warn-soft: #382c12;
+    --color-winter: #7fb0ea;
   }
 }
 
+html {
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+input[type="range"] {
+  accent-color: var(--color-accent);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

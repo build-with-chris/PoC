@@ -1,141 +1,387 @@
 {
+  "meta": {
+    "title": "Pepe Dome money planner",
+    "description": "Try for yourself what the Pepe Dome needs each month and what has to happen for it to pay for itself."
+  },
   "nav": {
-    "dashboard": "Dashboard",
-    "preview": "Preview",
-    "forecast": "Forecast",
-    "debts": "Debts",
-    "import": "Import"
+    "brand": "Pepe Dome",
+    "brandSub": "Money planner",
+    "tour": "Walkthrough",
+    "calculator": "Try it yourself",
+    "switchLanguage": "Deutsch"
   },
-  "dashboard": {
-    "title": "Finance Tracking",
-    "subtitle": "Track your income and expenses",
-    "kpi": {
-      "revenue": "Revenue",
-      "costs": "Costs",
-      "margin": "Margin"
+  "banner": {
+    "example": "These are example values, not the real Dome figures. The real values come from the environment variable PEPE_DOME_WERTE."
+  },
+  "tour": {
+    "stepOf": "Step {current} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip to the planner",
+    "finish": "Try it yourself",
+    "intro": {
+      "title": "The Pepe Dome in numbers",
+      "text": "A place like the Dome costs money every month, even when nobody is in the ring. In four short steps you will see where the money comes from, where it goes and what has to happen for it all to pay for itself.",
+      "point1": "All amounts are monthly averages, excluding VAT.",
+      "point2": "The planning year runs from March to February.",
+      "point3": "Afterwards you can turn every dial yourself. You cannot break anything."
     },
-    "newTransaction": "Record New Transaction",
-    "recentTransactions": "Recent Transactions",
-    "noTransactions": "No transactions yet"
+    "fixed": {
+      "title": "What we pay every month anyway",
+      "text": "These costs come whether shows are running or not.",
+      "total": "Together, on average",
+      "after": "This money has to come in every month before anything is left over.",
+      "heatingNote": "Heating only costs money in winter. Here it is spread over all twelve months."
+    },
+    "show": {
+      "title": "One show, worked through",
+      "text": "Shows are the heart of the Dome. This is what a single show looks like:",
+      "tickets": "{guests} guests × {price} ticket",
+      "cafe": "{guests} guests × {amount} café",
+      "artists": "Artist fees",
+      "fees": "GEMA and KVR",
+      "result": "Left per show",
+      "perMonth": "With {shows} shows a month that makes {amount}.",
+      "seats": "The Dome has {seats} seats. With {guests} guests it is {percent} % full."
+    },
+    "more": {
+      "title": "Classes, training and funding",
+      "text": "Besides shows there is income that comes in every week or every month.",
+      "courseLine": "One class: {participants} participants × {price}, minus {trainer} trainer",
+      "courseResult": "Left per class",
+      "perMonth": "Per month on average"
+    },
+    "result": {
+      "title": "Does it pay for itself?",
+      "text": "Everything together gives, per month on average:"
+    }
   },
-  "transaction": {
-    "date": "Date",
-    "amount": "Amount (EUR)",
-    "category": "Category",
-    "counterparty": "Counterparty",
-    "note": "Note",
-    "isAdvanced": "Was advanced?",
-    "advancedBy": "Advanced by whom?",
-    "save": "Save Transaction",
-    "saving": "Saving...",
-    "success": "Transaction saved successfully!",
-    "required": "Required fields",
-    "income": "Income",
-    "expenses": "Expenses",
-    "selectCategory": "Please select...",
-    "yes": "Yes",
-    "no": "No"
+  "calc": {
+    "title": "Try it yourself",
+    "intro": "Pick a template and move the sliders. The result changes immediately.",
+    "mainTitle": "The most important dials",
+    "mainIntro": "These eight sliders already get you very far."
   },
-  "preview": {
-    "title": "Revenue Preview",
-    "subtitle": "Simulate your weekly income and expenses for the entire year",
-    "backToDashboard": "Back",
-    "fixedIncome": "Fixed Income",
-    "profitraining": "Professional Training",
-    "fundingPerMonth": "Cross-financing through funding (monthly)",
-    "memberships": "Membership Fees",
-    "membershipCount": "Number of Members",
-    "membershipFeePerYear": "Fee per Year per Member",
+  "presets": {
+    "title": "Templates",
+    "plan": {
+      "title": "Our plan",
+      "text": "The current base values."
+    },
+    "goodYear": {
+      "title": "Good year",
+      "text": "20 % more guests and class participants."
+    },
+    "weakWinter": {
+      "title": "Weak winter",
+      "text": "Half as much going on from November to February."
+    },
+    "noFunding": {
+      "title": "No funding",
+      "text": "What if the funding stops?"
+    },
+    "firstYear": {
+      "title": "First year",
+      "text": "Things start slowly in March and reach 80 % by July."
+    }
+  },
+  "expert": {
+    "open": "Show all sliders",
+    "close": "Show fewer sliders",
+    "intro": "Here you will find every single number the planner uses. All amounts excluding VAT."
+  },
+  "groups": {
+    "shows": {
+      "title": "Shows and café"
+    },
+    "courses": {
+      "title": "Classes"
+    },
+    "workshops": {
+      "title": "Workshops"
+    },
+    "otherIncome": {
+      "title": "Other income"
+    },
+    "monthlyCosts": {
+      "title": "Monthly costs"
+    },
+    "annualCosts": {
+      "title": "Yearly costs"
+    },
+    "money": {
+      "title": "Bank balance, loan and safety buffer"
+    }
+  },
+  "fields": {
+    "showsPerMonth": {
+      "label": "Shows per month",
+      "help": "In a normal month. The season changes this further."
+    },
+    "guestsPerShow": {
+      "label": "Guests per show",
+      "help": "The Dome has 170 seats."
+    },
+    "ticketPrice": {
+      "label": "Ticket price",
+      "help": "What a ticket brings in on average, discounts included."
+    },
+    "cafeProfitPerGuest": {
+      "label": "Café profit per guest",
+      "help": "What is left per guest after purchasing."
+    },
+    "artistFeePerShow": {
+      "label": "Artist fee per show",
+      "help": "What the artists get for one show."
+    },
+    "gemaPerShow": {
+      "label": "GEMA per show",
+      "help": "Music licensing fee."
+    },
+    "kvrPerShow": {
+      "label": "KVR per show",
+      "help": "Registration with the city office."
+    },
+    "coursesPerWeek": {
+      "label": "Classes per week",
+      "help": "All classes together, for kids, teens and adults."
+    },
+    "participantsPerCourse": {
+      "label": "Participants per class",
+      "help": "Average across all classes."
+    },
+    "pricePerParticipant": {
+      "label": "Price per participant",
+      "help": "What one person pays per class on average."
+    },
+    "trainerCostPerCourse": {
+      "label": "Trainer per class",
+      "help": "Fee for one class."
+    },
+    "workshopsPerMonth": {
+      "label": "Workshops per month",
+      "help": ""
+    },
+    "participantsPerWorkshop": {
+      "label": "Participants per workshop",
+      "help": ""
+    },
+    "profitPerWorkshopParticipant": {
+      "label": "Profit per workshop participant",
+      "help": "What is left per person after all costs."
+    },
+    "profiTrainingPerMonth": {
+      "label": "Pro training per month",
+      "help": "Income from the open training for professionals."
+    },
+    "fundingPerMonth": {
+      "label": "Funding per month",
+      "help": "Grants, for example from the city. Yearly amount divided by twelve."
+    },
+    "rentalsPerMonth": {
+      "label": "Rentals per month",
+      "help": "When others rent the Dome."
+    },
+    "rentalPrice": {
+      "label": "Price per rental",
+      "help": ""
+    },
+    "members": {
+      "label": "Members",
+      "help": "Paying members of the association."
+    },
+    "memberFeePerYear": {
+      "label": "Fee per year",
+      "help": ""
+    },
+    "personnelPerMonth": {
+      "label": "Staff",
+      "help": "Wages and mini jobs, excluding artists and trainers."
+    },
+    "insurancePerMonth": {
+      "label": "Insurance",
+      "help": ""
+    },
+    "toiletsPerMonth": {
+      "label": "Toilets",
+      "help": "Rent and cleaning of the toilets."
+    },
+    "marketingPerMonth": {
+      "label": "Advertising",
+      "help": "Posters, flyers, ads."
+    },
+    "technologyPerMonth": {
+      "label": "Tech and software",
+      "help": ""
+    },
+    "otherCostsPerMonth": {
+      "label": "Other",
+      "help": "All the small things that fit nowhere else."
+    },
+    "heatingPerWinterMonth": {
+      "label": "Heating per winter month",
+      "help": "Only in winter months. You choose which ones in the season section."
+    },
+    "reservesPerMonth": {
+      "label": "Reserve",
+      "help": "Money set aside each month for surprises."
+    },
+    "taxAdvisorPerYear": {
+      "label": "Tax advisor",
+      "help": ""
+    },
+    "annualReportPerYear": {
+      "label": "Annual accounts",
+      "help": ""
+    },
+    "bookkeepingPerYear": {
+      "label": "Bookkeeping",
+      "help": ""
+    },
+    "payrollPerYear": {
+      "label": "Payroll",
+      "help": ""
+    },
+    "startingCash": {
+      "label": "Bank balance at the start",
+      "help": "Money in the account at the start of the planning year."
+    },
+    "loanAmount": {
+      "label": "Loan",
+      "help": "Paid into the account at the start. In the first year only interest is paid."
+    },
+    "loanInterestRate": {
+      "label": "Interest rate per year",
+      "help": ""
+    },
+    "initialExpenses": {
+      "label": "Purchases at the start",
+      "help": "One-off spending at the start, for example equipment or a stage."
+    },
+    "liquidityBuffer": {
+      "label": "Safety buffer",
+      "help": "At least this much should always be in the account."
+    }
+  },
+  "season": {
+    "title": "Season",
+    "intro": "How much is going on in which month? 100 % is a normal month. Shows, classes, workshops and rentals change with it, fixed costs do not. Tick the months in which the Dome is heated.",
+    "activity": "Activity",
+    "winter": "heated",
+    "winterShort": "heated"
+  },
+  "revenue": {
     "tickets": "Tickets",
-    "ticketPrice": "Ticket Price",
-    "ticketPriceNote": "Note: Fees must be deducted (Outgoing, Payment provider)",
-    "ticketsPerWeek": "Tickets/Week",
-    "gastronomyProfitPerTicket": "Gastronomy Profit/Ticket",
-    "dailyGastronomyRevenue": "Daily Gastronomy Revenue",
-    "showsPerWeek": "Shows/Week",
-    "gemaFeePerShow": "GEMA Fee/Show",
-    "kvrFeePerShow": "KVR Registration/Show",
-    "artistFeePerShow": "Artist Fee/Show",
-    "courses": "Courses",
-    "course1": "Course 1 (e.g. Beginners)",
-    "course2": "Course 2 (e.g. Advanced)",
-    "course3": "Course 3 (e.g. Professional)",
-    "pricePerParticipant": "Price/Participant",
-    "participants": "Participants",
-    "trainerCosts": "Trainer Costs/Course",
-    "coursesPerWeek": "Courses/Week",
+    "cafe": "Café",
+    "courses": "Classes",
     "workshops": "Workshops",
-    "profitPerParticipant": "Profit/Participant",
-    "workshopsPerMonth": "Workshops/Month",
-    "rental": "Rental",
-    "rentalsPerWeek": "Rentals/Week",
-    "rentalPrice": "Rental Price",
+    "rentals": "Rentals",
+    "profiTraining": "Pro training",
+    "funding": "Funding",
+    "members": "Membership fees"
+  },
+  "costs": {
+    "artists": "Artist fees",
+    "showFees": "GEMA and KVR",
+    "trainers": "Trainers",
+    "personnel": "Staff",
+    "heating": "Heating",
+    "toilets": "Toilets",
+    "insurance": "Insurance",
+    "marketing": "Advertising",
+    "technology": "Tech",
+    "other": "Other",
+    "admin": "Tax and bookkeeping",
+    "loanInterest": "Loan interest",
+    "reserves": "Reserve"
+  },
+  "result": {
+    "avgMonth": "Result per month",
+    "avgMonthHint": "average over the year",
+    "carries": "It pays for itself",
+    "notCarries": "It does not pay for itself yet",
+    "income": "Income",
     "costs": "Costs",
-    "rent": "Insurance",
-    "salaries": "Personnel Costs (monthly)",
-    "marketing": "Marketing",
-    "technology": "Technology",
-    "fuel": "Fuel (monthly)",
-    "heatingRental": "Heating System Rental (Season)",
-    "otherCosts": "Other Costs",
-    "taxAdvisorCosts": "Tax Advisor (annual)",
-    "taxReturnCosts": "Annual Accounts/Tax Return (annual)",
-    "accountingCosts": "Financial Accounting (annual)",
-    "payrollAccountingCosts": "Payroll Accounting (annual)",
-    "weeklyReserves": "Weekly Reserves",
-    "weeklyRevenue": "Weekly Base Revenue",
-    "totalMonthly": "Total Monthly Costs",
-    "heatingSeason": "Heating System Rental (one-time/season)",
-    "heatingDistribution": "Distributed over Week 44-52 (2025) and Week 1-5 (2026)",
-    "weeklyChart": "Weekly Overview",
-    "week": "Week",
-    "revenue": "Revenue",
-    "margin": "Margin"
+    "year": "Result for the whole year",
+    "startBalance": "Bank balance at the start",
+    "endBalance": "Bank balance after one year",
+    "lowestBalance": "Lowest bank balance",
+    "warnZero": "From {month} the account is in the red.",
+    "warnZeroStart": "The account is already in the red at the start.",
+    "warnBuffer": "From {month} there is less than the safety buffer of {buffer} in the account.",
+    "warnBufferStart": "Already at the start there is less than the safety buffer of {buffer} in the account.",
+    "balanceOk": "The account stays above the safety buffer all year."
   },
-  "forecast": {
-    "title": "Forecast",
-    "subtitle": "12-month forecast based on historical data",
-    "scenario": "Scenario",
-    "base": "Base (Trend)",
-    "optimistic": "Optimistic (+20%)",
-    "pessimistic": "Pessimistic (-20%)",
-    "breakEven": "Break-Even",
-    "breakEvenMonth": "Expected in",
-    "revenueAndCosts": "Revenue & Costs",
-    "marginChart": "Margin",
-    "loading": "Loading data..."
+  "need": {
+    "title": "What has to happen?",
+    "missing": "On average {amount} per month is missing. Any one of these changes alone would be enough:",
+    "surplus": "On average {amount} per month is left over. This is how far things could drop before it tips:",
+    "from": "instead of {current}",
+    "levers": {
+      "guestsPerShow": "{value} guests per show",
+      "showsPerMonth": "{value} shows per month",
+      "participantsPerCourse": "{value} participants per class",
+      "ticketPrice": "{value} per ticket"
+    },
+    "overSeats": "more than the {seats} seats in the Dome, so this alone is not enough",
+    "noEffect": "does not help here, because costs rise with it",
+    "combine": "Usually it is a mix: a few more guests, one more class, slightly lower costs.",
+    "notNeeded": "even at zero the year stays positive"
   },
-  "debts": {
-    "title": "Debts Overview",
-    "subtitle": "Outstanding advanced amounts",
-    "totalDebt": "Total Debt",
-    "noDebts": "No outstanding debts.",
-    "date": "Date",
-    "category": "Category",
-    "amount": "Amount",
-    "note": "Note"
+  "chart": {
+    "title": "The year at a glance",
+    "intro": "Bars: result for the month. Line: bank balance at the end of the month.",
+    "result": "Result",
+    "balance": "Bank balance",
+    "buffer": "Buffer",
+    "winter": "heated"
   },
-  "import": {
-    "title": "CSV Import",
-    "subtitle": "Upload a CSV file and map the columns",
-    "selectFile": "Select CSV File",
-    "mapColumns": "Map Columns",
-    "preview": "Preview",
-    "rows": "Rows",
-    "import": "Import",
-    "importing": "Importing...",
-    "success": "Successfully imported {{count}} transactions",
-    "error": "Error: {{message}}",
-    "notMapped": "-- not mapped --",
-    "required": "*"
+  "breakdown": {
+    "title": "Where does the money go?",
+    "intro": "Average per month",
+    "income": "Income",
+    "costs": "Costs"
   },
-  "diagrams": {
-    "title": "Diagrams",
-    "subtitle": "Upload a downloaded analysis to create visual diagrams",
-    "uploadFile": "Upload Analysis File",
-    "selectFile": "Select File",
-    "fileLoaded": "File loaded",
-    "error": "Error",
-    "noData": "Please upload an analysis file to create diagrams."
+  "scenario": {
+    "current": "Current scenario",
+    "unsaved": "not saved",
+    "changed": "{count, plural, =0 {no changes} one {# value changed} other {# values changed}}",
+    "reset": "Reset",
+    "namePlaceholder": "Name for this scenario",
+    "save": "Save",
+    "saved": "Saved",
+    "savedTitle": "Saved scenarios",
+    "savedHint": "Only stored in this browser.",
+    "empty": "Nothing saved yet.",
+    "load": "Load",
+    "delete": "Delete",
+    "deleteConfirm": "Delete scenario \"{name}\"?",
+    "share": "Copy link",
+    "copied": "Link copied",
+    "copyFailed": "Copying did not work. Here is the link:",
+    "download": "Download",
+    "downloadCsv": "Table (.csv)",
+    "downloadTxt": "Report (.txt)",
+    "sharedLoaded": "Shared scenario loaded: {name}",
+    "sharedInvalid": "The link does not contain a valid scenario. The base values apply.",
+    "sharedDefaultName": "Shared scenario",
+    "storageFailed": "Saving did not work. Maybe the browser is in private mode."
+  },
+  "export": {
+    "row": "Row",
+    "year": "Year",
+    "activity": "Activity in %",
+    "income": "Income",
+    "cost": "Cost",
+    "totalIncome": "Total income",
+    "totalCosts": "Total costs",
+    "result": "Result",
+    "balance": "Bank balance",
+    "reportTitle": "Pepe Dome money planner",
+    "createdAt": "Created",
+    "summary": "Summary",
+    "perMonth": "Month by month",
+    "inputs": "Inputs",
+    "note": "All amounts excluding VAT. A planning aid, not accounting."
   }
 }

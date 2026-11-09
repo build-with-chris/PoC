@@ -1,50 +1,33 @@
 {
-  "name": "poc",
+  "name": "pepe-dome-finanzregler",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:prod": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
-    "db:reset": "prisma migrate reset",
-    "postinstall": "prisma generate"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/lib/*.test.ts",
+    "werte:vorlage": "tsx scripts/werte-vorlage.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.18.0",
-    "dom-to-image-more": "^3.7.2",
-    "html2canvas": "^1.4.1",
-    "i18next": "^25.6.0",
-    "i18next-browser-languagedetector": "^8.2.0",
     "next": "16.0.10",
     "next-intl": "^4.4.0",
-    "papaparse": "^5.5.3",
-    "prisma": "^6.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-i18next": "^16.2.4",
     "recharts": "^3.3.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.24",
-    "@types/papaparse": "^5.5.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
     "tailwindcss": "^4",
-    "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }
