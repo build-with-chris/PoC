@@ -8,7 +8,7 @@ type T = (key: string, values?: Record<string, string | number>) => string
 export function buildCsv(year: YearResult, locale: string, t: T): string {
   const sep = ';'
   const num = (v: number) => (locale === 'de' ? v.toFixed(2).replace('.', ',') : v.toFixed(2))
-  const header = [t('export.row'), ...year.months.map((m) => monthName(m.index, locale)), t('export.year')]
+  const header = [t('export.row'), ...year.months.map((m) => monthName(m.index, locale, 'short', year.startMonth)), t('export.year')]
   const row = (label: string, values: number[]) => [label, ...values.map(num), num(values.reduce((a, b) => a + b, 0))]
 
   const rows: string[][] = [header]
@@ -43,7 +43,7 @@ export function buildReport(name: string, inputs: Inputs, year: YearResult, loca
   lines.push(`== ${t('export.perMonth')} ==`)
   for (const m of year.months) {
     lines.push(
-      `${monthName(m.index, locale, 'long').padEnd(10)} ${t('export.income')} ${e(m.totalRevenue).padStart(10)}  ${t('export.cost')} ${e(m.totalCosts).padStart(10)}  ${t('export.result')} ${e(m.result, true).padStart(10)}  ${t('export.balance')} ${e(m.balance).padStart(10)}`,
+      `${monthName(m.index, locale, 'long', inputs.startMonth).padEnd(10)} ${t('export.income')} ${e(m.totalRevenue).padStart(10)}  ${t('export.cost')} ${e(m.totalCosts).padStart(10)}  ${t('export.result')} ${e(m.result, true).padStart(10)}  ${t('export.balance')} ${e(m.balance).padStart(10)}`,
     )
   }
   lines.push('')
@@ -57,7 +57,7 @@ export function buildReport(name: string, inputs: Inputs, year: YearResult, loca
   lines.push(`-- ${t('season.title')}`)
   lines.push(
     inputs.activity
-      .map((a, i) => `${monthName(i, locale)} ${a} %${inputs.winterMonths[i] ? ` (${t('season.winterShort')})` : ''}`)
+      .map((a, i) => `${monthName(i, locale, 'short', inputs.startMonth)} ${a} %${inputs.winterMonths[i] ? ` (${t('season.winterShort')})` : ''}`)
       .join(', '),
   )
   lines.push('')

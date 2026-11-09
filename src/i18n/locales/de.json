@@ -23,7 +23,7 @@
       "title": "Der Pepe Dome in Zahlen",
       "text": "Ein Ort wie der Dome kostet jeden Monat Geld, auch wenn gerade niemand in der Manege steht. In vier kurzen Schritten siehst du, woher das Geld kommt, wohin es geht und was passieren muss, damit sich alles trägt.",
       "point1": "Alle Beträge sind Durchschnittswerte pro Monat, ohne Mehrwertsteuer.",
-      "point2": "Das Planungsjahr läuft von März bis Februar. Im Sommer hat das Café täglich offen, im Winter nur an Showtagen.",
+      "point2": "Das Planungsjahr umfasst zwölf Monate ab {start}. Im Sommer hat das Café täglich offen, im Winter nur an Showtagen.",
       "point3": "Danach kannst du an allen Reglern selbst drehen. Kaputt machen kannst du nichts."
     },
     "fixed": {
@@ -186,11 +186,11 @@
       "help": "Zuschüsse, zum Beispiel von der Stadt. Aufs Jahr gerechnet durch zwölf."
     },
     "rentalsPerMonth": {
-      "label": "Vermietungen pro Monat",
-      "help": "Wenn andere den Dome mieten."
+      "label": "Event-Vermietungen pro Monat",
+      "help": "Wenn andere den Dome für einen Anlass mieten."
     },
     "rentalPrice": {
-      "label": "Preis pro Vermietung",
+      "label": "Preis pro Event-Vermietung",
       "help": ""
     },
     "members": {
@@ -296,6 +296,26 @@
     "oneOffFunding": {
       "label": "Einmalige Zuschüsse",
       "help": "Zum Beispiel Landesförderung oder Zuschuss für Material. Kommt am Anfang aufs Konto."
+    },
+    "fixedRentPerMonth": {
+      "label": "Feste Monatsmieten",
+      "help": "Zum Beispiel die Schule. Läuft das ganze Jahr, auch in Pausen."
+    },
+    "rentalHoursPerWeek": {
+      "label": "Mietstunden pro Woche",
+      "help": "Zum Beispiel Lufttraining des Akrobatik-Studios. Läuft das ganze Jahr."
+    },
+    "rentalPricePerHour": {
+      "label": "Preis pro Mietstunde",
+      "help": ""
+    },
+    "newIncomePerMonth": {
+      "label": "Neue Einnahmequellen",
+      "help": "Probier aus, wie viel eine neue Idee im Monat bringen müsste."
+    },
+    "startMonth": {
+      "label": "Planungsjahr beginnt im",
+      "help": ""
     }
   },
   "season": {
@@ -303,18 +323,28 @@
     "intro": "Wie viel ist in welchem Monat los? 100 % ist ein normaler Monat. Shows, Kurse, Workshops, Vermietungen und das Café ändern sich damit, feste Kosten nicht. Wintermonate markierst du mit dem Häkchen: Dann wird geheizt, und das Café hat nur an Showtagen offen.",
     "activity": "Betrieb",
     "winter": "Winter",
-    "winterShort": "Winter"
+    "winterShort": "Winter",
+    "startMonth": "Planungsjahr beginnt im",
+    "planIntro": "Für Monate, die schon fest geplant sind, trägst du Shows, Gäste pro Show und Vermietungen direkt ein. Leere Felder rechnen mit dem Durchschnitt (grau).",
+    "planned": "fest",
+    "plan": {
+      "shows": "Shows",
+      "guests": "Gäste",
+      "rentals": "Vermiet."
+    }
   },
   "revenue": {
     "tickets": "Tickets",
     "cafe": "Café bei Shows",
     "courses": "Kurse",
     "workshops": "Workshops",
-    "rentals": "Vermietung",
+    "rentals": "Event-Vermietung",
     "profiTraining": "Profitraining",
     "funding": "Förderung",
     "members": "Mitgliedsbeiträge",
-    "cafeDays": "Café im Sommer"
+    "cafeDays": "Café im Sommer",
+    "fixedRent": "Dauermieter",
+    "newIncome": "Neue Einnahmequellen"
   },
   "costs": {
     "artists": "Gagen",
@@ -359,7 +389,8 @@
       "guestsPerShow": "{value} Gäste pro Show",
       "showsPerMonth": "{value} Shows pro Monat",
       "participantsPerCourse": "{value} Teilnehmende pro Kurs",
-      "ticketPrice": "{value} pro Ticket"
+      "ticketPrice": "{value} pro Ticket",
+      "rentalHoursPerWeek": "{value} Mietstunden pro Woche"
     },
     "overSeats": "mehr als die {seats} Plätze im Dome, das allein reicht also nicht",
     "noEffect": "hilft hier nicht, weil damit auch die Kosten steigen",

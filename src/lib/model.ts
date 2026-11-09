@@ -6,7 +6,7 @@
  *
  * Grundsaetze:
  * - Alle Betraege sind netto, also ohne Mehrwertsteuer.
- * - Das Planungsjahr laeuft von Maerz bis Februar (12 Monate).
+ * - Das Planungsjahr hat 12 Monate und beginnt mit startMonth (Standard Maerz).
  * - Die Saison (activity) skaliert alles, was vom Betrieb abhaengt:
  *   Shows, Kurse, Workshops, Vermietungen und das Cafe. Feste Einnahmen und
  *   Kosten bleiben jeden Monat gleich.
@@ -16,8 +16,13 @@
  *   In den anderen Monaten hat es zusaetzlich an normalen Tagen offen.
  */
 
-/** Kalendermonat, mit dem das Planungsjahr beginnt (0 = Januar, 2 = Maerz). */
-export const PLANNING_START_MONTH = 2
+/** Startmonat, wenn nichts anderes angegeben ist (1 = Januar, 3 = Maerz). */
+export const DEFAULT_START_MONTH = 3
+
+/** Startmonat 1 bis 12 als Kalenderindex 0 bis 11, robust gegen krumme Werte. */
+export function startIndex(startMonth: number) {
+  return (((Math.round(startMonth) - 1) % 12) + 12) % 12
+}
 export const MONTH_COUNT = 12
 /** Durchschnittliche Wochen pro Monat (52 / 12). */
 export const WEEKS_PER_MONTH = 52 / 12
@@ -50,6 +55,10 @@ export interface Inputs {
   fundingPerMonth: number
   rentalsPerMonth: number
   rentalPrice: number
+  fixedRentPerMonth: number
+  rentalHoursPerWeek: number
+  rentalPricePerHour: number
+  newIncomePerMonth: number
   members: number
   memberFeePerYear: number
   // Personal
@@ -78,9 +87,18 @@ export interface Inputs {
   loanInterestRate: number
   initialExpenses: number
   liquidityBuffer: number
-  // Saison: 12 Eintraege, Index 0 = Maerz
+  // Planungsjahr und Saison: 12 Eintraege, Index 0 = Startmonat
+  startMonth: number
   activity: number[]
   winterMonths: boolean[]
+  /** Fest geplante Monate: ueberschreiben den Durchschnitt, leer = automatisch */
+  monthPlan: MonthPlan[]
+}
+
+export interface MonthPlan {
+  shows?: number
+  guests?: number
+  rentals?: number
 }
 
 export type NumberKey = {
@@ -94,9 +112,11 @@ export const REVENUE_KEYS = [
   'courses',
   'workshops',
   'rentals',
+  'fixedRent',
   'profiTraining',
   'funding',
   'members',
+  'newIncome',
 ] as const
 export type RevenueKey = (typeof REVENUE_KEYS)[number]
 
@@ -135,6 +155,7 @@ export interface MonthResult {
 }
 
 export interface YearResult {
+  startMonth: number
   months: MonthResult[]
   totalRevenue: number
   totalCosts: number
@@ -207,8 +228,10 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
   const f = activity / 100
   const isWinter = i.winterMonths[index] ?? false
 
-  const shows = i.showsPerMonth * f
-  const guests = shows * i.guestsPerShow
+  const plan = i.monthPlan[index] ?? {}
+  const shows = plan.shows ?? i.showsPerMonth * f
+  const guests = shows * (plan.guests ?? i.guestsPerShow)
+  const rentals = plan.rentals ?? i.rentalsPerMonth * f
   const courseSessions = i.coursesPerWeek * WEEKS_PER_MONTH * f
 
   const revenue: Record<RevenueKey, number> = {
@@ -217,10 +240,13 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
     cafeDays: isWinter ? 0 : i.cafeDaysPerWeek * WEEKS_PER_MONTH * f * i.cafeProfitPerDay,
     courses: courseSessions * i.participantsPerCourse * i.pricePerParticipant,
     workshops: i.workshopsPerMonth * f * i.participantsPerWorkshop * i.profitPerWorkshopParticipant,
-    rentals: i.rentalsPerMonth * f * i.rentalPrice,
+    rentals: rentals * i.rentalPrice,
+    // Dauermieter laufen unabhaengig von der Saison
+    fixedRent: i.fixedRentPerMonth + i.rentalHoursPerWeek * WEEKS_PER_MONTH * i.rentalPricePerHour,
     profiTraining: i.profiTrainingPerMonth,
     funding: i.fundingPerMonth,
     members: (i.members * i.memberFeePerYear) / 12,
+    newIncome: i.newIncomePerMonth,
   }
 
   const costs: Record<CostKey, number> = {
@@ -245,7 +271,7 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
 
   return {
     index,
-    calendarMonth: (PLANNING_START_MONTH + index) % 12,
+    calendarMonth: (startIndex(i.startMonth) + index) % 12,
     activity,
     isWinter,
     revenue,
@@ -288,6 +314,7 @@ export function calculateYear(i: Inputs): YearResult {
   }
 
   return {
+    startMonth: i.startMonth,
     months,
     totalRevenue,
     totalCosts,

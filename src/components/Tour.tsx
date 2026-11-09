@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import ResultSummary from './ResultSummary'
 import WhatItTakes from './WhatItTakes'
-import { formatEuro, formatNumber } from '@/lib/format'
+import { formatEuro, formatNumber, monthName } from '@/lib/format'
 import { calculateYear, perCourse, perShow, SEATS, type CostKey, type Inputs, type RevenueKey } from '@/lib/model'
 
 const STEPS = ['intro', 'fixed', 'show', 'more', 'result'] as const
@@ -24,7 +24,7 @@ const FIXED_COSTS: CostKey[] = [
   'reserves',
   'loanInterest',
 ]
-const OTHER_INCOME: RevenueKey[] = ['cafeDays', 'courses', 'funding', 'profiTraining', 'rentals', 'workshops', 'members']
+const OTHER_INCOME: RevenueKey[] = ['fixedRent', 'cafeDays', 'courses', 'funding', 'profiTraining', 'rentals', 'workshops', 'members', 'newIncome']
 
 export default function Tour({ base }: { base: Inputs }) {
   const t = useTranslations()
@@ -73,7 +73,7 @@ export default function Tour({ base }: { base: Inputs }) {
             <p>{t('tour.intro.text')}</p>
             <ul className="mt-6 space-y-2 text-base text-muted">
               <li>· {t('tour.intro.point1')}</li>
-              <li>· {t('tour.intro.point2')}</li>
+              <li>· {t('tour.intro.point2', { start: monthName(0, locale, 'long', base.startMonth) })}</li>
               <li>· {t('tour.intro.point3')}</li>
             </ul>
           </>

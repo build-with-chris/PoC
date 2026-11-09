@@ -8,8 +8,6 @@ import { SEATS, type Inputs } from './model'
 export const PRESET_IDS = ['plan', 'goodYear', 'weakWinter', 'noFunding', 'livingWage'] as const
 export type PresetId = (typeof PRESET_IDS)[number]
 
-// Index 0 = Maerz
-const WINTER_SLUMP = [8, 9, 10, 11] // November bis Februar
 
 export function applyPreset(id: PresetId, base: Inputs): Inputs {
   switch (id) {
@@ -24,7 +22,8 @@ export function applyPreset(id: PresetId, base: Inputs): Inputs {
     case 'weakWinter':
       return {
         ...base,
-        activity: base.activity.map((a, idx) => (WINTER_SLUMP.includes(idx) ? Math.round(a * 0.5) : a)),
+        // Halb so viel Betrieb in allen Wintermonaten
+        activity: base.activity.map((a, idx) => (base.winterMonths[idx] ? Math.round(a * 0.5) : a)),
       }
     case 'noFunding':
       return { ...base, fundingPerMonth: 0 }

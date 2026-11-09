@@ -21,8 +21,8 @@ export default function YearChart({ year, inputs }: { year: YearResult; inputs: 
   const locale = useLocale()
 
   const data = year.months.map((m) => ({
-    name: monthName(m.index, locale),
-    longName: monthName(m.index, locale, 'long'),
+    name: monthName(m.index, locale, 'short', inputs.startMonth),
+    longName: monthName(m.index, locale, 'long', inputs.startMonth),
     result: Math.round(m.result),
     balance: Math.round(m.balance),
     winter: m.isWinter,

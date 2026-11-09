@@ -26,7 +26,7 @@ export default function ResultSummary({
       text:
         year.firstMonthBelowZero < 0
           ? t('warnZeroStart')
-          : t('warnZero', { month: monthName(year.firstMonthBelowZero, locale, 'long') }),
+          : t('warnZero', { month: monthName(year.firstMonthBelowZero, locale, 'long', inputs.startMonth) }),
     }
   } else if (year.firstMonthBelowBuffer !== null) {
     const buffer = e(inputs.liquidityBuffer)
@@ -35,7 +35,7 @@ export default function ResultSummary({
       text:
         year.firstMonthBelowBuffer < 0
           ? t('warnBufferStart', { buffer })
-          : t('warnBuffer', { month: monthName(year.firstMonthBelowBuffer, locale, 'long'), buffer }),
+          : t('warnBuffer', { month: monthName(year.firstMonthBelowBuffer, locale, 'long', inputs.startMonth), buffer }),
     }
   } else {
     balanceNote = { tone: 'ok', text: t('balanceOk') }

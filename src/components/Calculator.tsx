@@ -250,10 +250,9 @@ export default function Calculator({ base }: { base: Inputs }) {
                 <summary className="cursor-pointer font-semibold">{t('season.title')}</summary>
                 <div className="mt-2">
                   <SeasonEditor
-                    activity={inputs.activity}
-                    winterMonths={inputs.winterMonths}
-                    onChange={(activity, winterMonths) => {
-                      setInputs((prev) => ({ ...prev, activity, winterMonths }))
+                    inputs={inputs}
+                    onChange={(part) => {
+                      setInputs((prev) => ({ ...prev, ...part }))
                       markEdited()
                     }}
                   />

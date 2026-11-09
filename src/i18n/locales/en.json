@@ -23,7 +23,7 @@
       "title": "The Pepe Dome in numbers",
       "text": "A place like the Dome costs money every month, even when nobody is in the ring. In four short steps you will see where the money comes from, where it goes and what has to happen for it all to pay for itself.",
       "point1": "All amounts are monthly averages, excluding VAT.",
-      "point2": "The planning year runs from March to February. In summer the café is open daily, in winter only on show days.",
+      "point2": "The planning year covers twelve months from {start}. In summer the café is open daily, in winter only on show days.",
       "point3": "Afterwards you can turn every dial yourself. You cannot break anything."
     },
     "fixed": {
@@ -186,11 +186,11 @@
       "help": "Grants, for example from the city. Yearly amount divided by twelve."
     },
     "rentalsPerMonth": {
-      "label": "Rentals per month",
-      "help": "When others rent the Dome."
+      "label": "Event rentals per month",
+      "help": "When others rent the Dome for an occasion."
     },
     "rentalPrice": {
-      "label": "Price per rental",
+      "label": "Price per event rental",
       "help": ""
     },
     "members": {
@@ -296,6 +296,26 @@
     "oneOffFunding": {
       "label": "One-off grants",
       "help": "For example state funding or a grant for materials. Paid into the account at the start."
+    },
+    "fixedRentPerMonth": {
+      "label": "Fixed monthly rent",
+      "help": "For example the school. Runs all year, also during breaks."
+    },
+    "rentalHoursPerWeek": {
+      "label": "Rental hours per week",
+      "help": "For example aerial training of the acrobatics studio. Runs all year."
+    },
+    "rentalPricePerHour": {
+      "label": "Price per rental hour",
+      "help": ""
+    },
+    "newIncomePerMonth": {
+      "label": "New income sources",
+      "help": "Try how much a new idea would need to bring in per month."
+    },
+    "startMonth": {
+      "label": "Planning year starts in",
+      "help": ""
     }
   },
   "season": {
@@ -303,18 +323,28 @@
     "intro": "How much is going on in which month? 100 % is a normal month. Shows, classes, workshops, rentals and the café change with it, fixed costs do not. Tick the winter months: then the Dome is heated and the café only opens on show days.",
     "activity": "Activity",
     "winter": "Winter",
-    "winterShort": "winter"
+    "winterShort": "winter",
+    "startMonth": "Planning year starts in",
+    "planIntro": "For months that are already booked, enter shows, guests per show and rentals directly. Empty fields use the average (grey).",
+    "planned": "booked",
+    "plan": {
+      "shows": "Shows",
+      "guests": "Guests",
+      "rentals": "Rentals"
+    }
   },
   "revenue": {
     "tickets": "Tickets",
     "cafe": "Café at shows",
     "courses": "Classes",
     "workshops": "Workshops",
-    "rentals": "Rentals",
+    "rentals": "Event rentals",
     "profiTraining": "Pro training",
     "funding": "Funding",
     "members": "Membership fees",
-    "cafeDays": "Café in summer"
+    "cafeDays": "Café in summer",
+    "fixedRent": "Long-term tenants",
+    "newIncome": "New income sources"
   },
   "costs": {
     "artists": "Artist fees",
@@ -359,7 +389,8 @@
       "guestsPerShow": "{value} guests per show",
       "showsPerMonth": "{value} shows per month",
       "participantsPerCourse": "{value} participants per class",
-      "ticketPrice": "{value} per ticket"
+      "ticketPrice": "{value} per ticket",
+      "rentalHoursPerWeek": "{value} rental hours per week"
     },
     "overSeats": "more than the {seats} seats in the Dome, so this alone is not enough",
     "noEffect": "does not help here, because costs rise with it",

@@ -32,6 +32,10 @@ export const EXAMPLE_INPUTS: Inputs = {
   fundingPerMonth: 2000,
   rentalsPerMonth: 4,
   rentalPrice: 300,
+  fixedRentPerMonth: 200,
+  rentalHoursPerWeek: 3,
+  rentalPricePerHour: 40,
+  newIncomePerMonth: 0,
   members: 0,
   memberFeePerYear: 0,
 
@@ -60,9 +64,11 @@ export const EXAMPLE_INPUTS: Inputs = {
   initialExpenses: 0,
   liquidityBuffer: 5000,
 
-  // Maerz bis Februar
+  // Planungsjahr ab Maerz; activity, winterMonths und monthPlan beginnen mit dem Startmonat
+  startMonth: 3,
   activity: [100, 100, 100, 100, 85, 70, 100, 100, 100, 80, 90, 100],
   winterMonths: [true, false, false, false, false, false, false, false, true, true, true, true],
+  monthPlan: Array.from({ length: 12 }, () => ({})),
 }
 
 const NUMBER_KEYS = (Object.keys(EXAMPLE_INPUTS) as (keyof Inputs)[]).filter(
@@ -77,6 +83,14 @@ export const partialInputsSchema = z
     ...Object.fromEntries(NUMBER_KEYS.map((k) => [k, num.optional()])),
     activity: z.array(num.min(0).max(300)).length(MONTH_COUNT).optional(),
     winterMonths: z.array(z.boolean()).length(MONTH_COUNT).optional(),
+    monthPlan: z
+      .array(
+        z
+          .object({ shows: num.min(0).optional(), guests: num.min(0).optional(), rentals: num.min(0).optional() })
+          .strict(),
+      )
+      .length(MONTH_COUNT)
+      .optional(),
   })
   .strict()
 
@@ -92,7 +106,7 @@ export function diffInputs(base: Inputs, current: Inputs): PartialInputs {
   for (const key of Object.keys(current) as (keyof Inputs)[]) {
     const a = base[key]
     const b = current[key]
-    const same = Array.isArray(a) && Array.isArray(b) ? a.every((v, idx) => v === b[idx]) : a === b
+    const same = Array.isArray(a) && Array.isArray(b) ? JSON.stringify(a) === JSON.stringify(b) : a === b
     if (!same) out[key] = b
   }
   return out as PartialInputs

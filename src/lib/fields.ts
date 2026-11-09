@@ -40,6 +40,10 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   fundingPerMonth: f('fundingPerMonth', 'euro', 20000, 100),
   rentalsPerMonth: f('rentalsPerMonth', 'count', 30),
   rentalPrice: f('rentalPrice', 'euro', 3000, 25),
+  fixedRentPerMonth: f('fixedRentPerMonth', 'euro', 5000, 10),
+  rentalHoursPerWeek: f('rentalHoursPerWeek', 'count', 60),
+  rentalPricePerHour: f('rentalPricePerHour', 'euro', 200, 1),
+  newIncomePerMonth: f('newIncomePerMonth', 'euro', 10000, 50),
   members: f('members', 'count', 1000, 5),
   memberFeePerYear: f('memberFeePerYear', 'euro', 500, 5),
 
@@ -67,6 +71,7 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   loanInterestRate: f('loanInterestRate', 'percent', 15, 0.1),
   initialExpenses: f('initialExpenses', 'euro', 200000, 500),
   liquidityBuffer: f('liquidityBuffer', 'euro', 50000, 500),
+  startMonth: f('startMonth', 'count', 12, 1, 1),
 }
 
 /** Die Stellschrauben, die Einsteiger zuerst sehen. */
@@ -102,7 +107,7 @@ export const EXPERT_GROUPS: { id: string; keys: NumberKey[] }[] = [
   { id: 'cafe', keys: ['cafeProfitPerGuest', 'cafeDaysPerWeek', 'cafeProfitPerDay'] },
   { id: 'courses', keys: ['coursesPerWeek', 'participantsPerCourse', 'pricePerParticipant', 'trainerCostPerCourse'] },
   { id: 'workshops', keys: ['workshopsPerMonth', 'participantsPerWorkshop', 'profitPerWorkshopParticipant'] },
-  { id: 'otherIncome', keys: ['profiTrainingPerMonth', 'fundingPerMonth', 'rentalsPerMonth', 'rentalPrice', 'members', 'memberFeePerYear'] },
+  { id: 'otherIncome', keys: ['profiTrainingPerMonth', 'fundingPerMonth', 'rentalsPerMonth', 'rentalPrice', 'fixedRentPerMonth', 'rentalHoursPerWeek', 'rentalPricePerHour', 'members', 'memberFeePerYear', 'newIncomePerMonth'] },
   { id: 'team', keys: ['coreTeamCount', 'salaryPerPerson', 'livingSalaryTarget', 'partTimePerMonth'] },
   { id: 'monthlyCosts', keys: ['heatingPerWinterMonth', 'toiletsPerMonth', 'insurancePerMonth', 'marketingPerMonth', 'technologyPerMonth', 'otherCostsPerMonth', 'reservesPerMonth'] },
   { id: 'annualCosts', keys: ['taxAdvisorPerYear', 'annualReportPerYear', 'bookkeepingPerYear', 'payrollPerYear', 'eventInsurancePerYear'] },
@@ -110,4 +115,4 @@ export const EXPERT_GROUPS: { id: string; keys: NumberKey[] }[] = [
 ]
 
 /** Stellschrauben fuer die Frage "Was muss passieren?" */
-export const LEVERS: NumberKey[] = ['guestsPerShow', 'showsPerMonth', 'participantsPerCourse', 'ticketPrice']
+export const LEVERS: NumberKey[] = ['guestsPerShow', 'showsPerMonth', 'participantsPerCourse', 'rentalHoursPerWeek', 'ticketPrice']

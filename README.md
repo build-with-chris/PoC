@@ -29,16 +29,21 @@ Es reicht, die Felder anzugeben, die vom Beispiel abweichen. Den kompletten aktu
 npm run werte:vorlage
 ```
 
-Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. Die Saison sind zwei Listen mit je zwölf Werten, beginnend mit März: `activity` (Betrieb in Prozent) und `winterMonths` (Wintermonate: geheizt, Café nur an Showtagen).
+Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. `startMonth` legt fest, in welchem Monat das Planungsjahr beginnt (1 bis 12, Standard 3 = März). Die Saison sind drei Listen mit je zwölf Einträgen, beginnend mit dem Startmonat:
+
+- `activity`: Betrieb in Prozent
+- `winterMonths`: Wintermonate, also geheizt und Café nur an Showtagen
+- `monthPlan`: fest geplante Monate, z. B. `{"shows":3,"guests":25,"rentals":1}`; ein leeres Objekt `{}` rechnet mit dem Durchschnitt
 
 **Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer die App öffnet, sieht die Startwerte trotzdem an den Reglern.
 
 ## Rechenregeln
 
 - Alle Beträge sind netto, ohne Mehrwertsteuer.
-- Planungsjahr März bis Februar, ein Monat hat 52 / 12 Wochen.
+- Planungsjahr: zwölf Monate ab `startMonth`, ein Monat hat 52 / 12 Wochen.
 - Die Saison skaliert Shows, Kurse, Workshops, Vermietungen und das Café. Feste Kosten bleiben gleich.
 - Wintermonate: Es wird geheizt, und das Café hat nur an Showtagen offen. In den übrigen Monaten kommt der Café-Gewinn an normalen Tagen dazu.
+- Dauermieter (feste Monatsmieten und Mietstunden pro Woche) laufen das ganze Jahr, auch in Pausenmonaten.
 - Kontostand am Anfang = Kontostand + einmalige Zuschüsse + Kredit − Anschaffungen.
 - Personal = Personen im Kernteam × Gehalt pro Person + Teilzeit und Minijobs. Beim Kredit wird im ersten Jahr nur Zins gezahlt.
 
