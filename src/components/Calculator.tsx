@@ -9,7 +9,10 @@ import YearChart from './YearChart'
 import Breakdown from './Breakdown'
 import SeasonEditor from './SeasonEditor'
 import ScenarioPanel from './ScenarioPanel'
-import { EXPERT_GROUPS, MAIN_FIELDS } from '@/lib/fields'
+import Missions from './Missions'
+import { EXPERT_GROUPS, FIELDS, MAIN_FIELDS, NUDGE } from '@/lib/fields'
+import { formatEuro, formatValue } from '@/lib/format'
+import { MISSION_PRESET, type MissionId } from '@/lib/missions'
 import { calculateYear, type Inputs, type NumberKey } from '@/lib/model'
 import { diffInputs, mergeInputs } from '@/lib/inputs'
 import { applyPreset, type PresetId } from '@/lib/presets'
@@ -30,14 +33,40 @@ export default function Calculator({ base }: { base: Inputs }) {
   const [expert, setExpert] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [ready, setReady] = useState(false)
+  const [mission, setMission] = useState<MissionId | null>(null)
 
   const year = useMemo(() => calculateYear(inputs), [inputs])
+  const baseYear = useMemo(() => calculateYear(base), [base])
+
+  // Was bringt ein Schritt mehr an einem Hauptregler? Macht Ursache und Wirkung sichtbar.
+  const nudges = useMemo(() => {
+    const out: Partial<Record<NumberKey, { text: string; positive: boolean } | null>> = {}
+    for (const key of MAIN_FIELDS) {
+      const step = NUDGE[key]
+      if (!step) continue
+      const effect = calculateYear({ ...inputs, [key]: inputs[key] + step }).avgMonthlyResult - year.avgMonthlyResult
+      if (Math.abs(effect) < 0.5) {
+        out[key] = null
+        continue
+      }
+      out[key] = {
+        text: t('calc.nudge', {
+          step: formatValue(step, FIELDS[key].unit, locale),
+          effect: formatEuro(effect, locale, true),
+        }),
+        positive: effect > 0,
+      }
+    }
+    return out
+  }, [inputs, year, t, locale])
   const changes = useMemo(() => diffInputs(base, inputs), [base, inputs])
   const changedCount = Object.keys(changes).length
   const isSaved = saved.some((s) => s.name === name && JSON.stringify(s.changes) === JSON.stringify(changes))
 
   // Beim ersten Laden: gespeicherte Szenarien und ein geteiltes Szenario aus dem Link holen
+  // Browser-Speicher und Adresszeile gibt es erst nach dem Laden im Browser, nicht beim Rendern auf dem Server
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setSaved(loadScenarios())
     if (window.location.hash) {
       const shared = readSharedFromHash(window.location.hash)
@@ -52,6 +81,7 @@ export default function Calculator({ base }: { base: Inputs }) {
       }
     }
     setReady(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
     // Nur einmal beim Laden
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -64,16 +94,28 @@ export default function Calculator({ base }: { base: Inputs }) {
     window.history.replaceState(null, '', url.toString())
   }, [ready, changes, changedCount, name])
 
-  const setField = (key: NumberKey, value: number) => {
-    setInputs((prev) => ({ ...prev, [key]: value }))
+  // Sobald jemand an einer Vorlage dreht, zeigt der Name das an
+  const markEdited = () => {
+    if (activePreset) setName(`${t(`presets.${activePreset}.title`)} (${t('scenario.edited')})`)
     setActivePreset(null)
   }
 
-  const choosePreset = (id: PresetId) => {
+  const setField = (key: NumberKey, value: number) => {
+    setInputs((prev) => ({ ...prev, [key]: value }))
+    markEdited()
+  }
+
+  const choosePreset = (id: PresetId, keepMission = false) => {
     setInputs(applyPreset(id, base))
     setName(t(`presets.${id}.title`))
     setActivePreset(id)
     setNotice(null)
+    if (!keepMission) setMission(null)
+  }
+
+  const startMission = (id: MissionId | null) => {
+    if (id) choosePreset(MISSION_PRESET[id], true)
+    setMission(id)
   }
 
   const save = (scenarioName: string) => {
@@ -93,6 +135,7 @@ export default function Calculator({ base }: { base: Inputs }) {
     setName(s.name)
     setActivePreset(null)
     setNotice(null)
+    setMission(null)
   }
 
   const remove = (s: SavedScenario) => {
@@ -125,6 +168,7 @@ export default function Calculator({ base }: { base: Inputs }) {
       value={inputs[key]}
       baseValue={base[key]}
       large={large}
+      nudge={large ? nudges[key] : undefined}
       onChange={(v) => setField(key, v)}
     />
   )
@@ -148,6 +192,8 @@ export default function Calculator({ base }: { base: Inputs }) {
           onDelete={remove}
           onShare={share}
           onDownload={download}
+          missionActive={mission !== null}
+          missions={<Missions active={mission} inputs={inputs} base={base} year={year} onStart={startMission} />}
         />
         {notice && (
           <div
@@ -208,7 +254,7 @@ export default function Calculator({ base }: { base: Inputs }) {
                     winterMonths={inputs.winterMonths}
                     onChange={(activity, winterMonths) => {
                       setInputs((prev) => ({ ...prev, activity, winterMonths }))
-                      setActivePreset(null)
+                      markEdited()
                     }}
                   />
                 </div>
@@ -218,7 +264,7 @@ export default function Calculator({ base }: { base: Inputs }) {
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
-          <ResultSummary year={year} inputs={inputs} />
+          <ResultSummary year={year} inputs={inputs} baseYear={changedCount > 0 ? baseYear : undefined} />
           <WhatItTakes year={year} inputs={inputs} />
           <YearChart year={year} inputs={inputs} />
           <Breakdown year={year} />
