@@ -35,6 +35,8 @@ Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. `startMonth`
 - `winterMonths`: Wintermonate, also geheizt und Café nur an Showtagen
 - `monthPlan`: fest geplante Monate, z. B. `{"shows":3,"guests":25,"rentals":1}`; ein leeres Objekt `{}` rechnet mit dem Durchschnitt
 
+Den Kontostand kannst du getrennt in `PEPE_DOME_KONTOSTAND` setzen (eine Zahl, z. B. `12345` oder `12.345,67`). Sie ersetzt `startingCash` und lässt sich so pflegen, ohne das große JSON anzufassen.
+
 **Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer die App öffnet, sieht die Startwerte trotzdem an den Reglern.
 
 ## Rechenregeln
