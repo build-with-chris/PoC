@@ -494,7 +494,6 @@
     "intro": "The money planner is only for the Pepe Dome team. Sign in with your account.",
     "requestTitle": "Request access",
     "requestIntro": "Enter your email address. Chris will review the request and approve you. After that you can sign in.",
-    "toSignIn": "Already approved? Go to sign in",
     "noAccess": "No access yet?",
     "requestLink": "Request access"
   }
