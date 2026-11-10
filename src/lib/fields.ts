@@ -30,7 +30,8 @@ export const FIELDS: Record<NumberKey, FieldDef> = {
   coursesPerWeek: f('coursesPerWeek', 'count', 40),
   participantsPerCourse: f('participantsPerCourse', 'count', 30),
   pricePerParticipant: f('pricePerParticipant', 'euro', 60),
-  trainerCostPerCourse: f('trainerCostPerCourse', 'euro', 300, 5),
+  trainerPerParticipant: f('trainerPerParticipant', 'euro', 50, 1),
+  trainerCapPerCourse: f('trainerCapPerCourse', 'euro', 300, 5),
 
   workshopsPerMonth: f('workshopsPerMonth', 'count', 20),
   participantsPerWorkshop: f('participantsPerWorkshop', 'count', 50),
@@ -105,7 +106,7 @@ export const NUDGE: Partial<Record<NumberKey, number>> = {
 export const EXPERT_GROUPS: { id: string; keys: NumberKey[] }[] = [
   { id: 'shows', keys: ['showsPerMonth', 'guestsPerShow', 'ticketPrice', 'artistFeePerShow', 'gemaPerShow', 'kvrPerShow'] },
   { id: 'cafe', keys: ['cafeProfitPerGuest', 'cafeDaysPerWeek', 'cafeProfitPerDay'] },
-  { id: 'courses', keys: ['coursesPerWeek', 'participantsPerCourse', 'pricePerParticipant', 'trainerCostPerCourse'] },
+  { id: 'courses', keys: ['coursesPerWeek', 'participantsPerCourse', 'pricePerParticipant', 'trainerPerParticipant', 'trainerCapPerCourse'] },
   { id: 'workshops', keys: ['workshopsPerMonth', 'participantsPerWorkshop', 'profitPerWorkshopParticipant'] },
   { id: 'otherIncome', keys: ['profiTrainingPerMonth', 'fundingPerMonth', 'rentalsPerMonth', 'rentalPrice', 'fixedRentPerMonth', 'rentalHoursPerWeek', 'rentalPricePerHour', 'members', 'memberFeePerYear', 'newIncomePerMonth'] },
   { id: 'team', keys: ['coreTeamCount', 'salaryPerPerson', 'livingSalaryTarget', 'partTimePerMonth'] },

@@ -22,7 +22,8 @@ export const EXAMPLE_INPUTS: Inputs = {
   coursesPerWeek: 6,
   participantsPerCourse: 8,
   pricePerParticipant: 15,
-  trainerCostPerCourse: 70,
+  trainerPerParticipant: 10,
+  trainerCapPerCourse: 60,
 
   workshopsPerMonth: 2,
   participantsPerWorkshop: 12,

@@ -134,7 +134,7 @@ export default function Tour({ base }: { base: Inputs }) {
                 t('tour.more.courseLine', {
                   participants: base.participantsPerCourse,
                   price: e(base.pricePerParticipant),
-                  trainer: e(base.trainerCostPerCourse),
+                  trainer: e(course.costs),
                 }),
                 '',
               )}

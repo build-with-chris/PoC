@@ -45,7 +45,9 @@ export interface Inputs {
   coursesPerWeek: number
   participantsPerCourse: number
   pricePerParticipant: number
-  trainerCostPerCourse: number
+  /** Trainerhonorar je teilnehmender Person, bis zur Obergrenze pro Termin */
+  trainerPerParticipant: number
+  trainerCapPerCourse: number
   // Workshops
   workshopsPerMonth: number
   participantsPerWorkshop: number
@@ -186,9 +188,14 @@ export function perShow(i: Inputs) {
 }
 
 /** Was ein einzelner Kurstermin unterm Strich bringt. */
+/** Trainerhonorar fuer einen Termin: pro Person, aber nie mehr als die Obergrenze. */
+export function trainerCostPerSession(i: Inputs) {
+  return Math.min(i.participantsPerCourse * i.trainerPerParticipant, i.trainerCapPerCourse)
+}
+
 export function perCourse(i: Inputs) {
   const income = i.participantsPerCourse * i.pricePerParticipant
-  const costs = i.trainerCostPerCourse
+  const costs = trainerCostPerSession(i)
   return { income, costs, result: income - costs }
 }
 
@@ -252,7 +259,7 @@ export function calculateMonth(i: Inputs, index: number): Omit<MonthResult, 'bal
   const costs: Record<CostKey, number> = {
     artists: shows * i.artistFeePerShow,
     showFees: shows * (i.gemaPerShow + i.kvrPerShow),
-    trainers: courseSessions * i.trainerCostPerCourse,
+    trainers: courseSessions * trainerCostPerSession(i),
     coreTeam: i.coreTeamCount * i.salaryPerPerson,
     partTime: i.partTimePerMonth,
     heating: isWinter ? i.heatingPerWinterMonth : 0,
@@ -336,16 +343,27 @@ export function calculateYear(i: Inputs): YearResult {
 /**
  * Welcher Wert einer Stellschraube reicht, damit das Jahr bei null landet?
  *
- * Das Jahresergebnis haengt bei allen Stellschrauben, die hier gefragt
- * werden, linear vom Wert ab. Zwei Rechnungen genuegen also fuer die Gerade.
- * Gibt null zurueck, wenn die Stellschraube das Ergebnis nicht verbessert.
+ * Das Jahresergebnis steigt mit jeder Stellschraube, die hier gefragt wird,
+ * aber nicht immer gleichmaessig (z. B. wegen der Obergrenze beim
+ * Trainerhonorar). Deshalb wird der Nullpunkt per Intervallhalbierung gesucht.
+ * Gibt 0 zurueck, wenn das Jahr schon ohne diese Stellschraube im Plus ist,
+ * und null, wenn mehr davon das Ergebnis nicht ins Plus bringt.
  */
 export function breakEvenValue(i: Inputs, key: NumberKey): number | null {
   const at = (v: number) => calculateYear({ ...i, [key]: v }).yearResult
-  const r0 = at(0)
-  const slope = at(1) - r0
-  if (slope <= 1e-9) return null
-  return Math.max(0, -r0 / slope)
+  if (at(0) >= 0) return 0
+  let hi = 1
+  while (at(hi) < 0) {
+    hi *= 2
+    if (hi > 1e7) return null
+  }
+  let lo = hi / 2 < 1 ? 0 : hi / 2
+  for (let n = 0; n < 60; n++) {
+    const mid = (lo + hi) / 2
+    if (at(mid) >= 0) hi = mid
+    else lo = mid
+  }
+  return hi
 }
 
 function sum(values: number[]) {

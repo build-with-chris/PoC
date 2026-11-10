@@ -161,10 +161,6 @@
       "label": "Preis pro Teilnahme",
       "help": "Was eine Person im Schnitt pro Termin zahlt."
     },
-    "trainerCostPerCourse": {
-      "label": "Trainer pro Kurstermin",
-      "help": "Honorar für einen Termin."
-    },
     "workshopsPerMonth": {
       "label": "Workshops pro Monat",
       "help": ""
@@ -316,6 +312,14 @@
     "startMonth": {
       "label": "Planungsjahr beginnt im",
       "help": ""
+    },
+    "trainerPerParticipant": {
+      "label": "Trainer pro Teilnehmenden",
+      "help": "Was der Trainer je Person im Kurs bekommt."
+    },
+    "trainerCapPerCourse": {
+      "label": "Trainer höchstens pro Termin",
+      "help": "Mehr bekommt der Trainer pro Termin nicht, auch bei vielen Teilnehmenden."
     }
   },
   "season": {

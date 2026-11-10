@@ -161,10 +161,6 @@
       "label": "Price per participant",
       "help": "What one person pays per class on average."
     },
-    "trainerCostPerCourse": {
-      "label": "Trainer per class",
-      "help": "Fee for one class."
-    },
     "workshopsPerMonth": {
       "label": "Workshops per month",
       "help": ""
@@ -316,6 +312,14 @@
     "startMonth": {
       "label": "Planning year starts in",
       "help": ""
+    },
+    "trainerPerParticipant": {
+      "label": "Trainer per participant",
+      "help": "What the trainer gets for each person in the class."
+    },
+    "trainerCapPerCourse": {
+      "label": "Trainer maximum per class",
+      "help": "The trainer never gets more than this per class, even with many participants."
     }
   },
   "season": {

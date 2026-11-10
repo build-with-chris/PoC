@@ -77,6 +77,20 @@ test('Startmonat verschiebt die Kalendermonate', () => {
   assert.equal(y.months[2].calendarMonth, 0)
 })
 
+test('Trainer: pro Person bezahlt, aber nie mehr als die Obergrenze', () => {
+  const base = { ...empty, coursesPerWeek: 1, pricePerParticipant: 20, trainerPerParticipant: 15, trainerCapPerCourse: 70 }
+  const sessions = WEEKS_PER_MONTH
+  assert.ok(Math.abs(calculateYear({ ...base, participantsPerCourse: 3 }).months[0].costs.trainers - 45 * sessions) < 1e-9)
+  assert.ok(Math.abs(calculateYear({ ...base, participantsPerCourse: 9 }).months[0].costs.trainers - 70 * sessions) < 1e-9)
+})
+
+test('Break-even findet den Nullpunkt auch mit Obergrenze beim Trainer', () => {
+  const i = { ...empty, coursesPerWeek: 1, pricePerParticipant: 20, trainerPerParticipant: 15, trainerCapPerCourse: 70, partTimePerMonth: 200 }
+  const p = breakEvenValue(i, 'participantsPerCourse')
+  assert.ok(p !== null)
+  assert.ok(Math.abs(calculateYear({ ...i, participantsPerCourse: p! }).yearResult) < 1e-3)
+})
+
 test('Kontostand: Start plus Kredit minus Anschaffungen, dann Monat fuer Monat', () => {
   const y = calculateYear({ ...empty, startingCash: 500, oneOffFunding: 500, loanAmount: 5000, initialExpenses: 2000, partTimePerMonth: 500, liquidityBuffer: 2000 })
   assert.equal(y.startBalance, 4000)
