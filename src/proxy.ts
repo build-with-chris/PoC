@@ -5,8 +5,8 @@ import { routing } from './i18n/routing'
 
 const intl = createIntlMiddleware(routing)
 
-// Nur die Anmeldeseite ist ohne Login erreichbar
-const isSignIn = createRouteMatcher(['/:locale/anmelden(.*)'])
+// Nur Anmeldung und Zugangsanfrage sind ohne Login erreichbar
+const isSignIn = createRouteMatcher(['/:locale/anmelden(.*)', '/:locale/zugang(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isSignIn(req)) {

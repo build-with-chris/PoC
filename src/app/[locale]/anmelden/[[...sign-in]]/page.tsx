@@ -1,5 +1,6 @@
 import { SignIn } from '@clerk/nextjs'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { Link } from '@/i18n/navigation'
 
 export default async function SignInPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -15,6 +16,12 @@ export default async function SignInPage({ params }: { params: Promise<{ locale:
         fallbackRedirectUrl={`/${locale}`}
         withSignUp={false}
       />
+      <p className="mt-6 text-sm text-muted">
+        {t('noAccess')}{' '}
+        <Link href="/zugang" className="underline hover:text-ink">
+          {t('requestLink')}
+        </Link>
+      </p>
     </div>
   )
 }

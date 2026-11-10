@@ -491,6 +491,11 @@
   },
   "auth": {
     "title": "Anmelden",
-    "intro": "Der Finanzregler ist nur für das Team des Pepe Dome. Melde dich mit deinem Zugang an."
+    "intro": "Der Finanzregler ist nur für das Team des Pepe Dome. Melde dich mit deinem Zugang an.",
+    "requestTitle": "Zugang anfragen",
+    "requestIntro": "Trag deine E-Mail-Adresse ein. Chris schaut sich die Anfrage an und schaltet dich frei. Danach kannst du dich anmelden.",
+    "toSignIn": "Schon freigeschaltet? Zur Anmeldung",
+    "noAccess": "Noch keinen Zugang?",
+    "requestLink": "Zugang anfragen"
   }
 }

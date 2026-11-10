@@ -4,7 +4,7 @@ Interaktiver Rechner für Mitwirkende des Pepe Dome (Ort für zeitgenössischen 
 
 ## Stack
 
-Next.js 16 (App Router), next-intl (de, en), Tailwind CSS 4, Recharts, zod. Anmeldung über Clerk (`src/proxy.ts` schützt alles außer `/[locale]/anmelden`). Keine Datenbank. Deployment auf Vercel.
+Next.js 16 (App Router), next-intl (de, en), Tailwind CSS 4, Recharts, zod. Anmeldung über Clerk (`src/proxy.ts` schützt alles außer `/[locale]/anmelden` und `/[locale]/zugang`). Keine Datenbank. Deployment auf Vercel.
 
 ## Regeln für dieses Repo
 

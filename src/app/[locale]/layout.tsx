@@ -44,6 +44,7 @@ export default async function LocaleLayout({
         <ClerkProvider
           localization={locale === 'de' ? deDE : enUS}
           signInUrl={`/${locale}/anmelden`}
+          waitlistUrl={`/${locale}/zugang`}
           appearance={{ variables: { colorPrimary: '#b4471f', borderRadius: '0.5rem' } }}
         >
           <NextIntlClientProvider>

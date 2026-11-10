@@ -44,7 +44,7 @@ Den Kontostand kannst du getrennt in `PEPE_DOME_KONTOSTAND` setzen (eine Zahl, z
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` und `CLERK_SECRET_KEY` lokal in `.env` und in Vercel setzen.
 - Ohne Schlüssel läuft Clerk lokal im Entwicklungsmodus mit temporären Schlüsseln.
 - Live-Schlüssel (`pk_live_...`) gelten nur für die Domain, für die die Clerk-Instanz angelegt wurde.
-- Im Clerk-Dashboard die Registrierung auf Einladung beschränken.
+- Im Clerk-Dashboard unter Restrictions den Modus **Waitlist** wählen. Neue Leute fragen über `/de/zugang` an, freigeschaltet wird im Clerk-Dashboard unter Waitlist.
 
 ## Rechenregeln
 
