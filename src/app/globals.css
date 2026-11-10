@@ -21,6 +21,12 @@
   --color-warn: #8a5a00;
   --color-warn-soft: #fbf0d6;
   --color-winter: #2f6db3;
+  /* Diagrammfarben fuer Gruppen, feste Reihenfolge, geprueft auf Farbfehlsichtigkeit */
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-series-3: #1baf7a;
+  --color-series-4: #eda100;
+  --color-series-5: #e87ba4;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -44,6 +50,11 @@
     --color-warn: #f2c14e;
     --color-warn-soft: #382c12;
     --color-winter: #7fb0ea;
+    --color-series-1: #3987e5;
+    --color-series-2: #d95926;
+    --color-series-3: #199e70;
+    --color-series-4: #c98500;
+    --color-series-5: #d55181;
   }
 }
 

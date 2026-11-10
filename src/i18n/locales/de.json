@@ -8,7 +8,8 @@
     "brandSub": "Finanzregler",
     "tour": "Rundgang",
     "calculator": "Selbst ausprobieren",
-    "switchLanguage": "English"
+    "switchLanguage": "English",
+    "costs": "Kosten"
   },
   "banner": {
     "example": "Hier stehen Beispielwerte, nicht die echten Zahlen des Dome. Die echten Werte kommen aus der Umgebungsvariable PEPE_DOME_WERTE."
@@ -496,5 +497,54 @@
     "requestIntro": "Trag deine E-Mail-Adresse ein. Chris schaut sich die Anfrage an und schaltet dich frei. Danach kannst du dich anmelden.",
     "noAccess": "Noch keinen Zugang?",
     "requestLink": "Zugang anfragen"
+  },
+  "costsPage": {
+    "title": "Was der Dome kostet",
+    "intro": "Alle Kosten mit den aktuellen Grundwerten, sortiert nach Bereichen. So siehst du, wo das meiste Geld hingeht und was sich übers Jahr verändert.",
+    "perMonth": "Kosten pro Monat",
+    "perMonthHint": "im Schnitt übers Planungsjahr",
+    "perYear": "Kosten im Jahr",
+    "perYearHint": "alle zwölf Monate zusammen",
+    "fixed": "Davon fest",
+    "fixedHint": "{percent} % fallen an, auch wenn kein Programm läuft",
+    "oneOff": "Einmalig am Anfang",
+    "oneOffHint": "zum Beispiel Brandschutz und Technik, nicht in den Monatskosten",
+    "shareTitle": "Wohin das Geld geht",
+    "shareIntro": "Anteil jedes Bereichs an den Kosten",
+    "perMonthShort": "pro Monat",
+    "perYearShort": "pro Jahr",
+    "monthTitle": "Kosten Monat für Monat",
+    "monthIntro": "Im Winter kommt das Heizen dazu, in Monaten mit vielen Shows steigen die Programmkosten.",
+    "monthNote": "Programmkosten wachsen mit Shows und Kursen mit, im Schnitt {variable} pro Monat. Alles andere fällt sowieso an.",
+    "listTitle": "Alle Posten",
+    "listIntro": "Jeder Kostenpunkt einzeln, mit dem, woraus er sich zusammensetzt.",
+    "colItem": "Posten",
+    "colShare": "Anteil",
+    "colMonth": "Pro Monat",
+    "colYear": "Pro Jahr",
+    "note": "Alle Beträge ohne Mehrwertsteuer. Jahreswerte sind auf zwölf Monate verteilt. Ändern kannst du die Werte im Regler unter „Alle Regler zeigen“.",
+    "groups": {
+      "team": "Team",
+      "program": "Programm",
+      "venue": "Ort und Betrieb",
+      "outreach": "Werbung und Technik",
+      "admin": "Verwaltung und Rücklagen"
+    },
+    "detail": {
+      "coreTeam": "{count} Personen × {salary} im Monat",
+      "partTime": "alle Teilzeitkräfte und Minijobs zusammen",
+      "artists": "{fee} pro Show, im Schnitt {shows} Shows im Monat",
+      "showFees": "GEMA {gema} und KVR {kvr} pro Show",
+      "trainers": "{perPerson} pro Person, höchstens {cap} pro Termin, im Schnitt {sessions} Termine im Monat",
+      "heating": "{amount} pro Wintermonat, {months} Wintermonate im Jahr",
+      "toilets": "Miete, Reinigung und Personal",
+      "insurance": "{monthly} im Monat und {event} Veranstaltungsversicherung im Jahr",
+      "other": "Verbrauchsmaterial und Kleinkram",
+      "marketing": "Flyer, Plakate, Anzeigen",
+      "technology": "Website, Software, Internet",
+      "admin": "Steuerberatung {tax}, Jahresabschluss {report}, Buchhaltung {books}, Lohnabrechnung {payroll} im Jahr",
+      "loanInterest": "{rate} % Zinsen auf {amount}",
+      "reserves": "für Unvorhergesehenes"
+    }
   }
 }

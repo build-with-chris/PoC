@@ -13,6 +13,7 @@ export default function SiteHeader() {
   const links = [
     { href: '/', label: t('tour') },
     { href: '/regler', label: t('calculator') },
+    { href: '/kosten', label: t('costs') },
   ]
 
   const switchLanguage = () => {

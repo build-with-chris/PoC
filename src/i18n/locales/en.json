@@ -8,7 +8,8 @@
     "brandSub": "Money planner",
     "tour": "Walkthrough",
     "calculator": "Try it yourself",
-    "switchLanguage": "Deutsch"
+    "switchLanguage": "Deutsch",
+    "costs": "Costs"
   },
   "banner": {
     "example": "These are example values, not the real Dome figures. The real values come from the environment variable PEPE_DOME_WERTE."
@@ -496,5 +497,54 @@
     "requestIntro": "Enter your email address. Chris will review the request and approve you. After that you can sign in.",
     "noAccess": "No access yet?",
     "requestLink": "Request access"
+  },
+  "costsPage": {
+    "title": "What the Dome costs",
+    "intro": "All costs with the current base values, sorted by area. See where most of the money goes and what changes over the year.",
+    "perMonth": "Costs per month",
+    "perMonthHint": "average over the planning year",
+    "perYear": "Costs per year",
+    "perYearHint": "all twelve months together",
+    "fixed": "Of which fixed",
+    "fixedHint": "{percent} % are due even when no programme runs",
+    "oneOff": "One-off at the start",
+    "oneOffHint": "for example fire safety and equipment, not in the monthly costs",
+    "shareTitle": "Where the money goes",
+    "shareIntro": "Share of each area in the costs",
+    "perMonthShort": "per month",
+    "perYearShort": "per year",
+    "monthTitle": "Costs month by month",
+    "monthIntro": "In winter heating is added; in months with many shows the programme costs rise.",
+    "monthNote": "Programme costs grow with shows and classes, on average {variable} per month. Everything else is due anyway.",
+    "listTitle": "All items",
+    "listIntro": "Every cost item on its own, with what it is made of.",
+    "colItem": "Item",
+    "colShare": "Share",
+    "colMonth": "Per month",
+    "colYear": "Per year",
+    "note": "All amounts excluding VAT. Yearly amounts are spread over twelve months. You can change the values in the planner under \"Show all sliders\".",
+    "groups": {
+      "team": "Team",
+      "program": "Programme",
+      "venue": "Venue and operations",
+      "outreach": "Advertising and tech",
+      "admin": "Admin and reserves"
+    },
+    "detail": {
+      "coreTeam": "{count} people × {salary} per month",
+      "partTime": "all part-time staff and mini jobs together",
+      "artists": "{fee} per show, on average {shows} shows per month",
+      "showFees": "GEMA {gema} and KVR {kvr} per show",
+      "trainers": "{perPerson} per person, at most {cap} per class, on average {sessions} classes per month",
+      "heating": "{amount} per winter month, {months} winter months per year",
+      "toilets": "rent, cleaning and staff",
+      "insurance": "{monthly} per month and {event} event insurance per year",
+      "other": "consumables and small items",
+      "marketing": "flyers, posters, ads",
+      "technology": "website, software, internet",
+      "admin": "tax advisor {tax}, annual accounts {report}, bookkeeping {books}, payroll {payroll} per year",
+      "loanInterest": "{rate} % interest on {amount}",
+      "reserves": "for the unexpected"
+    }
   }
 }
