@@ -14,8 +14,6 @@ export default async function SignInPage({ params }: { params: Promise<{ locale:
         routing="path"
         fallbackRedirectUrl={`/${locale}`}
         withSignUp={false}
-        // Registrieren nur auf Einladung: den Link zur Registrierung ausblenden
-        appearance={{ elements: { footerAction: { display: 'none' } } }}
       />
     </div>
   )

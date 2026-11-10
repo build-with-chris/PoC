@@ -64,3 +64,8 @@ input[type="range"] {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Clerk: Registrieren nur auf Einladung, deshalb den Link "Kein Account? Registrieren" ausblenden */
+.cl-signIn-root .cl-footerAction__signIn {
+  display: none;
+}
