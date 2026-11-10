@@ -13,7 +13,7 @@ Ein interaktiver Rechner für alle, die beim [Pepe Dome](https://pepe-dome.de/de
 - **Speichern** im Browser, **Teilen** per Link, **Herunterladen** als Tabelle (.csv) oder Bericht (.txt).
 - Deutsch und Englisch, heller und dunkler Modus.
 
-Es gibt keine Datenbank und keine Anmeldung.
+Es gibt keine Datenbank. Die ganze App liegt hinter einer Anmeldung über [Clerk](https://clerk.com), nur `/de/anmelden` und `/en/anmelden` sind offen. Registrieren kann man sich in der App nicht; neue Leute lädst du im Clerk-Dashboard ein.
 
 ## Die Grundwerte
 
@@ -37,7 +37,14 @@ Welche Felder es gibt, steht im Typ `Inputs` in `src/lib/model.ts`. `startMonth`
 
 Den Kontostand kannst du getrennt in `PEPE_DOME_KONTOSTAND` setzen (eine Zahl, z. B. `12345` oder `12.345,67`). Sie ersetzt `startingCash` und lässt sich so pflegen, ohne das große JSON anzufassen.
 
-**Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer die App öffnet, sieht die Startwerte trotzdem an den Reglern.
+**Wichtig:** Die Variable hält die Zahlen aus dem öffentlichen Repo heraus. Wer angemeldet ist, sieht die Startwerte an den Reglern.
+
+## Anmeldung (Clerk)
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` und `CLERK_SECRET_KEY` lokal in `.env` und in Vercel setzen.
+- Ohne Schlüssel läuft Clerk lokal im Entwicklungsmodus mit temporären Schlüsseln.
+- Live-Schlüssel (`pk_live_...`) gelten nur für die Domain, für die die Clerk-Instanz angelegt wurde.
+- Im Clerk-Dashboard die Registrierung auf Einladung beschränken.
 
 ## Rechenregeln
 

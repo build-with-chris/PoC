@@ -488,5 +488,9 @@
       "goal": "Brandschutz und Technik müssen bezahlt werden, ohne dass das Konto ins Minus rutscht.",
       "rule": "Anschaffungen am Anfang bleiben mindestens so hoch"
     }
+  },
+  "auth": {
+    "title": "Anmelden",
+    "intro": "Der Finanzregler ist nur für das Team des Pepe Dome. Melde dich mit deinem Zugang an."
   }
 }
