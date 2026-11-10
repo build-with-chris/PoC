@@ -488,5 +488,9 @@
       "goal": "Fire safety and technical work must be paid for without the account going into the red.",
       "rule": "purchases at the start stay at least as high"
     }
+  },
+  "auth": {
+    "title": "Sign in",
+    "intro": "The money planner is only for the Pepe Dome team. Sign in with your account."
   }
 }

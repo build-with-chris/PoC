@@ -1,6 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
+import { Show, UserButton } from '@clerk/nextjs'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 
 export default function SiteHeader() {
@@ -29,6 +30,7 @@ export default function SiteHeader() {
           <span className="hidden text-sm text-muted sm:inline">{t('brandSub')}</span>
         </Link>
         <nav className="ml-auto flex items-center gap-1">
+          <Show when="signed-in">
           {links.map((link) => {
             const active = pathname === link.href
             return (
@@ -44,6 +46,7 @@ export default function SiteHeader() {
               </Link>
             )
           })}
+          </Show>
           <button
             type="button"
             onClick={switchLanguage}
@@ -51,6 +54,11 @@ export default function SiteHeader() {
           >
             {t('switchLanguage')}
           </button>
+          <Show when="signed-in">
+            <span className="ml-2 flex items-center">
+              <UserButton />
+            </span>
+          </Show>
         </nav>
       </div>
     </header>

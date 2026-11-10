@@ -12,6 +12,8 @@
     "werte:vorlage": "tsx scripts/werte-vorlage.ts"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.24.6",
+    "@clerk/nextjs": "^7.9.25",
     "next": "^16.4.5",
     "next-intl": "^4.14.9",
     "react": "^19.3.1",

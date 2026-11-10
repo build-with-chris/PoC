@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
+import { ClerkProvider } from '@clerk/nextjs'
+import { deDE, enUS } from '@clerk/localizations'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -39,10 +41,16 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
-        <NextIntlClientProvider>
-          <SiteHeader />
-          <main>{children}</main>
-        </NextIntlClientProvider>
+        <ClerkProvider
+          localization={locale === 'de' ? deDE : enUS}
+          signInUrl={`/${locale}/anmelden`}
+          appearance={{ variables: { colorPrimary: '#b4471f', borderRadius: '0.5rem' } }}
+        >
+          <NextIntlClientProvider>
+            <SiteHeader />
+            <main>{children}</main>
+          </NextIntlClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   )
